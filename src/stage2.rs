@@ -291,9 +291,6 @@ impl<'de> Deserializer<'de> {
                     BasicTypes::Boolean(b) => {
                         insert_res!(Node::Static(StaticNode::Bool(b)));
                     }
-                    BasicTypes::Null => {
-                        insert_res!(Node::Static(StaticNode::Null));
-                    }
                 }
             };
         }
@@ -427,20 +424,33 @@ impl<'de> Deserializer<'de> {
 
                 State::ParseValue => {
                     if c == b'\n' {
-                        // Preserve the current object frame before descending into the child object.
-                        unsafe {
-                            stack_ptr.add(depth).write(StackState::Object {
-                                last_start,
-                                cnt,
-                            });
+                        let Some(&next_idx) = structural_indexes.get(i) else {
+                            // `key:` with nothing after it -> null, then unwind.
+                            insert_res!(Node::Static(StaticNode::Null));
+                            goto!(State::ScopeEnd);
+                        };
+
+                        let actual_ws = next_idx as usize - idx - 1;
+                        let sibling_ws = (((depth - 1) * 2) as isize + indent_modifier) as usize;
+
+                        // Deeper indentation -> the value is a nested object.
+                        if actual_ws > sibling_ws && actual_ws.is_multiple_of(2) {
+                            unsafe {
+                                stack_ptr
+                                    .add(depth)
+                                    .write(StackState::Object { last_start, cnt });
+                            }
+                            last_start = r_i;
+                            depth += 1;
+                            insert_res!(Node::Object { len: 0, count: 0 });
+                            cnt = 0;
+                            update_char!();
+                            goto!(State::ParseKey);
                         }
-                        
-                        last_start = r_i;
-                        depth += 1;
-                        insert_res!(Node::Object { len: 0, count: 0 });
-                        cnt = 0;
-                        update_char!();
-                        goto!(State::ParseKey)
+
+                        // Same level or shallower -> null value.
+                        insert_res!(Node::Static(StaticNode::Null));
+                        goto!(State::CheckIndentation);
                     }
 
                     let value_start = idx;
@@ -450,7 +460,6 @@ impl<'de> Deserializer<'de> {
                     if i >= structural_indexes.len() {
                         goto!(State::ScopeEnd);
                     }
-
                     goto!(State::CheckIndentation)
                 }
 

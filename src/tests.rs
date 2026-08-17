@@ -83,7 +83,7 @@ fn test_nested_block_array_items() {
 
 #[test]
 fn playground() {
-    let mut d = String::from("user:\n  name: Hamza\n  age: 21\n  something:\n    bla: bla");
+    let mut d = String::from("name: Hamza\nprofile:\n");
     let d = unsafe { d.as_bytes_mut() };
     let simd = Deserializer::from_slice(d).expect("failed to parse");
     println!("{:?}", simd.tape);

@@ -325,9 +325,6 @@ pub enum BasicTypes {
 
     /// Boolean
     Boolean(bool),
-
-    /// Null
-    Null,
 }
 
 // architecture dependant parse_str
