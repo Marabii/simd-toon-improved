@@ -426,6 +426,23 @@ impl<'de> Deserializer<'de> {
                 }
 
                 State::ParseValue => {
+                    if c == b'\n' {
+                        // Preserve the current object frame before descending into the child object.
+                        unsafe {
+                            stack_ptr.add(depth).write(StackState::Object {
+                                last_start,
+                                cnt,
+                            });
+                        }
+                        
+                        last_start = r_i;
+                        depth += 1;
+                        insert_res!(Node::Object { len: 0, count: 0 });
+                        cnt = 0;
+                        update_char!();
+                        goto!(State::ParseKey)
+                    }
+
                     let value_start = idx;
                     let value_end = get_value_end!(ErrorType::Syntax, b'\n');
                     parse_and_insert_value!(value_start, value_end);
@@ -453,7 +470,7 @@ impl<'de> Deserializer<'de> {
                                 *len = cnt;
                                 *end = r_i - last_start - 1;
                             }
-                            _ => unreachable!("scope end expects an object"),
+                            _ => unreachable!("Arrays are not yet supported"),
                         }
 
                         // Update the stack state:
