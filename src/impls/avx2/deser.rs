@@ -28,6 +28,32 @@ pub(crate) unsafe fn parse_str<'invoke, 'de>(
     input: SillyWrapper<'de>,
     data: &'invoke [u8],
     buffer: &'invoke mut [u8],
+    idx: usize,
+    end: usize,
+) -> Result<&'de str> {
+    unsafe {
+        if data[idx] == b'"' {
+            // QUOTED STRING:
+            parse_str_quotes(input, data, buffer, idx)
+        } else {
+            // BARE STRING:
+            let slice = std::slice::from_raw_parts(input.input.add(idx), end - idx);
+            Ok(std::str::from_utf8_unchecked(slice))
+        }
+    }
+}
+
+#[target_feature(enable = "avx2")]
+#[allow(
+    clippy::if_not_else,
+    clippy::cast_possible_wrap,
+    clippy::too_many_lines
+)]
+#[cfg_attr(not(feature = "no-inline"), inline)]
+pub(crate) unsafe fn parse_str_quotes<'invoke, 'de>(
+    input: SillyWrapper<'de>,
+    data: &'invoke [u8],
+    buffer: &'invoke mut [u8],
     mut idx: usize,
 ) -> Result<&'de str> {
     unsafe {

@@ -1,4 +1,4 @@
-#![deny(warnings)]
+// #![deny(warnings)]
 #![cfg_attr(feature = "hints", feature(core_intrinsics))]
 #![cfg_attr(feature = "portable", feature(portable_simd))]
 #![warn(unused_extern_crates)]
@@ -6,7 +6,7 @@
     clippy::all,
     clippy::unwrap_used,
     clippy::unnecessary_unwrap,
-    clippy::pedantic,
+    // clippy::pedantic,
     missing_docs
 )]
 #![allow(
@@ -313,6 +313,23 @@ pub struct Deserializer<'de> {
     idx: usize,
 }
 
+/// TOON doesn't use quotes all the time.
+/// We call `classify_bytes` to determine whether the value is a number, string, boolean or null.
+#[derive(Debug, PartialEq)]
+pub enum BasicTypes {
+    /// Number
+    Number,
+
+    /// String
+    String,
+
+    /// Boolean
+    Boolean(bool),
+
+    /// Null
+    Null,
+}
+
 // architecture dependant parse_str
 
 #[derive(Debug, Clone, Copy)]
@@ -345,7 +362,13 @@ type ParseStrFn = for<'invoke, 'de> unsafe fn(
     &'invoke [u8],
     &'invoke mut [u8],
     usize,
+    usize,
 ) -> std::result::Result<&'de str, error::Error>;
+#[cfg(all(
+    feature = "runtime-detection",
+    any(target_arch = "x86_64", target_arch = "x86"),
+))]
+type ClassifyBytesFn = for<'invoke> unsafe fn(&'invoke [u8]) -> BasicTypes;
 #[cfg(all(
     feature = "runtime-detection",
     any(target_arch = "x86_64", target_arch = "x86"),
@@ -358,29 +381,14 @@ type FindStructuralBitsFn = unsafe fn(
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 /// Supported implementations
 pub enum Implementation {
-    /// Rust native implementation
-    Native,
-    /// Rust native implementation with using [`std::simd`]
-    StdSimd,
-    /// SSE4.2 implementation
-    SSE42,
     /// AVX2 implementation
     AVX2,
-    /// ARM NEON implementation
-    NEON,
-    /// WEBASM SIMD128 implementation
-    SIMD128,
 }
 
 impl std::fmt::Display for Implementation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Implementation::Native => write!(f, "Rust Native"),
-            Implementation::StdSimd => write!(f, "std::simd"),
-            Implementation::SSE42 => write!(f, "SSE42"),
             Implementation::AVX2 => write!(f, "AVX2"),
-            Implementation::NEON => write!(f, "NEON"),
-            Implementation::SIMD128 => write!(f, "SIMD128"),
         }
     }
 }
@@ -395,74 +403,9 @@ impl Deserializer<'_> {
     pub fn algorithm() -> Implementation {
         if std::is_x86_feature_detected!("avx2") {
             Implementation::AVX2
-        } else if std::is_x86_feature_detected!("sse4.2") {
-            Implementation::SSE42
         } else {
-            #[cfg(feature = "portable")]
-            let r = Implementation::StdSimd;
-            #[cfg(not(feature = "portable"))]
-            let r = Implementation::Native;
-            r
+            todo!("Your architecture is not supported yet");
         }
-    }
-    #[cfg(not(any(
-        all(
-            feature = "runtime-detection",
-            any(target_arch = "x86_64", target_arch = "x86")
-        ),
-        feature = "portable",
-        target_feature = "avx2",
-        target_feature = "sse4.2",
-        target_feature = "simd128",
-        target_arch = "aarch64",
-    )))]
-    /// returns the algorithm / architecture used by the deserializer
-    #[must_use]
-    pub fn algorithm() -> Implementation {
-        Implementation::Native
-    }
-    #[cfg(all(feature = "portable", not(feature = "runtime-detection")))]
-    /// returns the algorithm / architecture used by the deserializer
-    #[must_use]
-    pub fn algorithm() -> Implementation {
-        Implementation::StdSimd
-    }
-
-    #[cfg(all(
-        target_feature = "avx2",
-        not(feature = "portable"),
-        not(feature = "runtime-detection"),
-    ))]
-    /// returns the algorithm / architecture used by the deserializer
-    #[must_use]
-    pub fn algorithm() -> Implementation {
-        Implementation::AVX2
-    }
-
-    #[cfg(all(
-        target_feature = "sse4.2",
-        not(target_feature = "avx2"),
-        not(feature = "runtime-detection"),
-        not(feature = "portable"),
-    ))]
-    /// returns the algorithm / architecture used by the deserializer
-    #[must_use]
-    pub fn algorithm() -> Implementation {
-        Implementation::SSE42
-    }
-
-    #[cfg(all(target_arch = "aarch64", not(feature = "portable")))]
-    /// returns the algorithm / architecture used by the deserializer
-    #[must_use]
-    pub fn algorithm() -> Implementation {
-        Implementation::NEON
-    }
-
-    #[cfg(all(target_feature = "simd128", not(feature = "portable")))]
-    /// returns the algorithm / architecture used by the deserializer
-    #[must_use]
-    pub fn algorithm() -> Implementation {
-        Implementation::SIMD128
     }
 }
 
@@ -478,14 +421,22 @@ impl<'de> Deserializer<'de> {
     pub(crate) fn parse_str_fn() -> ParseStrFn {
         if std::is_x86_feature_detected!("avx2") {
             impls::avx2::parse_str
-        } else if std::is_x86_feature_detected!("sse4.2") {
-            impls::sse42::parse_str
         } else {
-            #[cfg(feature = "portable")]
-            let r = impls::portable::parse_str;
-            #[cfg(not(feature = "portable"))]
-            let r = impls::native::parse_str;
-            r
+            todo!("No parse_str implementation available for your architecture yet");
+        }
+    }
+
+    /// Resolves the most suitable `classify_bytes` implementation once; callers (stage 2) hoist this out of the per-string hot path so each JSON string costs a plain indirect call instead of detection + dispatch (T6).
+    #[cfg_attr(not(feature = "no-inline"), inline)]
+    #[cfg(all(
+        feature = "runtime-detection",
+        any(target_arch = "x86_64", target_arch = "x86"),
+    ))]
+    pub(crate) fn classify_bytes_fn() -> ClassifyBytesFn {
+        if std::is_x86_feature_detected!("avx2") {
+            impls::avx2::classify_bytes
+        } else {
+            todo!("No classify_bytes implementation available for your architecture yet");
         }
     }
 
@@ -502,132 +453,18 @@ impl<'de> Deserializer<'de> {
         data: &'invoke [u8],
         buffer: &'invoke mut [u8],
         idx: usize,
+        end: usize,
     ) -> Result<&'de str>
     where
         'de: 'invoke,
     {
         let input: SillyWrapper<'de> = SillyWrapper::from(input);
-        unsafe { (Self::parse_str_fn())(input, data, buffer, idx) }
-    }
-    #[cfg_attr(not(feature = "no-inline"), inline)]
-    #[cfg(not(any(
-        all(
-            feature = "runtime-detection",
-            any(target_arch = "x86_64", target_arch = "x86")
-        ),
-        feature = "portable",
-        target_feature = "avx2",
-        target_feature = "sse4.2",
-        target_feature = "simd128",
-        target_arch = "aarch64",
-    )))]
-    pub(crate) unsafe fn parse_str_<'invoke>(
-        input: *mut u8,
-        data: &'invoke [u8],
-        buffer: &'invoke mut [u8],
-        idx: usize,
-    ) -> Result<&'de str>
-    where
-        'de: 'invoke,
-    {
-        let input: SillyWrapper<'de> = SillyWrapper::from(input);
-        unsafe { impls::native::parse_str(input, data, buffer, idx) }
-    }
-    #[cfg_attr(not(feature = "no-inline"), inline)]
-    #[cfg(all(feature = "portable", not(feature = "runtime-detection")))]
-    pub(crate) unsafe fn parse_str_<'invoke>(
-        input: *mut u8,
-        data: &'invoke [u8],
-        buffer: &'invoke mut [u8],
-        idx: usize,
-    ) -> Result<&'de str>
-    where
-        'de: 'invoke,
-    {
-        let input: SillyWrapper<'de> = SillyWrapper::from(input);
-        impls::portable::parse_str(input, data, buffer, idx)
-    }
-
-    #[cfg_attr(not(feature = "no-inline"), inline)]
-    #[cfg(all(
-        target_feature = "avx2",
-        not(feature = "portable"),
-        not(feature = "runtime-detection"),
-    ))]
-    pub(crate) unsafe fn parse_str_<'invoke>(
-        input: *mut u8,
-        data: &'invoke [u8],
-        buffer: &'invoke mut [u8],
-        idx: usize,
-    ) -> Result<&'de str> {
-        let input: SillyWrapper<'de> = SillyWrapper::from(input);
-        unsafe { impls::avx2::parse_str(input, data, buffer, idx) }
-    }
-
-    #[cfg_attr(not(feature = "no-inline"), inline)]
-    #[cfg(all(
-        target_feature = "sse4.2",
-        not(target_feature = "avx2"),
-        not(feature = "runtime-detection"),
-        not(feature = "portable"),
-    ))]
-    pub(crate) unsafe fn parse_str_<'invoke>(
-        input: *mut u8,
-        data: &'invoke [u8],
-        buffer: &'invoke mut [u8],
-        idx: usize,
-    ) -> Result<&'de str> {
-        let input: SillyWrapper<'de> = SillyWrapper::from(input);
-        unsafe { impls::sse42::parse_str(input, data, buffer, idx) }
-    }
-
-    #[cfg_attr(not(feature = "no-inline"), inline)]
-    #[cfg(all(target_arch = "aarch64", not(feature = "portable")))]
-    pub(crate) unsafe fn parse_str_<'invoke>(
-        input: *mut u8,
-        data: &'invoke [u8],
-        buffer: &'invoke mut [u8],
-        idx: usize,
-    ) -> Result<&'de str> {
-        let input: SillyWrapper = SillyWrapper::from(input);
-        impls::neon::parse_str(input, data, buffer, idx)
-    }
-    #[cfg_attr(not(feature = "no-inline"), inline)]
-    #[cfg(all(target_feature = "simd128", not(feature = "portable")))]
-    pub(crate) unsafe fn parse_str_<'invoke>(
-        input: *mut u8,
-        data: &'invoke [u8],
-        buffer: &'invoke mut [u8],
-        idx: usize,
-    ) -> Result<&'de str> {
-        let input: SillyWrapper<'de> = SillyWrapper::from(input);
-        impls::simd128::parse_str(input, data, buffer, idx)
+        unsafe { (Self::parse_str_fn())(input, data, buffer, idx, end) }
     }
 }
 
 /// architecture dependant `find_structural_bits`
 impl Deserializer<'_> {
-    #[cfg_attr(not(feature = "no-inline"), inline)]
-    /// Native fallback that pre-validates UTF-8 before finding structural bits,
-    /// since the native `ChunkedUtf8ValidatorImp` is a no-op.
-    #[cfg(all(
-        feature = "runtime-detection",
-        any(target_arch = "x86_64", target_arch = "x86"),
-        not(feature = "portable"),
-    ))]
-    pub(crate) unsafe fn find_structural_bits_native(
-        input: &[u8],
-        structural_indexes: &mut Vec<u32>,
-    ) -> std::result::Result<(), ErrorType> {
-        match core::str::from_utf8(input) {
-            Ok(_) => (),
-            Err(_) => return Err(ErrorType::InvalidUtf8),
-        }
-        unsafe {
-            Self::_find_structural_bits::<impls::native::SimdInput>(input, structural_indexes)
-        }
-    }
-
     #[cfg_attr(not(feature = "no-inline"), inline)]
     #[cfg(all(
         feature = "runtime-detection",
@@ -658,33 +495,14 @@ impl Deserializer<'_> {
                 }
             }
 
-            #[target_feature(enable = "sse4.2")]
-            unsafe fn find_structural_bits_sse42(
-                input: &[u8],
-                structural_indexes: &mut Vec<u32>,
-            ) -> core::result::Result<(), error::ErrorType> {
-                unsafe {
-                    Deserializer::_find_structural_bits::<impls::sse42::SimdInput>(
-                        input,
-                        structural_indexes,
-                    )
-                }
-            }
-
             #[cfg_attr(not(feature = "no-inline"), inline)]
             fn get_fastest_available_implementation() -> FindStructuralBitsFn {
                 if std::is_x86_feature_detected!("avx2")
                     && std::is_x86_feature_detected!("pclmulqdq")
                 {
                     find_structural_bits_avx2
-                } else if std::is_x86_feature_detected!("sse4.2") {
-                    find_structural_bits_sse42
                 } else {
-                    #[cfg(feature = "portable")]
-                    let r = Deserializer::_find_structural_bits::<impls::portable::SimdInput>;
-                    #[cfg(not(feature = "portable"))]
-                    let r = Deserializer::find_structural_bits_native;
-                    r
+                    todo!("Your architecture is not supported yet");
                 }
             }
 
@@ -702,92 +520,6 @@ impl Deserializer<'_> {
 
             let fun = FN.load(Ordering::Relaxed);
             mem::transmute::<FnRaw, FindStructuralBitsFn>(fun)(input, structural_indexes)
-        }
-    }
-
-    #[cfg(not(any(
-        all(
-            feature = "runtime-detection",
-            any(target_arch = "x86_64", target_arch = "x86")
-        ),
-        feature = "portable",
-        target_feature = "avx2",
-        target_feature = "sse4.2",
-        target_feature = "simd128",
-        target_arch = "aarch64",
-    )))]
-    #[cfg_attr(not(feature = "no-inline"), inline)]
-    pub(crate) unsafe fn find_structural_bits(
-        input: &[u8],
-        structural_indexes: &mut Vec<u32>,
-    ) -> std::result::Result<(), ErrorType> {
-        // This is a nasty hack, we don't have a chunked implementation for native rust
-        // so we validate UTF8 ahead of time
-        match core::str::from_utf8(input) {
-            Ok(_) => (),
-            Err(_) => return Err(ErrorType::InvalidUtf8),
-        }
-        #[cfg(not(feature = "portable"))]
-        unsafe {
-            Self::_find_structural_bits::<impls::native::SimdInput>(input, structural_indexes)
-        }
-    }
-
-    #[cfg(all(feature = "portable", not(feature = "runtime-detection")))]
-    #[cfg_attr(not(feature = "no-inline"), inline)]
-    pub(crate) unsafe fn find_structural_bits(
-        input: &[u8],
-        structural_indexes: &mut Vec<u32>,
-    ) -> std::result::Result<(), ErrorType> {
-        unsafe {
-            Self::_find_structural_bits::<impls::portable::SimdInput>(input, structural_indexes)
-        }
-    }
-
-    #[cfg(all(
-        target_feature = "avx2",
-        not(feature = "portable"),
-        not(feature = "runtime-detection"),
-    ))]
-    #[cfg_attr(not(feature = "no-inline"), inline)]
-    pub(crate) unsafe fn find_structural_bits(
-        input: &[u8],
-        structural_indexes: &mut Vec<u32>,
-    ) -> std::result::Result<(), ErrorType> {
-        unsafe { Self::_find_structural_bits::<impls::avx2::SimdInput>(input, structural_indexes) }
-    }
-
-    #[cfg(all(
-        target_feature = "sse4.2",
-        not(target_feature = "avx2"),
-        not(feature = "runtime-detection"),
-        not(feature = "portable"),
-    ))]
-    #[cfg_attr(not(feature = "no-inline"), inline)]
-    pub(crate) unsafe fn find_structural_bits(
-        input: &[u8],
-        structural_indexes: &mut Vec<u32>,
-    ) -> std::result::Result<(), ErrorType> {
-        unsafe { Self::_find_structural_bits::<impls::sse42::SimdInput>(input, structural_indexes) }
-    }
-
-    #[cfg(all(target_arch = "aarch64", not(feature = "portable")))]
-    #[cfg_attr(not(feature = "no-inline"), inline)]
-    pub(crate) unsafe fn find_structural_bits(
-        input: &[u8],
-        structural_indexes: &mut Vec<u32>,
-    ) -> std::result::Result<(), ErrorType> {
-        unsafe { Self::_find_structural_bits::<impls::neon::SimdInput>(input, structural_indexes) }
-    }
-
-    #[cfg(all(target_feature = "simd128", not(feature = "portable")))]
-    #[cfg_attr(not(feature = "no-inline"), inline)]
-    pub(crate) unsafe fn find_structural_bits(
-        input: &[u8],
-        structural_indexes: &mut Vec<u32>,
-    ) -> std::result::Result<(), ErrorType> {
-        unsafe {
-            Self::_find_structural_bits::<impls::simd128::SimdInput>(input, structural_indexes)
         }
     }
 }

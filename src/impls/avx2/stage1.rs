@@ -8,6 +8,10 @@ use std::arch::x86 as arch;
 
 #[cfg(target_arch = "x86_64")]
 use std::arch::x86_64 as arch;
+use std::{
+    arch::x86_64::{_mm256_cmpgt_epi8, _mm256_or_si256, _mm256_xor_si256},
+    ptr::copy_nonoverlapping,
+};
 
 use arch::{
     __m256i, _mm_clmulepi64_si128, _mm_set_epi64x, _mm_set1_epi8, _mm256_add_epi32,
@@ -19,8 +23,8 @@ use arch::{
 macro_rules! low_nibble_mask {
     () => {
         _mm256_setr_epi8(
-            16, 0, 0, 0, 0, 0, 0, 0, 0, 8, 12, 1, 2, 9, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 8, 12, 1,
-            2, 9, 0, 0,
+            32, 0, 0, 0, 0, 0, 0, 0, 0, 16, 1, 2, 4, 72, 0, 0, 32, 0, 0, 0, 0, 0, 0, 0, 0, 16, 1,
+            2, 4, 72, 0, 0,
         )
     };
 }
@@ -28,10 +32,22 @@ macro_rules! low_nibble_mask {
 macro_rules! high_nibble_mask {
     () => {
         _mm256_setr_epi8(
-            8, 0, 18, 4, 0, 1, 0, 1, 0, 0, 0, 3, 2, 1, 0, 0, 8, 0, 18, 4, 0, 1, 0, 1, 0, 0, 0, 3,
-            2, 1, 0, 0,
+            81, 0, 44, 1, 0, 10, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0, 81, 0, 44, 1, 0, 10, 0, 14, 0, 0,
+            0, 0, 0, 0, 0, 0,
         )
     };
+}
+
+fn print_bits(n: u64) {
+    for i in 0..64 {
+        print!("{}", (n >> i) & 1);
+
+        // Optional: add a space every 8 bits for readability
+        if i % 8 == 0 && i != 0 {
+            print!(" ");
+        }
+    }
+    println!();
 }
 
 #[derive(Debug)]
@@ -118,28 +134,19 @@ impl Stage1Parse for SimdInput {
     #[target_feature(enable = "avx2")]
     unsafe fn find_whitespace_and_structurals(&self, whitespace: &mut u64, structurals: &mut u64) {
         unsafe {
-            // do a 'shufti' to detect structural JSON characters
-            // they are
-            // * `{` 0x7b
-            // * `}` 0x7d
-            // * `:` 0x3a
-            // * `[` 0x5b
-            // * `]` 0x5d
-            // * `,` 0x2c
-            // these go into the first 3 buckets of the comparison (1/2/4)
-
-            // we are also interested in the four whitespace characters:
-            // * space 0x20
-            // * linefeed 0x0a
-            // * horizontal tab 0x09
-            // * carriage return 0x0d
-            // these go into the next 2 buckets of the comparison (8/16)
+            // Bit 0 (1): : (0x3A), \n (0x0A) -> Structural
+            // Bit 1 (2): [ (0x5B), { (0x7B) -> Structural
+            // Bit 2 (4): , (0x2C), | (0x7C) -> Structural
+            // Bit 3 (8): - (0x2D), ] (0x5D), } (0x7D) -> Structural
+            // Bit 4 (16): \t (0x09) -> Structural
+            // Bit 5 (32):       (0x20) -> Whitespace
+            // Bit 6 (64): \r (0x0D) -> Whitespace
 
             let low_nibble_mask: __m256i = low_nibble_mask!();
             let high_nibble_mask: __m256i = high_nibble_mask!();
 
-            let structural_shufti_mask: __m256i = _mm256_set1_epi8(0x7);
-            let whitespace_shufti_mask: __m256i = _mm256_set1_epi8(0x18);
+            let structural_shufti_mask: __m256i = _mm256_set1_epi8(0x1F);
+            let whitespace_shufti_mask: __m256i = _mm256_set1_epi8(0x60);
 
             let v_lo: __m256i = _mm256_and_si256(
                 _mm256_shuffle_epi8(low_nibble_mask, self.v0),
@@ -174,6 +181,9 @@ impl Stage1Parse for SimdInput {
             let structural_res_1: u64 = u64::from(static_cast_u32!(_mm256_movemask_epi8(tmp_hi)));
             *structurals = !(structural_res_0 | (structural_res_1 << 32));
 
+            print!("structurals: ");
+            print_bits(*structurals);
+
             let tmp_ws_lo: __m256i = _mm256_cmpeq_epi8(
                 _mm256_and_si256(v_lo, whitespace_shufti_mask),
                 _mm256_set1_epi8(0),
@@ -186,6 +196,9 @@ impl Stage1Parse for SimdInput {
             let ws_res_0: u64 = u64::from(static_cast_u32!(_mm256_movemask_epi8(tmp_ws_lo)));
             let ws_res_1: u64 = u64::from(static_cast_u32!(_mm256_movemask_epi8(tmp_ws_hi)));
             *whitespace = !(ws_res_0 | (ws_res_1 << 32));
+
+            print!("whitespace: ");
+            print_bits(*whitespace);
         }
     }
 
