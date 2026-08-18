@@ -19,6 +19,34 @@ enum State {
     /// Parse a key.
     ParseKey,
 
+    /// Parse tabular Objects:
+    /// ```
+    /// users[2:]{age,city}:
+    /// alice: 30,Berlin
+    /// bob: 25,Oslo
+    /// ```
+    /// is equivalent to
+    /// ```
+    /// {
+    /// "users": {
+    ///  "alice": {
+    ///    "age": 30,
+    ///    "city": "Berlin"
+    ///   },
+    ///   "bob": {
+    ///    "age": 25,
+    ///    "city": "Oslo"
+    ///   }
+    /// }
+    ///}
+    /// ```
+    /// The strings vector is for header names (eg: age, city)
+    ParseTabularObjects {
+        key: Option<(usize, usize)>,
+        headers: Vec<(usize, usize)>,
+        rows_count: usize,
+    },
+
     /// Parse value.
     ParseValue,
 
@@ -95,6 +123,22 @@ pub(crate) enum StackState {
     Array { last_start: usize, cnt: usize },
 }
 
+#[derive(Debug)]
+enum HeaderType {
+    /// A regular header, not a tabular array or some other complex header.
+    String,
+
+    /// Keyed Tabular Objects:
+    /// ```
+    /// users[2:]{age,city}:
+    /// ```
+    KeyedTabularObjects {
+        key: Option<(usize, usize)>,
+        headers: Vec<(usize, usize)>,
+        rows_count: usize,
+    },
+}
+
 impl<'de> Deserializer<'de> {
     #[cfg_attr(not(feature = "no-inline"), inline)]
     #[allow(
@@ -115,9 +159,6 @@ impl<'de> Deserializer<'de> {
         res.reserve(structural_indexes.len());
         stack.clear();
         stack.reserve(structural_indexes.len());
-        println!("input: {:?}", std::str::from_utf8(input).expect("sdfsad"));
-
-        println!("{structural_indexes:?}");
 
         // Safety: Must NOT advance input pointer as part of logic, since we only get the pointer once.
         // Use idx in order to advance through the input.
@@ -271,7 +312,8 @@ impl<'de> Deserializer<'de> {
             }};
         }
 
-        // When the type of value is unknown, use this macro to automatically figure out the type and insert the value into the tape.
+        // When the type of value is unknown, use this macro to automatically
+        // figure out the type and insert the value into the tape.
         macro_rules! parse_and_insert_value {
             ($start:expr, $end:expr) => {
                 let value_bytes = &input2[$start..$end];
@@ -325,6 +367,105 @@ impl<'de> Deserializer<'de> {
                 }
 
                 trim_trailing_spaces!(idx, hard_end)
+            }};
+        }
+
+        macro_rules! parse_string_number {
+            ($start:expr, $end:expr) => {{
+                let value_bytes = &input2[$start..$end];
+                match value_bytes.iter().try_fold(0u32, |acc, &b| {
+                    if b.is_ascii_digit() {
+                        acc.checked_mul(10)?.checked_add((b - b'0') as u32)
+                    } else {
+                        None
+                    }
+                }) {
+                    Some(v) => v,
+                    None => {
+                        fail!(ErrorType::Syntax);
+                    }
+                }
+            }};
+        }
+
+        macro_rules! read_header {
+            () => {{
+                let key_start = idx;
+                let key_end = get_value_end!(ErrorType::Syntax, b':', b'[');
+                let key = if key_end > key_start {
+                    Some((key_start, key_end))
+                } else {
+                    None
+                };
+
+                if c == b':' {
+                    cnt += 1;
+                    let key_end = trim_trailing_spaces!(key_start, idx);
+                    insert_str!(key_start, key_end);
+                    update_char!();
+                    HeaderType::String
+                } else if c == b'[' {
+                    update_char!();
+                    let rows_count_start = idx;
+
+                    update_char!();
+                    let rows_count_end = idx;
+                    let rows_count =
+                        parse_string_number!(rows_count_start, rows_count_end) as usize;
+
+                    let mut tabular_object_or_arr = 1;
+
+                    if c == b':' {
+                        update_char!();
+                        if unlikely!(c != b']') {
+                            fail!(ErrorType::Syntax);
+                        }
+                        tabular_object_or_arr = 0;
+                    }
+
+                    // This vector records the start and end of every header
+                    // Example: When parsing: users[2:]{age,city}:
+                    // it should record the positions of 'age' and 'city'
+                    let mut headers: Vec<(usize, usize)> = Vec::new();
+                    update_char!();
+
+                    if unlikely!(c != b'{') {
+                        fail!(ErrorType::Syntax);
+                    }
+
+                    loop {
+                        update_char!();
+
+                        if c == b':' {
+                            break;
+                        }
+
+                        if unlikely!(i > structural_indexes.len()) {
+                            fail!(ErrorType::Syntax);
+                        }
+
+                        let value_start = idx;
+                        let value_end = get_value_end!(ErrorType::Syntax, b',', b'}');
+                        headers.push((value_start, value_end));
+                    }
+
+                    update_char!();
+                    if unlikely!(c != b'\n') {
+                        fail!(ErrorType::Syntax);
+                    }
+
+                    if tabular_object_or_arr == 0 {
+                        HeaderType::KeyedTabularObjects {
+                            key,
+                            headers,
+                            rows_count,
+                        }
+                    } else {
+                        unreachable!("Arrays are not yet implemented!");
+                    }
+                } else {
+                    fail!(ErrorType::Syntax);
+                }
             }};
         }
 
@@ -410,15 +551,23 @@ impl<'de> Deserializer<'de> {
         loop {
             match state {
                 State::ParseKey => {
-                    let key_start = idx;
-                    update_char!();
+                    let header_type = read_header!();
 
-                    if c == b':' {
-                        cnt += 1;
-                        let key_end = trim_trailing_spaces!(key_start, idx);
-                        insert_str!(key_start, key_end);
-                        update_char!();
-                        goto!(State::ParseValue);
+                    match header_type {
+                        HeaderType::String => {
+                            goto!(State::ParseValue)
+                        }
+                        HeaderType::KeyedTabularObjects {
+                            key,
+                            headers,
+                            rows_count,
+                        } => {
+                            goto!(State::ParseTabularObjects {
+                                key,
+                                headers,
+                                rows_count
+                            })
+                        }
                     }
                 }
 
@@ -463,10 +612,118 @@ impl<'de> Deserializer<'de> {
                     goto!(State::CheckIndentation)
                 }
 
+                State::ParseTabularObjects {
+                    key,
+                    headers,
+                    rows_count,
+                } => {
+                    if let Some((key_start, key_end)) = key {
+                        cnt += 1;
+                        insert_str!(key_start, key_end);
+                    }
+
+                    unsafe {
+                        stack_ptr
+                            .add(depth)
+                            .write(StackState::Object { last_start, cnt });
+                    }
+                    last_start = r_i;
+                    depth += 1;
+                    insert_res!(Node::Object { len: 0, count: 0 });
+                    cnt = 0;
+
+                    update_char!(); // skip the header line's trailing '\n'
+
+                    let n_headers = headers.len();
+
+                    for row_idx in 0..rows_count {
+                        let row_key_start = idx;
+                        let row_key_end = get_value_end!(ErrorType::Syntax, b':');
+
+                        if unlikely!(c != b':') {
+                            fail!(ErrorType::Syntax);
+                        }
+
+                        cnt += 1;
+                        insert_str!(row_key_start, row_key_end);
+
+                        // Open the row's object, e.g. "alice": { "age": 30, "city": "Berlin" }
+                        unsafe {
+                            stack_ptr
+                                .add(depth)
+                                .write(StackState::Object { last_start, cnt });
+                        }
+                        last_start = r_i;
+                        depth += 1;
+                        insert_res!(Node::Object { len: 0, count: 0 });
+                        cnt = 0;
+
+                        update_char!(); // skip ':' to reach the first field value
+
+                        for (h_idx, &(h_start, h_end)) in headers.iter().enumerate() {
+                            insert_str!(h_start, h_end);
+                            cnt += 1;
+
+                            let is_last_header = h_idx + 1 == n_headers;
+                            let value_start = idx;
+                            let value_end = if is_last_header {
+                                get_value_end!(ErrorType::Syntax, b'\n')
+                            } else {
+                                get_value_end!(ErrorType::Syntax, b',')
+                            };
+                            parse_and_insert_value!(value_start, value_end);
+
+                            if !is_last_header {
+                                if unlikely!(c != b',') {
+                                    fail!(ErrorType::Syntax);
+                                }
+                                update_char!();
+                            }
+                        }
+
+                        unsafe {
+                            match *res_ptr.add(last_start) {
+                                Node::Object {
+                                    ref mut len,
+                                    count: ref mut end,
+                                } => {
+                                    *len = cnt;
+                                    *end = r_i - last_start - 1;
+                                }
+                                _ => {
+                                    fail!(ErrorType::NoStructure);
+                                }
+                            }
+
+                            match *stack_ptr.add(depth - 1) {
+                                StackState::Object {
+                                    last_start: parent_last_start,
+                                    cnt: parent_cnt,
+                                } => {
+                                    last_start = parent_last_start;
+                                    cnt = parent_cnt;
+                                }
+                                _ => {
+                                    fail!(ErrorType::NoStructure);
+                                }
+                            }
+                        }
+                        depth -= 1;
+
+                        let is_last_row = row_idx + 1 == rows_count;
+                        if !is_last_row {
+                            update_char!(); // advance past this row's '\n' to the next row's key
+                        }
+                    }
+
+                    goto!(State::ScopeEnd);
+                }
+
                 State::ScopeEnd => {
                     if unlikely!(depth == 0) {
                         fail!(ErrorType::Syntax);
                     }
+
                     depth -= 1;
 
                     unsafe {

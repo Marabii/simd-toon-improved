@@ -82,11 +82,31 @@ fn test_nested_block_array_items() {
 }
 
 #[test]
-fn playground() {
-    let mut d = String::from("name: Hamza\nprofile:\n");
+fn test_keyed_tabular_objects() {
+    let mut d = String::from("users[2:]{age,city}:\n  alice: 30,Berlin\n  bob: 25,Oslo\n");
     let d = unsafe { d.as_bytes_mut() };
     let simd = Deserializer::from_slice(d).expect("failed to parse");
     println!("{:?}", simd.tape);
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 14 },
+            Node::String("users"),
+            Node::Object { len: 2, count: 12 },
+            Node::String("alice"),
+            Node::Object { len: 2, count: 4 },
+            Node::String("age"),
+            Node::Static(StaticNode::U64(30)),
+            Node::String("city"),
+            Node::String("Berlin"),
+            Node::String("bob"),
+            Node::Object { len: 2, count: 4 },
+            Node::String("age"),
+            Node::Static(StaticNode::U64(25)),
+            Node::String("city"),
+            Node::String("Oslo"),
+        ]
+    );
 }
 
 #[test]
