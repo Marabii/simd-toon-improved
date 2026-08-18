@@ -73,7 +73,11 @@ enum State {
     /// ```
     /// {"items":[ {"sku":"A1","qty":2,"price":9.99}, {"sku":"B2","qty":1,"price":14.5} ]}
     /// ```
-    ParseTabularArray,
+    ParseTabularArray {
+        key: Option<(usize, usize)>,
+        headers: Vec<(usize, usize)>,
+        rows_count: usize,
+    },
 
     /// Parse nested field groups array
     /// ```
@@ -133,6 +137,16 @@ enum HeaderType {
     /// users[2:]{age,city}:
     /// ```
     KeyedTabularObjects {
+        key: Option<(usize, usize)>,
+        headers: Vec<(usize, usize)>,
+        rows_count: usize,
+    },
+
+    /// Tabular Arrays:
+    /// ```
+    /// items[2]{sku,qty,price}:
+    /// ```
+    TabularArray {
         key: Option<(usize, usize)>,
         headers: Vec<(usize, usize)>,
         rows_count: usize,
@@ -461,7 +475,11 @@ impl<'de> Deserializer<'de> {
                             rows_count,
                         }
                     } else {
-                        unreachable!("Arrays are not yet implemented!");
+                        HeaderType::TabularArray {
+                            key,
+                            headers,
+                            rows_count,
+                        }
                     }
                 } else {
                     fail!(ErrorType::Syntax);
@@ -568,6 +586,17 @@ impl<'de> Deserializer<'de> {
                                 rows_count
                             })
                         }
+                        HeaderType::TabularArray {
+                            key,
+                            headers,
+                            rows_count,
+                        } => {
+                            goto!(State::ParseTabularArray {
+                                key,
+                                headers,
+                                rows_count
+                            })
+                        }
                     }
                 }
 
@@ -654,7 +683,6 @@ impl<'de> Deserializer<'de> {
                                 .write(StackState::Object { last_start, cnt });
                         }
                         last_start = r_i;
-                        depth += 1;
                         insert_res!(Node::Object { len: 0, count: 0 });
                         cnt = 0;
 
@@ -695,7 +723,7 @@ impl<'de> Deserializer<'de> {
                                 }
                             }
 
-                            match *stack_ptr.add(depth - 1) {
+                            match *stack_ptr.add(depth) {
                                 StackState::Object {
                                     last_start: parent_last_start,
                                     cnt: parent_cnt,
@@ -708,11 +736,105 @@ impl<'de> Deserializer<'de> {
                                 }
                             }
                         }
-                        depth -= 1;
 
                         let is_last_row = row_idx + 1 == rows_count;
                         if !is_last_row {
                             update_char!(); // advance past this row's '\n' to the next row's key
+                        }
+                    }
+
+                    goto!(State::ScopeEnd);
+                }
+
+                State::ParseTabularArray {
+                    key,
+                    headers,
+                    rows_count,
+                } => {
+                    if let Some((key_start, key_end)) = key {
+                        cnt += 1;
+                        insert_str!(key_start, key_end);
+                    }
+
+                    unsafe {
+                        stack_ptr
+                            .add(depth)
+                            .write(StackState::Object { last_start, cnt });
+                    }
+                    last_start = r_i;
+                    depth += 1;
+                    insert_res!(Node::Array { len: 0, count: 0 });
+                    cnt = 0;
+
+                    update_char!(); // skip the header line's trailing '\n'
+
+                    let n_headers = headers.len();
+
+                    for row_idx in 0..rows_count {
+                        cnt += 1;
+
+                        // Open the row's object, e.g. { "sku": "A1", "qty": 2, "price": 9.99 }
+                        unsafe {
+                            stack_ptr
+                                .add(depth)
+                                .write(StackState::Array { last_start, cnt });
+                        }
+                        last_start = r_i;
+                        insert_res!(Node::Object { len: 0, count: 0 });
+                        cnt = 0;
+
+                        for (h_idx, &(h_start, h_end)) in headers.iter().enumerate() {
+                            insert_str!(h_start, h_end);
+                            cnt += 1;
+
+                            let is_last_header = h_idx + 1 == n_headers;
+                            let value_start = idx;
+                            let value_end = if is_last_header {
+                                get_value_end!(ErrorType::Syntax, b'\n')
+                            } else {
+                                get_value_end!(ErrorType::Syntax, b',')
+                            };
+                            parse_and_insert_value!(value_start, value_end);
+
+                            if !is_last_header {
+                                if unlikely!(c != b',') {
+                                    fail!(ErrorType::Syntax);
+                                }
+                                update_char!();
+                            }
+                        }
+
+                        unsafe {
+                            match *res_ptr.add(last_start) {
+                                Node::Object {
+                                    ref mut len,
+                                    count: ref mut end,
+                                } => {
+                                    *len = cnt;
+                                    *end = r_i - last_start - 1;
+                                }
+                                _ => {
+                                    fail!(ErrorType::NoStructure);
+                                }
+                            }
+
+                            match *stack_ptr.add(depth) {
+                                StackState::Array {
+                                    last_start: parent_last_start,
+                                    cnt: parent_cnt,
+                                } => {
+                                    last_start = parent_last_start;
+                                    cnt = parent_cnt;
+                                }
+                                _ => {
+                                    fail!(ErrorType::NoStructure);
+                                }
+                            }
+                        }
+
+                        let is_last_row = row_idx + 1 == rows_count;
+                        if !is_last_row {
+                            update_char!(); // advance past this row's '\n' to the next row's first value
                         }
                     }
 
@@ -732,16 +854,24 @@ impl<'de> Deserializer<'de> {
                             Node::Object {
                                 ref mut len,
                                 count: ref mut end,
+                            }
+                            | Node::Array {
+                                ref mut len,
+                                count: ref mut end,
                             } => {
                                 *len = cnt;
                                 *end = r_i - last_start - 1;
                             }
-                            _ => unreachable!("Arrays are not yet supported"),
+                            _ => unreachable!("Only Object/Array nodes carry a length"),
                         }
 
                         // Update the stack state:
                         match *stack_ptr.add(depth) {
                             StackState::Object {
+                                last_start: l,
+                                cnt: c,
+                            }
+                            | StackState::Array {
                                 last_start: l,
                                 cnt: c,
                             } => {
@@ -767,8 +897,6 @@ impl<'de> Deserializer<'de> {
                                 }
                                 fail!();
                             }
-
-                            _ => unreachable!("Not yet implemented"),
                         }
                     }
                 }
