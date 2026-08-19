@@ -15,6 +15,9 @@ enum State {
     /// Parse a key.
     ParseKey,
 
+    /// Parse simple object value. (The normal case, no tabular shenanigans)
+    ParseSimpleObjectValue,
+
     /// Parse tabular Objects:
     /// ```
     /// users[2:]{age,city}:
@@ -42,9 +45,6 @@ enum State {
         headers: Vec<(usize, usize)>,
         rows_count: usize,
     },
-
-    /// Parse value.
-    ParseValue,
 
     /// Decide how to parse an array.
     ArraySwitch,
@@ -182,6 +182,7 @@ impl<'de> Deserializer<'de> {
         // Safety: Must NOT advance input pointer as part of logic, since we only get the pointer once.
         // Use idx in order to advance through the input.
         let input_ptr = input.as_mut_ptr();
+
         // Resolve the per-ISA `parse_str` implementation once per document
         // instead of once per string (T6).
         #[cfg(all(
@@ -205,14 +206,11 @@ impl<'de> Deserializer<'de> {
 
         // Tape slot where the current container (Node::Object / Node::Array) started.
         // Example: if '{' starts at tape index 7, last_start = 7 until the matching '}'.
-        let mut last_start: usize = 0;
-
-        // Accumulator for tracking visual indentation shifts (Compact Arrays / Root Arrays)
-        let mut delta: isize = 0;
+        let mut last_start: usize;
 
         // Number of entries seen in the current container.
         // Example: for array[3]: 10,20,30 cnt becomes 3.
-        let mut cnt: usize = 0;
+        let mut cnt: usize;
 
         // Write cursor into `res` (the tape under construction).
         // Example: after writing three nodes, r_i == 3.
@@ -236,6 +234,20 @@ impl<'de> Deserializer<'de> {
 
         // Accumulator for tracking visual indentation shifts (Compact Arrays / Root Arrays)
         let mut indent_modifier: isize = 0;
+
+        #[cfg(all(
+            feature = "runtime-detection",
+            any(target_arch = "x86_64", target_arch = "x86"),
+        ))]
+        let mut parse_str = |start: usize, end: usize| unsafe {
+            parse_str_fn(
+                crate::SillyWrapper::from(input_ptr),
+                input2,
+                buffer,
+                start,
+                end,
+            )
+        };
 
         macro_rules! get {
             ($a:expr_2021, $i:expr_2021) => {{ unsafe { $a.get_kinda_unchecked($i) } }};
@@ -296,23 +308,11 @@ impl<'de> Deserializer<'de> {
 
         macro_rules! insert_str {
             ($start:expr, $end:expr) => {
-                insert_res!(Node::String(s2try!(Self::parse_str_(
-                    input.as_mut_ptr(),
-                    input2,
-                    buffer,
-                    $start,
-                    $end
-                ))));
+                insert_res!(Node::String(s2try!(parse_str($start, $end))));
             };
 
             ($end:expr) => {
-                insert_res!(Node::String(s2try!(Self::parse_str_(
-                    input.as_mut_ptr(),
-                    input2,
-                    buffer,
-                    idx,
-                    $end
-                ))));
+                insert_res!(Node::String(s2try!(parse_str($end))));
             };
         }
 
@@ -540,6 +540,38 @@ impl<'de> Deserializer<'de> {
             }};
         }
 
+        macro_rules! close_and_pop_state {
+            ($node_variant:ident, $stack_variant:ident) => {
+                unsafe {
+                    match *res_ptr.add(last_start) {
+                        Node::$node_variant {
+                            ref mut len,
+                            count: ref mut end,
+                        } => {
+                            *len = cnt;
+                            *end = r_i - last_start - 1;
+                        }
+                        _ => {
+                            fail!(ErrorType::NoStructure);
+                        }
+                    }
+
+                    match *stack_ptr.add(depth) {
+                        StackState::$stack_variant {
+                            last_start: parent_last_start,
+                            cnt: parent_cnt,
+                        } => {
+                            last_start = parent_last_start;
+                            cnt = parent_cnt;
+                        }
+                        _ => {
+                            fail!(ErrorType::NoStructure);
+                        }
+                    }
+                }
+            };
+        }
+
         macro_rules! fail {
             () => {
                 // We need to ensure that rust doesn't
@@ -581,7 +613,7 @@ impl<'de> Deserializer<'de> {
 
                     match header_type {
                         HeaderType::String => {
-                            goto!(State::ParseValue)
+                            goto!(State::ParseSimpleObjectValue)
                         }
                         HeaderType::KeyedTabularObjects {
                             key,
@@ -608,7 +640,7 @@ impl<'de> Deserializer<'de> {
                     }
                 }
 
-                State::ParseValue => {
+                State::ParseSimpleObjectValue => {
                     if c == b'\n' {
                         if i >= structural_indexes.len() {
                             insert_res!(Node::Object { len: 0, count: 0 });
@@ -627,10 +659,17 @@ impl<'de> Deserializer<'de> {
                                 }
                                 last_start = r_i;
                                 depth += 1;
+
                                 insert_res!(Node::Object { len: 0, count: 0 });
                                 cnt = 0;
+
+                                let key_start = idx;
+                                let key_end = get_value_end!(ErrorType::Syntax, b':', b'[');
+                                cnt += 1;
+                                insert_str!(key_start, key_end);
+
                                 update_char!();
-                                goto!(State::ParseKey);
+                                goto!(State::ParseSimpleObjectValue);
                             }
 
                             EOLState::Sibling => {
@@ -648,6 +687,29 @@ impl<'de> Deserializer<'de> {
                     let value_start = idx;
                     let value_end = get_value_end!(ErrorType::Syntax, b'\n');
                     parse_and_insert_value!(value_start, value_end);
+
+                    if c == b'\n' {
+                        if i >= structural_indexes.len() {
+                            goto!(State::ScopeEnd);
+                        }
+
+                        let eol_idx = idx;
+                        let eol_i = i;
+                        let eol_char = c;
+
+                        match get_eol_state!() {
+                            EOLState::Sibling => goto!(State::ParseKey),
+                            EOLState::CloseScope => {
+                                idx = eol_idx;
+                                i = eol_i;
+                                c = eol_char;
+                                goto!(State::ScopeEnd)
+                            }
+                            EOLState::Nested => {
+                                fail!(ErrorType::NoStructure);
+                            }
+                        }
+                    }
 
                     if i >= structural_indexes.len() {
                         goto!(State::ScopeEnd);
@@ -725,33 +787,7 @@ impl<'de> Deserializer<'de> {
                             }
                         }
 
-                        unsafe {
-                            match *res_ptr.add(last_start) {
-                                Node::Object {
-                                    ref mut len,
-                                    count: ref mut end,
-                                } => {
-                                    *len = cnt;
-                                    *end = r_i - last_start - 1;
-                                }
-                                _ => {
-                                    fail!(ErrorType::NoStructure);
-                                }
-                            }
-
-                            match *stack_ptr.add(depth) {
-                                StackState::Object {
-                                    last_start: parent_last_start,
-                                    cnt: parent_cnt,
-                                } => {
-                                    last_start = parent_last_start;
-                                    cnt = parent_cnt;
-                                }
-                                _ => {
-                                    fail!(ErrorType::NoStructure);
-                                }
-                            }
-                        }
+                        close_and_pop_state!(Object, Object);
 
                         let is_last_row = row_idx + 1 == rows_count;
                         if !is_last_row {
@@ -820,33 +856,7 @@ impl<'de> Deserializer<'de> {
                             }
                         }
 
-                        unsafe {
-                            match *res_ptr.add(last_start) {
-                                Node::Object {
-                                    ref mut len,
-                                    count: ref mut end,
-                                } => {
-                                    *len = cnt;
-                                    *end = r_i - last_start - 1;
-                                }
-                                _ => {
-                                    fail!(ErrorType::NoStructure);
-                                }
-                            }
-
-                            match *stack_ptr.add(depth) {
-                                StackState::Array {
-                                    last_start: parent_last_start,
-                                    cnt: parent_cnt,
-                                } => {
-                                    last_start = parent_last_start;
-                                    cnt = parent_cnt;
-                                }
-                                _ => {
-                                    fail!(ErrorType::NoStructure);
-                                }
-                            }
-                        }
+                        close_and_pop_state!(Object, Array);
 
                         let is_last_row = row_idx + 1 == rows_count;
                         if !is_last_row {
