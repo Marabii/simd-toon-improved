@@ -11,6 +11,7 @@ pub(crate) fn classify_bytes(input: &[u8]) -> BasicTypes {
     match input {
         b"true" => return BasicTypes::Boolean(true),
         b"false" => return BasicTypes::Boolean(false),
+        b"null" => return BasicTypes::Null,
         _ => {}
     }
 
