@@ -17,7 +17,7 @@ fn test_send_sync() {
 
 #[test]
 fn playground() {
-    let mut d = String::from("key: foo [2]: bar");
+    let mut d = String::from("tags[3]: admin,ops,dev");
     let d = unsafe { d.as_bytes_mut() };
     let simd = Deserializer::from_slice(d).expect("");
     println!("{:?}", simd.tape);
@@ -252,7 +252,7 @@ fn test_tape_inline_string_array() {
 
 #[test]
 fn test_tape_inline_number_array() {
-    let mut d = String::from("numbers[3]: 1,2,3");
+    let mut d = String::from("numbers[3]: 1,2,3\n");
     let d = unsafe { d.as_bytes_mut() };
     let simd = Deserializer::from_slice(d).expect("failed to parse");
     println!("{:?}", simd.tape);

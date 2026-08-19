@@ -34,7 +34,9 @@ struct TestCase {
 /// decode failure, or panic inside the decoder.
 fn run_decode_test(tc: &TestCase) -> Result<(), String> {
     let Some(toon_input) = tc.input.as_str() else {
-        return Err("fixture `input` is not a string (decode tests require TOON source text)".to_string());
+        return Err(
+            "fixture `input` is not a string (decode tests require TOON source text)".to_string(),
+        );
     };
 
     let mut buf = toon_input.as_bytes().to_vec();
@@ -43,9 +45,9 @@ fn run_decode_test(tc: &TestCase) -> Result<(), String> {
     }));
 
     match outcome {
-        Ok(Ok(actual)) if tc.should_error => {
-            Err(format!("expected an error but decoded successfully: {actual}"))
-        }
+        Ok(Ok(actual)) if tc.should_error => Err(format!(
+            "expected an error but decoded successfully: {actual}"
+        )),
         Ok(Ok(actual)) if actual == tc.expected => Ok(()),
         Ok(Ok(actual)) => Err(format!(
             "decoded value does not match expected\n    expected: {}\n    actual:   {}",
@@ -78,7 +80,7 @@ fn run_fixture_conformance_tests() {
         .map(|entry| entry.path())
         .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("json"))
         .collect();
-    
+
     fixture_files.sort();
 
     assert!(
@@ -116,6 +118,7 @@ fn run_fixture_conformance_tests() {
 
         for tc in &fixture.tests {
             total += 1;
+            println!("conformance: running {file_name} test case: {}", tc.name);
             if let Err(reason) = run_decode_test(tc) {
                 failures.push(format!("[{file_name}] {}: {reason}", tc.name));
             }

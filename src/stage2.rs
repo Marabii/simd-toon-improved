@@ -46,9 +46,6 @@ enum State {
         rows_count: usize,
     },
 
-    /// Decide how to parse an array.
-    ArraySwitch,
-
     /// Parse inline array
     /// ```
     /// tags[3]: admin,ops,dev
@@ -57,7 +54,11 @@ enum State {
     /// ```
     /// {"tags":[ "admin", "ops", "dev" ]}
     /// ```
-    ParseInlineArray,
+    /// Stores the length of the array
+    ParseInlineArray {
+        count: usize,
+        key: Option<(usize, usize)>,
+    },
 
     /// Parse tabular array
     /// ```
@@ -98,9 +99,6 @@ enum State {
     /// ```
     /// {"items":[ 1, {"a":1}, "text" ]}
     /// ```
-    ParseMixedAndNonUniformArrays,
-
-    /// Parse Objects as List Items
     /// ```
     /// items[2]:
     ///   - id: 1
@@ -113,7 +111,11 @@ enum State {
     /// ```
     /// {"items":[ {"id":1,"name":"First"}, {"id":2,"name":"Second","extra":true} ]}
     /// ```
-    ParseObjectsAsListItems,
+    /// Stores the length of the array
+    ParseBlockArray {
+        count: usize,
+        key: Option<(usize, usize)>,
+    },
 }
 
 #[derive(Debug)]
@@ -127,6 +129,13 @@ pub(crate) enum StackState {
 enum HeaderType {
     /// A regular header, not a tabular array or some other complex header.
     String,
+
+    /// SimpleArray: Could either be an Inline Array or a Block Array,
+    /// We decide after parsing it.
+    SimpleArray {
+        count: usize,
+        key: Option<(usize, usize)>,
+    },
 
     /// Keyed Tabular Objects:
     /// ```
@@ -234,6 +243,11 @@ impl<'de> Deserializer<'de> {
 
         // Accumulator for tracking visual indentation shifts (Compact Arrays / Root Arrays)
         let mut indent_modifier: isize = 0;
+
+        // Whitespace count measured by the last newline crossing (`get_eol_state!`).
+        // Reused by `ScopeEnd` when cascading through several closing scopes for the
+        // same newline, since the newline itself is only consumed once.
+        let mut last_ws: usize = 0;
 
         #[cfg(all(
             feature = "runtime-detection",
@@ -392,14 +406,36 @@ impl<'de> Deserializer<'de> {
             }};
         }
 
-        macro_rules! get_eol_state {
-            () => {{
-                if unlikely!(c != b'\n') {
+        // Compares an already-measured indentation width against the current `depth`,
+        // without touching the input. Used both by `get_eol_state!` (for the newline
+        // that was just crossed) and by `ScopeEnd` when it needs to re-evaluate the
+        // very same measurement against an outer (just-popped) scope.
+        macro_rules! eol_state_from_ws {
+            ($actual_ws:expr_2021) => {{
+                let actual_ws = $actual_ws;
+                let sibling_ws = (((depth - 1) * 2) as isize + indent_modifier) as usize;
+                let nested_ws = (((depth) * 2) as isize + indent_modifier) as usize;
+
+                if actual_ws == sibling_ws {
+                    EOLState::Sibling
+                } else if actual_ws < sibling_ws && actual_ws.is_multiple_of(2) {
+                    EOLState::CloseScope
+                } else if actual_ws == nested_ws {
+                    EOLState::Nested
+                } else {
                     fail!(ErrorType::Syntax);
                 }
+            }};
+        }
 
+        macro_rules! get_eol_state {
+            () => {{
                 if i >= structural_indexes.len() {
                     goto!(State::ScopeEnd);
+                }
+
+                if unlikely!(c != b'\n') {
+                    fail!(ErrorType::Syntax);
                 }
 
                 let old_idx = idx;
@@ -415,19 +451,8 @@ impl<'de> Deserializer<'de> {
                         fail!(ErrorType::Syntax);
                     }
 
-                    let actual_ws = new_idx - old_idx - 1;
-                    let sibling_ws = (((depth - 1) * 2) as isize + indent_modifier) as usize;
-                    let nested_ws = (((depth) * 2) as isize + indent_modifier) as usize;
-
-                    if actual_ws == sibling_ws {
-                        EOLState::Sibling
-                    } else if actual_ws < sibling_ws && actual_ws.is_multiple_of(2) {
-                        EOLState::CloseScope
-                    } else if actual_ws == nested_ws {
-                        EOLState::Nested
-                    } else {
-                        fail!(ErrorType::Syntax);
-                    }
+                    last_ws = new_idx - old_idx - 1;
+                    eol_state_from_ws!(last_ws)
                 }
             }};
         }
@@ -460,6 +485,12 @@ impl<'de> Deserializer<'de> {
                     None
                 };
 
+                enum TabularKind {
+                    SimpleArray,
+                    TabularArray(Vec<(usize, usize)>),
+                    KeyedObject(Vec<(usize, usize)>),
+                }
+
                 if c == b':' {
                     cnt += 1;
                     insert_str!(key_start, key_end);
@@ -480,59 +511,78 @@ impl<'de> Deserializer<'de> {
                     let rows_count =
                         parse_string_number!(rows_count_start, rows_count_end) as usize;
 
-                    let mut tabular_object_or_arr = 1;
+                    let mut kind = TabularKind::SimpleArray;
 
                     if c == b':' {
                         update_char!();
                         if unlikely!(c != b']') {
                             fail!(ErrorType::Syntax);
                         }
-                        tabular_object_or_arr = 0;
+
+                        kind = TabularKind::KeyedObject(Vec::new());
                     }
 
-                    // This vector records the start and end of every header
-                    // Example: When parsing: users[2:]{age,city}:
-                    // it should record the positions of 'age' and 'city'
-                    let mut headers: Vec<(usize, usize)> = Vec::new();
                     update_char!();
 
-                    if unlikely!(c != b'{') {
-                        fail!(ErrorType::Syntax);
-                    }
-
-                    loop {
-                        update_char!();
-
-                        if c == b':' {
-                            break;
+                    if c == b'{' {
+                        if matches!(kind, TabularKind::SimpleArray) {
+                            kind = TabularKind::TabularArray(Vec::new());
                         }
+                        // This vector records the start and end of every header
+                        // Example: When parsing: users[2:]{age,city}:
+                        // it should record the positions of 'age' and 'city'
+                        let mut headers: Vec<(usize, usize)> = Vec::new();
 
-                        if unlikely!(i > structural_indexes.len()) {
+                        if unlikely!(c != b'{') {
                             fail!(ErrorType::Syntax);
                         }
 
-                        let value_start = idx;
-                        let value_end = get_value_end!(ErrorType::Syntax, b',', b'}');
-                        headers.push((value_start, value_end));
+                        loop {
+                            update_char!();
+
+                            if c == b':' {
+                                break;
+                            }
+
+                            if unlikely!(i > structural_indexes.len()) {
+                                fail!(ErrorType::Syntax);
+                            }
+
+                            let value_start = idx;
+                            let value_end = get_value_end!(ErrorType::Syntax, b',', b'}');
+                            headers.push((value_start, value_end));
+                        }
+
+                        match kind {
+                            TabularKind::TabularArray(_) => {
+                                kind = TabularKind::TabularArray(headers);
+                            }
+                            TabularKind::KeyedObject(_) => {
+                                kind = TabularKind::KeyedObject(headers);
+                            }
+                            _ => {
+                                fail!(ErrorType::NoStructure);
+                            }
+                        }
                     }
 
                     update_char!();
-                    if unlikely!(c != b'\n') {
-                        fail!(ErrorType::Syntax);
-                    }
 
-                    if tabular_object_or_arr == 0 {
-                        HeaderType::KeyedTabularObjects {
+                    match kind {
+                        TabularKind::KeyedObject(headers) => HeaderType::KeyedTabularObjects {
                             key,
                             headers,
                             rows_count,
-                        }
-                    } else {
-                        HeaderType::TabularArray {
+                        },
+                        TabularKind::TabularArray(headers) => HeaderType::TabularArray {
                             key,
                             headers,
                             rows_count,
-                        }
+                        },
+                        TabularKind::SimpleArray => HeaderType::SimpleArray {
+                            count: rows_count,
+                            key,
+                        },
                     }
                 } else {
                     fail!(ErrorType::Syntax);
@@ -615,6 +665,13 @@ impl<'de> Deserializer<'de> {
                         HeaderType::String => {
                             goto!(State::ParseSimpleObjectValue)
                         }
+                        HeaderType::SimpleArray { count, key } => {
+                            if c == b'\n' {
+                                goto!(State::ParseBlockArray { count, key })
+                            } else {
+                                goto!(State::ParseInlineArray { count, key })
+                            }
+                        }
                         HeaderType::KeyedTabularObjects {
                             key,
                             headers,
@@ -647,10 +704,7 @@ impl<'de> Deserializer<'de> {
                             goto!(State::ScopeEnd);
                         }
 
-                        let eol_state = get_eol_state!();
-
-                        // Deeper indentation -> the value is a nested object.
-                        match eol_state {
+                        match get_eol_state!() {
                             EOLState::Nested => {
                                 unsafe {
                                     stack_ptr
@@ -689,20 +743,9 @@ impl<'de> Deserializer<'de> {
                     parse_and_insert_value!(value_start, value_end);
 
                     if c == b'\n' {
-                        if i >= structural_indexes.len() {
-                            goto!(State::ScopeEnd);
-                        }
-
-                        let eol_idx = idx;
-                        let eol_i = i;
-                        let eol_char = c;
-
                         match get_eol_state!() {
                             EOLState::Sibling => goto!(State::ParseKey),
                             EOLState::CloseScope => {
-                                idx = eol_idx;
-                                i = eol_i;
-                                c = eol_char;
                                 goto!(State::ScopeEnd)
                             }
                             EOLState::Nested => {
@@ -714,10 +757,56 @@ impl<'de> Deserializer<'de> {
                     if i >= structural_indexes.len() {
                         goto!(State::ScopeEnd);
                     }
-
-                    update_char!();
-                    goto!(State::ParseKey)
                 }
+
+                State::ParseInlineArray { count, key } => {
+                    if let Some((key_start, key_end)) = key {
+                        cnt += 1;
+                        insert_str!(key_start, key_end);
+                    }
+
+                    unsafe {
+                        stack_ptr
+                            .add(depth)
+                            .write(StackState::Array { last_start, cnt });
+                    }
+                    last_start = r_i;
+                    depth += 1;
+                    insert_res!(Node::Array { len: 0, count: 0 });
+                    cnt = 0;
+
+                    let mut value_start = idx;
+                    for _ in 1..count {
+                        cnt += 1;
+                        let value_end = get_value_end!(ErrorType::Syntax, b',');
+                        parse_and_insert_value!(value_start, value_end);
+
+                        if unlikely!(c != b',') {
+                            fail!(ErrorType::Syntax);
+                        }
+
+                        update_char!();
+                        value_start = idx;
+                    }
+
+                    cnt += 1;
+
+                    let value_end = get_value_end!(ErrorType::Syntax, b'\n');
+                    parse_and_insert_value!(value_start, value_end);
+
+                    match get_eol_state!() {
+                        EOLState::Sibling => {
+                            close_and_pop_state!(Object, Array);
+                            goto!(State::ParseKey)
+                        }
+                        EOLState::CloseScope => goto!(State::ScopeEnd),
+                        EOLState::Nested => {
+                            fail!(ErrorType::NoStructure);
+                        }
+                    }
+                }
+
+                State::ParseBlockArray { count, key } => {}
 
                 State::ParseTabularObjects {
                     key,
@@ -895,20 +984,31 @@ impl<'de> Deserializer<'de> {
                         match *stack_ptr.add(depth) {
                             StackState::Object {
                                 last_start: l,
-                                cnt: c,
+                                cnt: parent_cnt,
                             }
                             | StackState::Array {
                                 last_start: l,
-                                cnt: c,
+                                cnt: parent_cnt,
                             } => {
                                 last_start = l;
-                                cnt = c;
+                                cnt = parent_cnt;
 
                                 if i >= structural_indexes.len() {
                                     goto!(State::ScopeEnd);
                                 }
 
-                                match get_eol_state!() {
+                                // `c == b'\n'` means this newline hasn't been consumed yet
+                                // (fresh close, e.g. right after a tabular block). Otherwise
+                                // we're cascading through several closes for a newline that
+                                // `get_eol_state!` already consumed, so reuse its measurement
+                                // instead of expecting another (nonexistent) `\n`.
+                                let eol_state = if c == b'\n' {
+                                    get_eol_state!()
+                                } else {
+                                    eol_state_from_ws!(last_ws)
+                                };
+
+                                match eol_state {
                                     EOLState::CloseScope => {
                                         goto!(State::ScopeEnd);
                                     }
