@@ -9,10 +9,6 @@ use crate::{Deserializer, Error, ErrorType, InternalError, Result};
 
 #[derive(Debug)]
 enum State {
-    // The first 2 states are mandatory for any grammar that uses whitespace for structure.
-    /// The sole hub for indentation decisions.
-    CheckIndentation,
-
     /// Close the current scope.
     ScopeEnd,
 
@@ -151,6 +147,15 @@ enum HeaderType {
         headers: Vec<(usize, usize)>,
         rows_count: usize,
     },
+}
+
+/// Describes whether the next line is a sibling
+/// or a nested value or the end of the current scope
+#[derive(Debug)]
+enum EOLState {
+    Sibling,
+    CloseScope,
+    Nested,
 }
 
 impl<'de> Deserializer<'de> {
@@ -347,6 +352,9 @@ impl<'de> Deserializer<'de> {
                     BasicTypes::Boolean(b) => {
                         insert_res!(Node::Static(StaticNode::Bool(b)));
                     }
+                    BasicTypes::Null => {
+                        insert_res!(Node::Static(StaticNode::Null));
+                    }
                 }
             };
         }
@@ -384,6 +392,46 @@ impl<'de> Deserializer<'de> {
             }};
         }
 
+        macro_rules! get_eol_state {
+            () => {{
+                if unlikely!(c != b'\n') {
+                    fail!(ErrorType::Syntax);
+                }
+
+                if i >= structural_indexes.len() {
+                    goto!(State::ScopeEnd);
+                }
+
+                let old_idx = idx;
+                update_char!();
+
+                if i >= structural_indexes.len() {
+                    EOLState::CloseScope
+                } else {
+                    let new_idx = idx;
+
+                    // Prevents double newline characters
+                    if unlikely!(c == b'\n') {
+                        fail!(ErrorType::Syntax);
+                    }
+
+                    let actual_ws = new_idx - old_idx - 1;
+                    let sibling_ws = (((depth - 1) * 2) as isize + indent_modifier) as usize;
+                    let nested_ws = (((depth) * 2) as isize + indent_modifier) as usize;
+
+                    if actual_ws == sibling_ws {
+                        EOLState::Sibling
+                    } else if actual_ws < sibling_ws && actual_ws.is_multiple_of(2) {
+                        EOLState::CloseScope
+                    } else if actual_ws == nested_ws {
+                        EOLState::Nested
+                    } else {
+                        fail!(ErrorType::Syntax);
+                    }
+                }
+            }};
+        }
+
         macro_rules! parse_string_number {
             ($start:expr, $end:expr) => {{
                 let value_bytes = &input2[$start..$end];
@@ -414,8 +462,13 @@ impl<'de> Deserializer<'de> {
 
                 if c == b':' {
                     cnt += 1;
-                    let key_end = trim_trailing_spaces!(key_start, idx);
                     insert_str!(key_start, key_end);
+
+                    if i >= structural_indexes.len() {
+                        insert_res!(Node::Static(StaticNode::Null));
+                        goto!(State::ScopeEnd);
+                    }
+
                     update_char!();
                     HeaderType::String
                 } else if c == b'[' {
@@ -487,51 +540,6 @@ impl<'de> Deserializer<'de> {
             }};
         }
 
-        // The continue cases are the most frequently called onces it's
-        // worth pulling them out into a macro (aka inlining them)
-        // Since we don't have a 'gogo' in rust.
-        // macro_rules! array_continue {
-        //     () => {{
-        //         update_char!();
-        //         match c {
-        //             b',' => {
-        //                 cnt += 1;
-        //                 update_char!();
-        //                 goto!(MainArraySwitch);
-        //             }
-        //             b']' => {
-        //                 goto!(ScopeEnd);
-        //             }
-        //             _c => {
-        //                 fail!(ErrorType::ExpectedArrayContent);
-        //             }
-        //         }
-        //     }};
-        // }
-
-        // macro_rules! object_continue {
-        //     () => {{
-        //         update_char!();
-        //         match c {
-        //             b',' => {
-        //                 cnt += 1;
-        //                 update_char!();
-        //                 if c == b'"' {
-        //                     insert_str!();
-        //                     goto!(ObjectKey);
-        //                 }
-        //                 fail!(ErrorType::ExpectedObjectKey);
-        //             }
-        //             b'}' => {
-        //                 goto!(ScopeEnd);
-        //             }
-        //             _ => {
-        //                 fail!(ErrorType::ExpectedObjectContent);
-        //             }
-        //         }
-        //     }};
-        // }
-
         macro_rules! fail {
             () => {
                 // We need to ensure that rust doesn't
@@ -602,33 +610,39 @@ impl<'de> Deserializer<'de> {
 
                 State::ParseValue => {
                     if c == b'\n' {
-                        let Some(&next_idx) = structural_indexes.get(i) else {
-                            // `key:` with nothing after it -> null, then unwind.
+                        if i >= structural_indexes.len() {
                             insert_res!(Node::Static(StaticNode::Null));
                             goto!(State::ScopeEnd);
-                        };
-
-                        let actual_ws = next_idx as usize - idx - 1;
-                        let sibling_ws = (((depth - 1) * 2) as isize + indent_modifier) as usize;
-
-                        // Deeper indentation -> the value is a nested object.
-                        if actual_ws > sibling_ws && actual_ws.is_multiple_of(2) {
-                            unsafe {
-                                stack_ptr
-                                    .add(depth)
-                                    .write(StackState::Object { last_start, cnt });
-                            }
-                            last_start = r_i;
-                            depth += 1;
-                            insert_res!(Node::Object { len: 0, count: 0 });
-                            cnt = 0;
-                            update_char!();
-                            goto!(State::ParseKey);
                         }
 
-                        // Same level or shallower -> null value.
-                        insert_res!(Node::Static(StaticNode::Null));
-                        goto!(State::CheckIndentation);
+                        let eol_state = get_eol_state!();
+
+                        // Deeper indentation -> the value is a nested object.
+                        match eol_state {
+                            EOLState::Nested => {
+                                unsafe {
+                                    stack_ptr
+                                        .add(depth)
+                                        .write(StackState::Object { last_start, cnt });
+                                }
+                                last_start = r_i;
+                                depth += 1;
+                                insert_res!(Node::Object { len: 0, count: 0 });
+                                cnt = 0;
+                                update_char!();
+                                goto!(State::ParseKey);
+                            }
+
+                            EOLState::Sibling => {
+                                // Same level or shallower -> null value.
+                                insert_res!(Node::Static(StaticNode::Null));
+                                goto!(State::ParseKey)
+                            }
+
+                            EOLState::CloseScope => {
+                                goto!(State::ScopeEnd)
+                            }
+                        }
                     }
 
                     let value_start = idx;
@@ -638,7 +652,9 @@ impl<'de> Deserializer<'de> {
                     if i >= structural_indexes.len() {
                         goto!(State::ScopeEnd);
                     }
-                    goto!(State::CheckIndentation)
+
+                    update_char!();
+                    goto!(State::ParseKey)
                 }
 
                 State::ParseTabularObjects {
@@ -862,7 +878,7 @@ impl<'de> Deserializer<'de> {
                                 *len = cnt;
                                 *end = r_i - last_start - 1;
                             }
-                            _ => unreachable!("Only Object/Array nodes carry a length"),
+                            _ => unreachable!(),
                         }
 
                         // Update the stack state:
@@ -882,7 +898,19 @@ impl<'de> Deserializer<'de> {
                                     goto!(State::ScopeEnd);
                                 }
 
-                                goto!(State::CheckIndentation);
+                                match get_eol_state!() {
+                                    EOLState::CloseScope => {
+                                        goto!(State::ScopeEnd);
+                                    }
+
+                                    EOLState::Nested => {
+                                        fail!(ErrorType::NoStructure);
+                                    }
+
+                                    EOLState::Sibling => {
+                                        goto!(State::ParseKey);
+                                    }
+                                }
                             }
 
                             StackState::Start => {
@@ -900,49 +928,6 @@ impl<'de> Deserializer<'de> {
                         }
                     }
                 }
-
-                State::CheckIndentation => {
-                    if unlikely!(depth == 0) {
-                        fail!(ErrorType::Syntax);
-                    }
-
-                    if i >= structural_indexes.len() {
-                        goto!(State::ScopeEnd);
-                    }
-
-                    let old_idx = idx;
-
-                    if unlikely!(*get!(input2, old_idx) != b'\n') {
-                        fail!(ErrorType::NoStructure);
-                    }
-
-                    update_char!();
-
-                    if i >= structural_indexes.len() {
-                        goto!(State::ScopeEnd);
-                    }
-
-                    let new_idx = idx;
-
-                    // Prevents double newline characters
-                    if unlikely!(*get!(input2, new_idx) == b'\n') {
-                        fail!(ErrorType::Syntax);
-                    }
-
-                    let actual_ws = new_idx - old_idx - 1;
-
-                    let sibling_ws = (((depth - 1) * 2) as isize + indent_modifier) as usize;
-
-                    if actual_ws == sibling_ws {
-                        goto!(State::ParseKey);
-                    }
-                    if actual_ws < sibling_ws && actual_ws.is_multiple_of(2) {
-                        goto!(State::ScopeEnd);
-                    }
-
-                    fail!(ErrorType::Syntax);
-                }
-
                 _ => {
                     fail!();
                 }

@@ -38,18 +38,6 @@ macro_rules! high_nibble_mask {
     };
 }
 
-fn print_bits(n: u64) {
-    for i in 0..64 {
-        print!("{}", (n >> i) & 1);
-
-        // Optional: add a space every 8 bits for readability
-        if i % 8 == 0 && i != 0 {
-            print!(" ");
-        }
-    }
-    println!();
-}
-
 #[derive(Debug)]
 pub(crate) struct SimdInput {
     v0: __m256i,
@@ -181,9 +169,6 @@ impl Stage1Parse for SimdInput {
             let structural_res_1: u64 = u64::from(static_cast_u32!(_mm256_movemask_epi8(tmp_hi)));
             *structurals = !(structural_res_0 | (structural_res_1 << 32));
 
-            print!("structurals: ");
-            print_bits(*structurals);
-
             let tmp_ws_lo: __m256i = _mm256_cmpeq_epi8(
                 _mm256_and_si256(v_lo, whitespace_shufti_mask),
                 _mm256_set1_epi8(0),
@@ -196,9 +181,6 @@ impl Stage1Parse for SimdInput {
             let ws_res_0: u64 = u64::from(static_cast_u32!(_mm256_movemask_epi8(tmp_ws_lo)));
             let ws_res_1: u64 = u64::from(static_cast_u32!(_mm256_movemask_epi8(tmp_ws_hi)));
             *whitespace = !(ws_res_0 | (ws_res_1 << 32));
-
-            print!("whitespace: ");
-            print_bits(*whitespace);
         }
     }
 

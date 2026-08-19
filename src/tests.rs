@@ -1,9 +1,7 @@
 #![allow(clippy::ignored_unit_patterns)]
 
 #[cfg(feature = "serde_impl")]
-mod serde;
-
-mod impls;
+mod conformance;
 
 #[cfg(not(target_arch = "wasm32"))]
 use crate::{Deserializer, tape::Node};
@@ -15,6 +13,14 @@ fn test_send_sync() {
     struct TestStruct<T: Sync + Send>(T);
     #[allow(let_underscore_drop)] // test
     let _: TestStruct<_> = TestStruct(super::AlignedBuf::with_capacity(0));
+}
+
+#[test]
+fn playground() {
+    let mut d = String::from("key: foo [2]: bar");
+    let d = unsafe { d.as_bytes_mut() };
+    let simd = Deserializer::from_slice(d).expect("");
+    println!("{:?}", simd.tape);
 }
 
 #[test]
