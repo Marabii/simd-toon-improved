@@ -263,6 +263,10 @@ impl<'de> Deserializer<'de> {
         // same newline, since the newline itself is only consumed once.
         let mut last_ws: usize = 0;
 
+        // Only block arrays need their declared count carried across states.
+        // Keyed by depth, so an entry can only ever be consumed by the scope it belongs to.
+        let mut pending_counts: Vec<(usize, usize)> = Vec::new(); // (depth, expected)
+
         #[cfg(all(
             feature = "runtime-detection",
             any(target_arch = "x86_64", target_arch = "x86"),
@@ -633,8 +637,11 @@ impl<'de> Deserializer<'de> {
                         StackState::Object {
                             last_start: parent_last_start,
                             cnt: parent_cnt,
+                        } => {
+                            last_start = parent_last_start;
+                            cnt = parent_cnt;
                         }
-                        | StackState::Array {
+                        StackState::Array {
                             last_start: parent_last_start,
                             cnt: parent_cnt,
                         } => {
@@ -808,11 +815,15 @@ impl<'de> Deserializer<'de> {
                         insert_str!(key_start, key_end);
                     }
 
+                    // The count is verified right in this block, we don't need to add it to the stack and verify it later.
                     unsafe {
-                        stack_ptr
-                            .add(depth)
-                            .write(StackState::Array { last_start, cnt });
+                        stack_ptr.add(depth).write(if key.is_some() {
+                            StackState::Object { last_start, cnt }
+                        } else {
+                            StackState::Array { last_start, cnt }
+                        });
                     }
+
                     last_start = r_i;
                     depth += 1;
                     insert_res!(Node::Array { len: 0, count: 0 });
@@ -856,22 +867,31 @@ impl<'de> Deserializer<'de> {
                     }
 
                     unsafe {
-                        stack_ptr
-                            .add(depth)
-                            .write(StackState::Array { last_start, cnt });
+                        stack_ptr.add(depth).write(if key.is_some() {
+                            StackState::Object { last_start, cnt }
+                        } else {
+                            StackState::Array { last_start, cnt }
+                        });
                     }
 
                     last_start = r_i;
                     depth += 1;
                     insert_res!(Node::Array { len: 0, count: 0 });
                     cnt = 0;
-
+                    pending_counts.push((depth, count));
                     goto!(State::ExpectBlockArrayItem);
                 }
 
                 State::ExpectBlockArrayItem => {
                     if unlikely!(c != b'-') {
                         fail!(ErrorType::ExpectedArray);
+                    }
+
+                    if let Some(&(d, expected)) = pending_counts.last() {
+                        debug_assert_eq!(d, depth);
+                        if d == depth && unlikely!(cnt >= expected) {
+                            fail!(ErrorType::Syntax); // more items than declared
+                        }
                     }
 
                     if indent_modifier > 0 {
@@ -1156,6 +1176,15 @@ impl<'de> Deserializer<'de> {
                 State::ScopeEnd => {
                     if unlikely!(depth == 0) {
                         fail!(ErrorType::Syntax);
+                    }
+
+                    if let Some(&(d, expected)) = pending_counts.last() {
+                        if d == depth {
+                            pending_counts.pop();
+                            if unlikely!(cnt != expected) {
+                                fail!(ErrorType::Syntax); // fewer items than declared
+                            }
+                        }
                     }
 
                     if indent_modifier > 0 {

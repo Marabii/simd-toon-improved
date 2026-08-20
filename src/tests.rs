@@ -16,13 +16,21 @@ fn test_send_sync() {
 }
 
 #[test]
+fn playground2() {
+    let mut d = String::from("items[3]:\n  - 1\n  - a: 1\n  - text");
+    let d = unsafe { d.as_bytes_mut() };
+    let simd = Deserializer::from_slice(d).expect("");
+    println!("{:?}", simd.tape)
+}
+
+#[test]
 fn playground() {
     let mut d = String::from(
-        "items[3]:\n  - summary\n  - id: 1\n    name: Ada\n  - [2]:\n    - id: 2\n    - status: draft\n",
+        "items[2]:\n  - users[2:]{age,city}:\n      alice: 30,Berlin\n      bob: 25,Oslo\n",
     );
     let d = unsafe { d.as_bytes_mut() };
     let simd = Deserializer::from_slice(d).expect("");
-    println!("{:?}", simd.tape);
+    println!("{:?}", simd.tape)
 }
 
 #[test]
