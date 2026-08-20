@@ -151,6 +151,15 @@ enum HeaderType {
         key: Option<(usize, usize)>,
     },
 
+    /// EmptyArray:
+    /// ```
+    /// items[0]:
+    /// ```
+    /// Unlike every other bracket header this one is a complete value on its
+    /// own: nothing follows the `:` on this line, nothing is nested below it,
+    /// and it is allowed to be the last thing in the document.
+    EmptyArray { key: Option<(usize, usize)> },
+
     /// Keyed Tabular Objects:
     /// ```
     /// users[2:]{age,city}:
@@ -310,6 +319,7 @@ impl<'de> Deserializer<'de> {
                 }
             };
         }
+
         macro_rules! success {
             () => {
                 unsafe {
@@ -318,6 +328,7 @@ impl<'de> Deserializer<'de> {
                 return Ok(());
             };
         }
+
         macro_rules! update_char {
             () => {
                 if i < structural_indexes.len() {
@@ -493,6 +504,16 @@ impl<'de> Deserializer<'de> {
             }};
         }
 
+        /// Reads one line's header and classifies it.
+        ///
+        /// Whatever the shape, this leaves the cursor on the token that ended
+        /// the header:
+        /// `:` for every keyed form
+        /// `\n` (or the last token of the document) for `BlockArraySimpleValue`.
+        ///
+        /// Stepping past it is the
+        /// caller's job, because only the caller knows whether the header is
+        /// allowed to be the final thing in the document.
         macro_rules! read_header {
             () => {{
                 let key_start = idx;
@@ -591,8 +612,6 @@ impl<'de> Deserializer<'de> {
                         }
                     }
 
-                    update_char!();
-
                     match kind {
                         TabularKind::KeyedObject(headers) => HeaderType::KeyedTabularObjects {
                             key,
@@ -604,6 +623,9 @@ impl<'de> Deserializer<'de> {
                             headers,
                             rows_count,
                         },
+                        TabularKind::SimpleArray if rows_count == 0 => {
+                            HeaderType::EmptyArray { key }
+                        }
                         TabularKind::SimpleArray => HeaderType::SimpleArray {
                             count: rows_count,
                             key,
@@ -712,11 +734,21 @@ impl<'de> Deserializer<'de> {
                         }
 
                         HeaderType::SimpleArray { count, key } => {
+                            update_char!(); // step past the header's ':'
+
                             if c == b'\n' {
                                 goto!(State::ParseBlockArray { count, key })
                             } else {
                                 goto!(State::ParseInlineArray { count, key })
                             }
+                        }
+
+                        HeaderType::EmptyArray { key } => {
+                            if i < structural_indexes.len() {
+                                update_char!();
+                            }
+
+                            goto!(State::ParseInlineArray { count: 0, key })
                         }
 
                         HeaderType::KeyedTabularObjects {
@@ -829,24 +861,29 @@ impl<'de> Deserializer<'de> {
                     insert_res!(Node::Array { len: 0, count: 0 });
                     cnt = 0;
 
-                    let mut value_start = idx;
-                    for _ in 1..count {
-                        cnt += 1;
-                        let value_end = get_value_end!(ErrorType::Syntax, b',');
-                        parse_and_insert_value!(value_start, value_end);
+                    // Only parse values if there are actually values to parse
+                    if count > 0 {
+                        // Parse all elements except the last one
+                        for _ in 1..count {
+                            cnt += 1;
 
-                        if unlikely!(c != b',') {
-                            fail!(ErrorType::Syntax);
+                            let value_start = idx;
+                            let value_end = get_value_end!(ErrorType::Syntax, b',');
+                            parse_and_insert_value!(value_start, value_end);
+
+                            if unlikely!(c != b',') {
+                                fail!(ErrorType::Syntax);
+                            }
+
+                            update_char!();
                         }
 
-                        update_char!();
-                        value_start = idx;
+                        // Parse the final element
+                        cnt += 1;
+                        let value_start = idx;
+                        let value_end = get_value_end!(ErrorType::Syntax, b'\n');
+                        parse_and_insert_value!(value_start, value_end);
                     }
-
-                    cnt += 1;
-
-                    let value_end = get_value_end!(ErrorType::Syntax, b'\n');
-                    parse_and_insert_value!(value_start, value_end);
 
                     match get_eol_state!() {
                         EOLState::CloseScope | EOLState::Sibling => goto!(State::ScopeEnd),
@@ -855,7 +892,6 @@ impl<'de> Deserializer<'de> {
                         }
                     }
                 }
-
                 State::ParseBlockArray { count, key } => {
                     if let Some((key_start, key_end)) = key {
                         cnt += 1;
@@ -901,6 +937,22 @@ impl<'de> Deserializer<'de> {
                     update_char!(); // move past '-' onto the item's content
 
                     cnt += 1;
+
+                    macro_rules! wrap_keyed_item {
+                        ($key:expr_2021) => {
+                            if $key.is_some() {
+                                unsafe {
+                                    stack_ptr
+                                        .add(depth)
+                                        .write(StackState::Array { last_start, cnt });
+                                }
+                                last_start = r_i;
+                                depth += 1;
+                                insert_res!(Node::Object { len: 0, count: 0 });
+                                cnt = 0;
+                            }
+                        };
+                    }
 
                     match read_header!() {
                         HeaderType::BlockArraySimpleValue {
@@ -950,22 +1002,25 @@ impl<'de> Deserializer<'de> {
                         // `- [N]: ...` (anonymous): the item is itself an array.
                         // `- key[N]: ...`: an object whose first field is an array.
                         HeaderType::SimpleArray { count, key } => {
-                            if key.is_some() {
-                                unsafe {
-                                    stack_ptr
-                                        .add(depth)
-                                        .write(StackState::Array { last_start, cnt });
-                                }
-                                last_start = r_i;
-                                depth += 1;
-                                insert_res!(Node::Object { len: 0, count: 0 });
-                                cnt = 0;
-                            }
+                            wrap_keyed_item!(key);
+
+                            update_char!(); // step past the header's ':'
+
                             if c == b'\n' {
                                 goto!(State::ParseBlockArray { count, key })
                             } else {
                                 goto!(State::ParseInlineArray { count, key })
                             }
+                        }
+
+                        HeaderType::EmptyArray { key } => {
+                            wrap_keyed_item!(key);
+
+                            if i < structural_indexes.len() {
+                                update_char!();
+                            }
+
+                            goto!(State::ParseInlineArray { count: 0, key })
                         }
 
                         // `- key[N:]{...}:`: an object whose first field is a keyed
@@ -975,17 +1030,7 @@ impl<'de> Deserializer<'de> {
                             headers,
                             rows_count,
                         } => {
-                            if key.is_some() {
-                                unsafe {
-                                    stack_ptr
-                                        .add(depth)
-                                        .write(StackState::Array { last_start, cnt });
-                                }
-                                last_start = r_i;
-                                depth += 1;
-                                insert_res!(Node::Object { len: 0, count: 0 });
-                                cnt = 0;
-                            }
+                            wrap_keyed_item!(key);
 
                             indent_modifier += 2;
                             goto!(State::ParseTabularObjects {
@@ -1000,17 +1045,7 @@ impl<'de> Deserializer<'de> {
                             headers,
                             rows_count,
                         } => {
-                            if key.is_some() {
-                                unsafe {
-                                    stack_ptr
-                                        .add(depth)
-                                        .write(StackState::Array { last_start, cnt });
-                                }
-                                last_start = r_i;
-                                depth += 1;
-                                insert_res!(Node::Object { len: 0, count: 0 });
-                                cnt = 0;
-                            }
+                            wrap_keyed_item!(key);
                             indent_modifier += 2;
                             goto!(State::ParseTabularArray {
                                 key,
@@ -1043,7 +1078,8 @@ impl<'de> Deserializer<'de> {
                     insert_res!(Node::Object { len: 0, count: 0 });
                     cnt = 0;
 
-                    update_char!(); // skip the header line's trailing '\n'
+                    update_char!(); // step past the header's ':'
+                    update_char!(); // ... and past the line's trailing '\n'
 
                     let n_headers = headers.len();
 
@@ -1124,7 +1160,8 @@ impl<'de> Deserializer<'de> {
                     insert_res!(Node::Array { len: 0, count: 0 });
                     cnt = 0;
 
-                    update_char!(); // skip the header line's trailing '\n'
+                    update_char!(); // step past the header's ':'
+                    update_char!(); // ... and past the line's trailing '\n'
 
                     let n_headers = headers.len();
 
@@ -1178,12 +1215,12 @@ impl<'de> Deserializer<'de> {
                         fail!(ErrorType::Syntax);
                     }
 
-                    if let Some(&(d, expected)) = pending_counts.last() {
-                        if d == depth {
-                            pending_counts.pop();
-                            if unlikely!(cnt != expected) {
-                                fail!(ErrorType::Syntax); // fewer items than declared
-                            }
+                    if let Some(&(d, expected)) = pending_counts.last()
+                        && d == depth
+                    {
+                        pending_counts.pop();
+                        if unlikely!(cnt != expected) {
+                            fail!(ErrorType::Syntax); // fewer items than declared
                         }
                     }
 
