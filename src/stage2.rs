@@ -116,6 +116,11 @@ enum State {
         count: usize,
         key: Option<(usize, usize)>,
     },
+
+    /// Expect the next hyphen-prefixed element (`- ...`) of a block array.
+    /// Reused for every element after the first, including ones reached by
+    /// cascading back out of a deeply nested list-item via `ScopeEnd`.
+    ExpectBlockArrayItem,
 }
 
 #[derive(Debug)]
@@ -127,8 +132,17 @@ pub(crate) enum StackState {
 
 #[derive(Debug)]
 enum HeaderType {
-    /// A regular header, not a tabular array or some other complex header.
-    String,
+    /// BlockArraySimpleValue
+    /// ```
+    /// items[1]:
+    ///   - some value
+    /// ```
+    /// Could be a regular string or a number but not a complex header like
+    /// keyed tabular objects or tabular arrays
+    BlockArraySimpleValue { key: (usize, usize) },
+
+    /// A regular object key, not a tabular array or some other complex header.
+    SimpleKey { key: (usize, usize) },
 
     /// SimpleArray: Could either be an Inline Array or a Block Array,
     /// We decide after parsing it.
@@ -478,7 +492,7 @@ impl<'de> Deserializer<'de> {
         macro_rules! read_header {
             () => {{
                 let key_start = idx;
-                let key_end = get_value_end!(ErrorType::Syntax, b':', b'[');
+                let key_end = get_value_end!(ErrorType::Syntax, b':', b'[', b'\n');
                 let key = if key_end > key_start {
                     Some((key_start, key_end))
                 } else {
@@ -491,17 +505,24 @@ impl<'de> Deserializer<'de> {
                     KeyedObject(Vec<(usize, usize)>),
                 }
 
-                if c == b':' {
-                    cnt += 1;
-                    insert_str!(key_start, key_end);
+                if c == b'\n' || i >= structural_indexes.len() {
+                    let key = match key {
+                        Some((start, end)) => (start, end),
+                        None => {
+                            fail!(ErrorType::Syntax);
+                        }
+                    };
 
-                    if i >= structural_indexes.len() {
-                        insert_res!(Node::Object { len: 0, count: 0 });
-                        goto!(State::ScopeEnd);
-                    }
+                    HeaderType::BlockArraySimpleValue { key }
+                } else if c == b':' {
+                    let key = match key {
+                        Some((start, end)) => (start, end),
+                        None => {
+                            fail!(ErrorType::Syntax);
+                        }
+                    };
 
-                    update_char!();
-                    HeaderType::String
+                    HeaderType::SimpleKey { key }
                 } else if c == b'[' {
                     update_char!();
                     let rows_count_start = idx;
@@ -591,7 +612,7 @@ impl<'de> Deserializer<'de> {
         }
 
         macro_rules! close_and_pop_state {
-            ($node_variant:ident, $stack_variant:ident) => {
+            ($node_variant:ident) => {
                 unsafe {
                     match *res_ptr.add(last_start) {
                         Node::$node_variant {
@@ -606,15 +627,21 @@ impl<'de> Deserializer<'de> {
                         }
                     }
 
+                    // The parent's saved tag (Object/Array) only reflects which kind of
+                    // container it is; either way we just restore last_start/cnt from it.
                     match *stack_ptr.add(depth) {
-                        StackState::$stack_variant {
+                        StackState::Object {
+                            last_start: parent_last_start,
+                            cnt: parent_cnt,
+                        }
+                        | StackState::Array {
                             last_start: parent_last_start,
                             cnt: parent_cnt,
                         } => {
                             last_start = parent_last_start;
                             cnt = parent_cnt;
                         }
-                        _ => {
+                        StackState::Start => {
                             fail!(ErrorType::NoStructure);
                         }
                     }
@@ -662,9 +689,21 @@ impl<'de> Deserializer<'de> {
                     let header_type = read_header!();
 
                     match header_type {
-                        HeaderType::String => {
+                        HeaderType::SimpleKey {
+                            key: (key_start, key_end),
+                        } => {
+                            cnt += 1;
+                            insert_str!(key_start, key_end);
+
+                            if i >= structural_indexes.len() {
+                                insert_res!(Node::Object { len: 0, count: 0 });
+                                goto!(State::ScopeEnd);
+                            }
+
+                            update_char!();
                             goto!(State::ParseSimpleObjectValue)
                         }
+
                         HeaderType::SimpleArray { count, key } => {
                             if c == b'\n' {
                                 goto!(State::ParseBlockArray { count, key })
@@ -672,6 +711,7 @@ impl<'de> Deserializer<'de> {
                                 goto!(State::ParseInlineArray { count, key })
                             }
                         }
+
                         HeaderType::KeyedTabularObjects {
                             key,
                             headers,
@@ -683,6 +723,7 @@ impl<'de> Deserializer<'de> {
                                 rows_count
                             })
                         }
+
                         HeaderType::TabularArray {
                             key,
                             headers,
@@ -693,6 +734,10 @@ impl<'de> Deserializer<'de> {
                                 headers,
                                 rows_count
                             })
+                        }
+
+                        HeaderType::BlockArraySimpleValue { .. } => {
+                            fail!(ErrorType::NoStructure);
                         }
                     }
                 }
@@ -718,7 +763,7 @@ impl<'de> Deserializer<'de> {
                                 cnt = 0;
 
                                 let key_start = idx;
-                                let key_end = get_value_end!(ErrorType::Syntax, b':', b'[');
+                                let key_end = get_value_end!(ErrorType::Syntax, b':');
                                 cnt += 1;
                                 insert_str!(key_start, key_end);
 
@@ -742,20 +787,18 @@ impl<'de> Deserializer<'de> {
                     let value_end = get_value_end!(ErrorType::Syntax, b'\n');
                     parse_and_insert_value!(value_start, value_end);
 
-                    if c == b'\n' {
-                        match get_eol_state!() {
-                            EOLState::Sibling => goto!(State::ParseKey),
-                            EOLState::CloseScope => {
-                                goto!(State::ScopeEnd)
-                            }
-                            EOLState::Nested => {
-                                fail!(ErrorType::NoStructure);
-                            }
-                        }
-                    }
-
                     if i >= structural_indexes.len() {
                         goto!(State::ScopeEnd);
+                    }
+
+                    match get_eol_state!() {
+                        EOLState::Sibling => goto!(State::ParseKey),
+                        EOLState::CloseScope => {
+                            goto!(State::ScopeEnd)
+                        }
+                        EOLState::Nested => {
+                            fail!(ErrorType::NoStructure);
+                        }
                     }
                 }
 
@@ -795,18 +838,168 @@ impl<'de> Deserializer<'de> {
                     parse_and_insert_value!(value_start, value_end);
 
                     match get_eol_state!() {
-                        EOLState::Sibling => {
-                            close_and_pop_state!(Object, Array);
-                            goto!(State::ParseKey)
-                        }
-                        EOLState::CloseScope => goto!(State::ScopeEnd),
+                        EOLState::CloseScope | EOLState::Sibling => goto!(State::ScopeEnd),
                         EOLState::Nested => {
                             fail!(ErrorType::NoStructure);
                         }
                     }
                 }
 
-                State::ParseBlockArray { count, key } => {}
+                State::ParseBlockArray { count, key } => {
+                    if let Some((key_start, key_end)) = key {
+                        cnt += 1;
+                        insert_str!(key_start, key_end);
+                    }
+
+                    if !matches!(get_eol_state!(), EOLState::Nested) {
+                        fail!(ErrorType::ExpectedArrayContent);
+                    }
+
+                    unsafe {
+                        stack_ptr
+                            .add(depth)
+                            .write(StackState::Array { last_start, cnt });
+                    }
+
+                    last_start = r_i;
+                    depth += 1;
+                    insert_res!(Node::Array { len: 0, count: 0 });
+                    cnt = 0;
+
+                    goto!(State::ExpectBlockArrayItem);
+                }
+
+                State::ExpectBlockArrayItem => {
+                    if unlikely!(c != b'-') {
+                        fail!(ErrorType::ExpectedArray);
+                    }
+
+                    if indent_modifier > 0 {
+                        indent_modifier -= 2;
+                    }
+
+                    update_char!(); // move past '-' onto the item's content
+
+                    cnt += 1;
+
+                    match read_header!() {
+                        HeaderType::BlockArraySimpleValue {
+                            key: (key_start, key_end),
+                        } => {
+                            parse_and_insert_value!(key_start, key_end);
+
+                            if c == b'\n' {
+                                match get_eol_state!() {
+                                    EOLState::Sibling => goto!(State::ExpectBlockArrayItem),
+                                    EOLState::CloseScope => goto!(State::ScopeEnd),
+                                    EOLState::Nested => {
+                                        fail!(ErrorType::NoStructure);
+                                    }
+                                }
+                            }
+
+                            goto!(State::ScopeEnd);
+                        }
+
+                        // `- key: value`: the item is an object; open its wrapper, insert
+                        // the first field, then reuse the normal object-value machinery.
+                        HeaderType::SimpleKey {
+                            key: (key_start, key_end),
+                        } => {
+                            unsafe {
+                                stack_ptr
+                                    .add(depth)
+                                    .write(StackState::Array { last_start, cnt });
+                            }
+                            last_start = r_i;
+                            depth += 1;
+                            insert_res!(Node::Object { len: 0, count: 0 });
+                            cnt = 1;
+
+                            insert_str!(key_start, key_end);
+
+                            if i >= structural_indexes.len() {
+                                insert_res!(Node::Object { len: 0, count: 0 });
+                                goto!(State::ScopeEnd);
+                            }
+
+                            update_char!();
+                            goto!(State::ParseSimpleObjectValue);
+                        }
+
+                        // `- [N]: ...` (anonymous): the item is itself an array.
+                        // `- key[N]: ...`: an object whose first field is an array.
+                        HeaderType::SimpleArray { count, key } => {
+                            if key.is_some() {
+                                unsafe {
+                                    stack_ptr
+                                        .add(depth)
+                                        .write(StackState::Array { last_start, cnt });
+                                }
+                                last_start = r_i;
+                                depth += 1;
+                                insert_res!(Node::Object { len: 0, count: 0 });
+                                cnt = 0;
+                            }
+                            if c == b'\n' {
+                                goto!(State::ParseBlockArray { count, key })
+                            } else {
+                                goto!(State::ParseInlineArray { count, key })
+                            }
+                        }
+
+                        // `- key[N:]{...}:`: an object whose first field is a keyed
+                        // tabular block.
+                        HeaderType::KeyedTabularObjects {
+                            key,
+                            headers,
+                            rows_count,
+                        } => {
+                            if key.is_some() {
+                                unsafe {
+                                    stack_ptr
+                                        .add(depth)
+                                        .write(StackState::Array { last_start, cnt });
+                                }
+                                last_start = r_i;
+                                depth += 1;
+                                insert_res!(Node::Object { len: 0, count: 0 });
+                                cnt = 0;
+                            }
+
+                            indent_modifier += 2;
+                            goto!(State::ParseTabularObjects {
+                                key,
+                                headers,
+                                rows_count
+                            })
+                        }
+
+                        HeaderType::TabularArray {
+                            key,
+                            headers,
+                            rows_count,
+                        } => {
+                            if key.is_some() {
+                                unsafe {
+                                    stack_ptr
+                                        .add(depth)
+                                        .write(StackState::Array { last_start, cnt });
+                                }
+                                last_start = r_i;
+                                depth += 1;
+                                insert_res!(Node::Object { len: 0, count: 0 });
+                                cnt = 0;
+                            }
+                            indent_modifier += 2;
+                            goto!(State::ParseTabularArray {
+                                key,
+                                headers,
+                                rows_count
+                            })
+                        }
+                    }
+                }
 
                 State::ParseTabularObjects {
                     key,
@@ -819,9 +1012,11 @@ impl<'de> Deserializer<'de> {
                     }
 
                     unsafe {
-                        stack_ptr
-                            .add(depth)
-                            .write(StackState::Object { last_start, cnt });
+                        stack_ptr.add(depth).write(if key.is_some() {
+                            StackState::Object { last_start, cnt }
+                        } else {
+                            StackState::Array { last_start, cnt }
+                        });
                     }
                     last_start = r_i;
                     depth += 1;
@@ -876,7 +1071,7 @@ impl<'de> Deserializer<'de> {
                             }
                         }
 
-                        close_and_pop_state!(Object, Object);
+                        close_and_pop_state!(Object);
 
                         let is_last_row = row_idx + 1 == rows_count;
                         if !is_last_row {
@@ -898,9 +1093,11 @@ impl<'de> Deserializer<'de> {
                     }
 
                     unsafe {
-                        stack_ptr
-                            .add(depth)
-                            .write(StackState::Object { last_start, cnt });
+                        stack_ptr.add(depth).write(if key.is_some() {
+                            StackState::Object { last_start, cnt }
+                        } else {
+                            StackState::Array { last_start, cnt }
+                        });
                     }
                     last_start = r_i;
                     depth += 1;
@@ -945,7 +1142,7 @@ impl<'de> Deserializer<'de> {
                             }
                         }
 
-                        close_and_pop_state!(Object, Array);
+                        close_and_pop_state!(Object);
 
                         let is_last_row = row_idx + 1 == rows_count;
                         if !is_last_row {
@@ -959,6 +1156,10 @@ impl<'de> Deserializer<'de> {
                 State::ScopeEnd => {
                     if unlikely!(depth == 0) {
                         fail!(ErrorType::Syntax);
+                    }
+
+                    if indent_modifier > 0 {
+                        indent_modifier -= 2;
                     }
 
                     depth -= 1;
@@ -980,13 +1181,11 @@ impl<'de> Deserializer<'de> {
                             _ => unreachable!(),
                         }
 
-                        // Update the stack state:
+                        // Update the stack state. The tag records what kind of container
+                        // we're returning to, so `Sibling` knows whether to expect another
+                        // object key (`ParseKey`) or another block-array item (`-`).
                         match *stack_ptr.add(depth) {
                             StackState::Object {
-                                last_start: l,
-                                cnt: parent_cnt,
-                            }
-                            | StackState::Array {
                                 last_start: l,
                                 cnt: parent_cnt,
                             } => {
@@ -1019,6 +1218,38 @@ impl<'de> Deserializer<'de> {
 
                                     EOLState::Sibling => {
                                         goto!(State::ParseKey);
+                                    }
+                                }
+                            }
+
+                            StackState::Array {
+                                last_start: l,
+                                cnt: parent_cnt,
+                            } => {
+                                last_start = l;
+                                cnt = parent_cnt;
+
+                                if i >= structural_indexes.len() {
+                                    goto!(State::ScopeEnd);
+                                }
+
+                                let eol_state = if c == b'\n' {
+                                    get_eol_state!()
+                                } else {
+                                    eol_state_from_ws!(last_ws)
+                                };
+
+                                match eol_state {
+                                    EOLState::CloseScope => {
+                                        goto!(State::ScopeEnd);
+                                    }
+
+                                    EOLState::Nested => {
+                                        fail!(ErrorType::NoStructure);
+                                    }
+
+                                    EOLState::Sibling => {
+                                        goto!(State::ExpectBlockArrayItem);
                                     }
                                 }
                             }

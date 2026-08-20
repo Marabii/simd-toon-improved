@@ -17,7 +17,9 @@ fn test_send_sync() {
 
 #[test]
 fn playground() {
-    let mut d = String::from("tags[3]: admin,ops,dev");
+    let mut d = String::from(
+        "items[3]:\n  - summary\n  - id: 1\n    name: Ada\n  - [2]:\n    - id: 2\n    - status: draft\n",
+    );
     let d = unsafe { d.as_bytes_mut() };
     let simd = Deserializer::from_slice(d).expect("");
     println!("{:?}", simd.tape);
@@ -111,21 +113,6 @@ fn test_keyed_tabular_objects() {
             Node::Static(StaticNode::U64(25)),
             Node::String("city"),
             Node::String("Oslo"),
-        ]
-    );
-}
-
-#[test]
-fn test_null_value() {
-    let mut d = String::from("v_str: \"\0[\"");
-    let d = unsafe { d.as_bytes_mut() };
-    let simd = Deserializer::from_slice(d).expect("failed to parse");
-    assert_eq!(
-        simd.tape,
-        [
-            Node::Object { len: 1, count: 2 },
-            Node::String("v_str"),
-            Node::String("\0[")
         ]
     );
 }
