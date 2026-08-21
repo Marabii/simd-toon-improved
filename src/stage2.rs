@@ -828,7 +828,15 @@ impl<'de> Deserializer<'de> {
 
                     let value_start = idx;
                     let value_end = get_value_end!(ErrorType::Syntax, b'\n');
-                    parse_and_insert_value!(value_start, value_end);
+
+                    // This is meant to handle the WEIRD way empty arrays are represented in TOON:
+                    // `key: []`
+                    // WHY BREAK CONVENTION OF ARRAYS ? key[N<delimiter?>]<{fields}>:
+                    if &input2[value_start..value_end] == b"[]" {
+                        insert_res!(Node::Array { len: 0, count: 0 });
+                    } else {
+                        parse_and_insert_value!(value_start, value_end);
+                    }
 
                     if i >= structural_indexes.len() {
                         goto!(State::ScopeEnd);
