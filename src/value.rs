@@ -62,12 +62,14 @@ pub mod lazy;
 pub use self::borrowed::{
     Value as BorrowedValue, to_value as to_borrowed_value,
     to_value_with_buffers as to_borrowed_value_with_buffers,
+    to_value_with_options as to_borrowed_value_with_options,
 };
 pub use self::owned::{
     Value as OwnedValue, to_value as to_owned_value,
     to_value_with_buffers as to_owned_value_with_buffers,
+    to_value_with_options as to_owned_value_with_options,
 };
-use crate::{Buffers, Deserializer, Result};
+use crate::{Buffers, DecodeOptions, Deserializer, Result};
 use halfbrown::HashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
@@ -95,7 +97,27 @@ where
     Value: ValueBuilder<'de> + From<Vec<Value>> + From<HashMap<Key, Value, ObjectHasher>> + 'de,
     Key: Hash + Eq + From<&'de str>,
 {
-    match Deserializer::from_slice(s) {
+    deserialize_with_options(s, DecodeOptions::new())
+}
+
+/// Parses a slice of bytes into a Value dom, using the given decode options.
+///
+/// This function will rewrite the slice to de-escape strings.
+/// As we reference parts of the input slice the resulting dom
+/// has the same lifetime as the slice it was created from.
+///
+/// # Errors
+///
+/// Will return `Err` if `s` is invalid JSON.
+pub fn deserialize_with_options<'de, Value, Key>(
+    s: &'de mut [u8],
+    options: DecodeOptions,
+) -> Result<Value>
+where
+    Value: ValueBuilder<'de> + From<Vec<Value>> + From<HashMap<Key, Value, ObjectHasher>> + 'de,
+    Key: Hash + Eq + From<&'de str>,
+{
+    match Deserializer::from_slice_with_options(s, options) {
         Ok(de) => Ok(ValueDeserializer::from_deserializer(de).parse()),
         Err(e) => Err(e),
     }
@@ -186,11 +208,6 @@ where
         // element so we eat this
         for _ in 0..len {
             if let Node::String(key) = unsafe { self.de.next_() } {
-                #[cfg(not(feature = "value-no-dup-keys"))]
-                unsafe {
-                    res.insert_nocheck(key.into(), self.parse());
-                };
-                #[cfg(feature = "value-no-dup-keys")]
                 res.insert(key.into(), self.parse());
             } else {
                 unreachable!("parse_map: key needs to be a string");

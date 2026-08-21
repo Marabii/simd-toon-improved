@@ -26,7 +26,7 @@ mod serialize;
 
 use super::ObjectHasher;
 use crate::{Buffers, prelude::*};
-use crate::{Deserializer, Node, Result};
+use crate::{DecodeOptions, Deserializer, Node, Result};
 use crate::{cow::Cow, safer_unchecked::GetSaferUnchecked as _};
 use halfbrown::HashMap;
 use std::fmt;
@@ -47,7 +47,20 @@ pub type Array<'value> = Vec<Value<'value>>;
 ///
 /// Will return `Err` if `s` is invalid JSON.
 pub fn to_value(s: &mut [u8]) -> Result<Value<'_>> {
-    match Deserializer::from_slice(s) {
+    to_value_with_options(s, DecodeOptions::new())
+}
+
+/// Parses a slice of bytes into a Value dom, using the given decode options.
+///
+/// This function will rewrite the slice to de-escape strings.
+/// As we reference parts of the input slice the resulting dom
+/// has the same lifetime as the slice it was created from.
+///
+/// # Errors
+///
+/// Will return `Err` if `s` is invalid JSON.
+pub fn to_value_with_options(s: &mut [u8], options: DecodeOptions) -> Result<Value<'_>> {
+    match Deserializer::from_slice_with_options(s, options) {
         Ok(de) => Ok(BorrowDeserializer::from_deserializer(de).parse()),
         Err(e) => Err(e),
     }
@@ -383,7 +396,7 @@ impl Default for Value<'_> {
     }
 }
 
-pub(super) struct BorrowDeserializer<'de>(Deserializer<'de>);
+pub(crate) struct BorrowDeserializer<'de>(Deserializer<'de>);
 
 impl<'de> BorrowDeserializer<'de> {
     pub fn from_deserializer(de: Deserializer<'de>) -> Self {
@@ -424,11 +437,6 @@ impl<'de> BorrowDeserializer<'de> {
         // element so we eat this
         for _ in 0..len {
             if let Node::String(key) = unsafe { self.0.next_() } {
-                #[cfg(not(feature = "value-no-dup-keys"))]
-                unsafe {
-                    res.insert_nocheck(key.into(), self.parse());
-                };
-                #[cfg(feature = "value-no-dup-keys")]
                 res.insert(key.into(), self.parse());
             } else {
                 unreachable!("parse_map: key not a string");
@@ -486,11 +494,6 @@ impl<'tape, 'de> BorrowSliceDeserializer<'tape, 'de> {
         // element so we eat this
         for _ in 0..len {
             if let Node::String(key) = unsafe { self.next_() } {
-                #[cfg(not(feature = "value-no-dup-keys"))]
-                unsafe {
-                    res.insert_nocheck(key.into(), self.parse());
-                };
-                #[cfg(feature = "value-no-dup-keys")]
                 res.insert(key.into(), self.parse());
             } else {
                 unreachable!("parse_map: key needs to be a string");

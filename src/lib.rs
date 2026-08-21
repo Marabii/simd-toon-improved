@@ -29,9 +29,18 @@ pub mod tests;
 use crate::error::InternalError;
 #[cfg(feature = "serde_impl")]
 pub use crate::serde::{
-    from_reader, from_slice, from_str, to_string, to_string_pretty, to_vec, to_vec_pretty,
-    to_writer, to_writer_pretty,
+    from_reader, from_reader_with_options, from_slice, from_slice_with_options, from_str,
+    from_str_with_options, to_string, to_string_pretty, to_vec, to_vec_pretty, to_writer,
+    to_writer_pretty,
 };
+
+/// Decode time options for the parser
+mod decode_options;
+pub use crate::decode_options::{DEFAULT_INDENT_SIZE, DecodeOptions};
+
+/// A parser handle bundling decode options and reusable buffers
+mod parser;
+pub use crate::parser::Parser;
 
 /// Default trait imports;
 pub mod prelude;
@@ -140,7 +149,18 @@ impl Buffers {
 /// Will return `Err` if `s` is invalid JSON.
 #[cfg_attr(not(feature = "no-inline"), inline)]
 pub fn to_tape(s: &mut [u8]) -> Result<Tape<'_>> {
-    Deserializer::from_slice(s).map(Deserializer::into_tape)
+    to_tape_with_options(s, DecodeOptions::new())
+}
+
+/// Creates a tape from the input for later consumption, using the given
+/// decode options.
+///
+/// # Errors
+///
+/// Will return `Err` if `s` is invalid JSON.
+#[cfg_attr(not(feature = "no-inline"), inline)]
+pub fn to_tape_with_options(s: &mut [u8], options: DecodeOptions) -> Result<Tape<'_>> {
+    Deserializer::from_slice_with_options(s, options).map(Deserializer::into_tape)
 }
 
 /// Creates a tape from the input for later consumption
@@ -159,7 +179,7 @@ pub fn to_tape_with_buffers<'de>(s: &'de mut [u8], buffers: &mut Buffers) -> Res
 #[cfg_attr(not(feature = "no-inline"), inline)]
 pub fn fill_tape<'de>(s: &'de mut [u8], buffers: &mut Buffers, tape: &mut Tape<'de>) -> Result<()> {
     tape.0.clear();
-    Deserializer::fill_tape(s, buffers, &mut tape.0)
+    Deserializer::fill_tape(s, buffers, &mut tape.0, DecodeOptions::new())
 }
 
 pub(crate) trait Stage1Parse {
@@ -560,11 +580,21 @@ impl<'de> Deserializer<'de> {
     ///
     /// Will return `Err` if `s` is invalid JSON.
     pub fn from_slice(input: &'de mut [u8]) -> Result<Self> {
+        Self::from_slice_with_options(input, DecodeOptions::new())
+    }
+
+    /// Creates a serializer from a mutable slice of bytes, using the given
+    /// decode options
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if `input` is invalid JSON.
+    pub fn from_slice_with_options(input: &'de mut [u8], options: DecodeOptions) -> Result<Self> {
         let len = input.len();
 
         let mut buffer = Buffers::new(len);
 
-        Self::from_slice_with_buffers(input, &mut buffer)
+        Self::from_slice_with_buffers_and_options(input, &mut buffer, options)
     }
 
     /// Fills the tape without creating a serializer, this function poses
@@ -580,6 +610,7 @@ impl<'de> Deserializer<'de> {
         input: &'de mut [u8],
         buffer: &mut Buffers,
         tape: &mut Vec<Node<'de>>,
+        options: DecodeOptions,
     ) -> Result<()> {
         const LOTS_OF_SPACES: [u8; SIMDINPUT_LENGTH] = [b' '; SIMDINPUT_LENGTH];
         let len = input.len();
@@ -627,6 +658,7 @@ impl<'de> Deserializer<'de> {
             &buffer.structural_indexes,
             &mut buffer.stage2_stack,
             tape,
+            options,
         )
     }
 
@@ -637,9 +669,24 @@ impl<'de> Deserializer<'de> {
     ///
     /// Will return `Err` if `s` is invalid JSON.
     pub fn from_slice_with_buffers(input: &'de mut [u8], buffer: &mut Buffers) -> Result<Self> {
+        Self::from_slice_with_buffers_and_options(input, buffer, DecodeOptions::new())
+    }
+
+    /// Creates a serializer from a mutable slice of bytes using a temporary
+    /// buffer for strings for them to be copied in and out if needed, using
+    /// the given decode options
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if `input` is invalid JSON.
+    pub fn from_slice_with_buffers_and_options(
+        input: &'de mut [u8],
+        buffer: &mut Buffers,
+        options: DecodeOptions,
+    ) -> Result<Self> {
         let mut tape: Vec<Node<'de>> = Vec::with_capacity(buffer.structural_indexes.len());
 
-        Self::fill_tape(input, buffer, &mut tape)?;
+        Self::fill_tape(input, buffer, &mut tape, options)?;
 
         Ok(Self { tape, idx: 0 })
     }

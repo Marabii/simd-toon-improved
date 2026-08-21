@@ -50,6 +50,8 @@ pub enum ErrorType {
     InternalError(InternalError),
     /// Invalid escape sequence
     InvalidEscape,
+    /// An indentation width of `0` was requested in the decode options
+    InvalidIndentSize,
     /// Invalid exponent in a floating point number
     InvalidExponent,
     /// Invalid number
@@ -127,6 +129,7 @@ impl PartialEq for ErrorType {
             | (Self::ExpectedString, Self::ExpectedString)
             | (Self::ExpectedUnsigned, Self::ExpectedUnsigned)
             | (Self::InvalidEscape, Self::InvalidEscape)
+            | (Self::InvalidIndentSize, Self::InvalidIndentSize)
             | (Self::InvalidExponent, Self::InvalidExponent)
             | (Self::InvalidNumber, Self::InvalidNumber)
             | (Self::InvalidUtf8, Self::InvalidUtf8)

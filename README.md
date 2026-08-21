@@ -103,14 +103,6 @@ accessing some well-known keys, this can be a performance advantage.
 
 The `known-key` feature is optional and disabled by default and should be explicitly configured.
 
-### `value-no-dup-keys`
-
-**This flag has no effect on simd-json itself but purely affects the `Value` structs.**
-
-The `value-no-dup-keys` feature flag enables stricter behavior for objects when deserializing into a `Value`. When
-enabled, the Value deserializer will remove duplicate keys in a JSON object and only keep the last one. If not set
-duplicate keys are considered undefined behavior and Value will not make guarantees on its behavior.
-
 ### `big-int-as-float`
 
 The `big-int-as-float` feature flag treats very large integers that won't fit into u64 as f64 floats. This prevents
@@ -197,6 +189,36 @@ assert!(value.try_get("the_answer").unwrap().unwrap() == 42);
 assert!(value.try_get("does_not_exist").unwrap() == None);
 // try_get_idx treats value like an array, returns Err(_) because value is not an array
 assert!(value.try_get_idx(0).is_err());
+```
+
+### Decode Options
+
+How a document is decoded is a per document setting, not a build flavour, so it
+is passed to the parser rather than selected by a feature flag. `DecodeOptions`
+carries the decoder side of the spec's options: `strict` validation and
+the `indent_size` used to compute nesting depth.
+
+Every entry point has a `*_with_options` twin:
+
+```rust
+use simd_json::{DecodeOptions, OwnedValue};
+
+let options = DecodeOptions::new().with_strict(false);
+
+let mut d = b"name: Ada".to_vec();
+let v: OwnedValue = simd_json::to_owned_value_with_options(&mut d, options).unwrap();
+```
+
+To decode many documents with the same settings, and to reuse the parser's
+buffers while doing so, use a `Parser`:
+
+```rust
+use simd_json::{DecodeOptions, Parser};
+
+let mut parser = Parser::with_options(DecodeOptions::new().with_indent_size(4).unwrap());
+
+let mut d = b"name: Ada".to_vec();
+let v = parser.parse_to_owned_value(&mut d).unwrap();
 ```
 
 ## Other interesting things

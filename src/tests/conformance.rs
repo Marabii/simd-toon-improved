@@ -8,6 +8,7 @@
 
 #![allow(clippy::unwrap_used)]
 
+use crate::DecodeOptions;
 use serde::Deserialize;
 use std::fs;
 use std::panic::{self, AssertUnwindSafe};
@@ -27,6 +28,49 @@ struct TestCase {
     expected: serde_json::Value,
     #[serde(default, rename = "shouldError")]
     should_error: bool,
+    #[serde(default)]
+    options: FixtureOptions,
+}
+
+/// The per test `options` object of `fixtures.schema.json`. `delimiter` is
+/// encode only (a decoder reads the delimiter off the header's bracket
+/// segment) so it is accepted and ignored here.
+#[derive(Deserialize, Default)]
+struct FixtureOptions {
+    strict: Option<bool>,
+    #[serde(rename = "indentSize")]
+    indent_size: Option<usize>,
+}
+
+impl FixtureOptions {
+    /// Turns the fixture's options into `DecodeOptions`, filling in the
+    /// schema's defaults (`strict` is `true`, `indentSize` is 2).
+    fn decode_options(&self) -> Result<DecodeOptions, String> {
+        let mut options = DecodeOptions::new().with_strict(self.strict.unwrap_or(true));
+        if let Some(indent_size) = self.indent_size {
+            options = options
+                .with_indent_size(indent_size)
+                .map_err(|e| format!("fixture requests an unusable indentSize: {e}"))?;
+        }
+        Ok(options)
+    }
+
+    /// A short `strict=…, indent=…` label, or `None` when the test runs with
+    /// the defaults, so failure output only mentions options that were set.
+    fn label(&self) -> Option<String> {
+        let mut parts = Vec::new();
+        if let Some(strict) = self.strict {
+            parts.push(format!("strict={strict}"));
+        }
+        if let Some(indent_size) = self.indent_size {
+            parts.push(format!("indent={indent_size}"));
+        }
+        if parts.is_empty() {
+            None
+        } else {
+            Some(parts.join(", "))
+        }
+    }
 }
 
 /// Decodes `tc.input` (expected to be a TOON source string) and checks it
@@ -39,9 +83,11 @@ fn run_decode_test(tc: &TestCase) -> Result<(), String> {
         );
     };
 
+    let options = tc.options.decode_options()?;
+
     let mut buf = toon_input.as_bytes().to_vec();
     let outcome = panic::catch_unwind(AssertUnwindSafe(|| {
-        crate::from_slice::<serde_json::Value>(&mut buf)
+        crate::from_slice_with_options::<serde_json::Value>(&mut buf, options)
     }));
 
     match outcome {
@@ -120,7 +166,11 @@ fn run_fixture_conformance_tests() {
             total += 1;
             println!("conformance: running {file_name} test case: {}", tc.name);
             if let Err(reason) = run_decode_test(tc) {
-                failures.push(format!("[{file_name}] {}: {reason}", tc.name));
+                let name = match tc.options.label() {
+                    Some(label) => format!("{} ({label})", tc.name),
+                    None => tc.name.clone(),
+                };
+                failures.push(format!("[{file_name}] {name}: {reason}"));
             }
         }
     }

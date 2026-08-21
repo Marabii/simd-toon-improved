@@ -25,7 +25,7 @@ mod serialize;
 
 use super::ObjectHasher;
 use crate::{Buffers, prelude::*};
-use crate::{Deserializer, Node, Result};
+use crate::{DecodeOptions, Deserializer, Node, Result};
 use halfbrown::HashMap;
 use std::fmt;
 use std::ops::{Index, IndexMut};
@@ -44,7 +44,21 @@ pub type Object = HashMap<String, Value, ObjectHasher>;
 ///
 /// Will return `Err` if `s` is invalid JSON.
 pub fn to_value(s: &mut [u8]) -> Result<Value> {
-    match Deserializer::from_slice(s) {
+    to_value_with_options(s, DecodeOptions::new())
+}
+
+/// Parses a slice of bytes into a Value dom, using the given decode options.
+///
+/// This function will rewrite the slice to de-escape strings.
+/// We do not keep any references to the raw data but re-allocate
+/// owned memory wherever required thus returning a value without
+/// a lifetime.
+///
+/// # Errors
+///
+/// Will return `Err` if `s` is invalid JSON.
+pub fn to_value_with_options(s: &mut [u8], options: DecodeOptions) -> Result<Value> {
+    match Deserializer::from_slice_with_options(s, options) {
         Ok(de) => Ok(OwnedDeserializer::from_deserializer(de).parse()),
         Err(e) => Err(e),
     }
@@ -295,7 +309,7 @@ impl Default for Value {
     }
 }
 
-struct OwnedDeserializer<'de> {
+pub(crate) struct OwnedDeserializer<'de> {
     de: Deserializer<'de>,
 }
 
@@ -335,11 +349,6 @@ impl<'de> OwnedDeserializer<'de> {
 
         for _ in 0..len {
             if let Node::String(key) = unsafe { self.de.next_() } {
-                #[cfg(not(feature = "value-no-dup-keys"))]
-                unsafe {
-                    res.insert_nocheck(key.into(), self.parse());
-                };
-                #[cfg(feature = "value-no-dup-keys")]
                 res.insert(key.into(), self.parse());
             } else {
                 unreachable!("parse_map: key needs to be a string");

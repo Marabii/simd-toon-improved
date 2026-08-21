@@ -5,7 +5,7 @@ use crate::StaticNode;
 use crate::macros::unlikely;
 use crate::safer_unchecked::GetSaferUnchecked;
 use crate::value::tape::Node;
-use crate::{Deserializer, Error, ErrorType, InternalError, Result};
+use crate::{DecodeOptions, Deserializer, Error, ErrorType, InternalError, Result};
 
 #[derive(Debug)]
 enum State {
@@ -205,7 +205,11 @@ impl<'de> Deserializer<'de> {
         structural_indexes: &[u32],
         stack: &mut Vec<StackState>,
         res: &mut Vec<Node<'de>>,
+        options: DecodeOptions,
     ) -> Result<()> {
+        let strict = options.strict();
+        let indent_size = options.indent_size();
+
         res.clear();
         res.reserve(structural_indexes.len());
         stack.clear();
@@ -442,12 +446,12 @@ impl<'de> Deserializer<'de> {
         macro_rules! eol_state_from_ws {
             ($actual_ws:expr_2021) => {{
                 let actual_ws = $actual_ws;
-                let sibling_ws = (((depth - 1) * 2) as isize + indent_modifier) as usize;
-                let nested_ws = (((depth) * 2) as isize + indent_modifier) as usize;
+                let sibling_ws = (((depth - 1) * indent_size) as isize + indent_modifier) as usize;
+                let nested_ws = (((depth) * indent_size) as isize + indent_modifier) as usize;
 
                 if actual_ws == sibling_ws {
                     EOLState::Sibling
-                } else if actual_ws < sibling_ws && actual_ws.is_multiple_of(2) {
+                } else if actual_ws < sibling_ws && actual_ws.is_multiple_of(indent_size) {
                     EOLState::CloseScope
                 } else if actual_ws == nested_ws {
                     EOLState::Nested
@@ -931,7 +935,7 @@ impl<'de> Deserializer<'de> {
                     }
 
                     if indent_modifier > 0 {
-                        indent_modifier -= 2;
+                        indent_modifier -= indent_size as isize;
                     }
 
                     update_char!(); // move past '-' onto the item's content
@@ -1032,7 +1036,7 @@ impl<'de> Deserializer<'de> {
                         } => {
                             wrap_keyed_item!(key);
 
-                            indent_modifier += 2;
+                            indent_modifier += indent_size as isize;
                             goto!(State::ParseTabularObjects {
                                 key,
                                 headers,
@@ -1046,7 +1050,7 @@ impl<'de> Deserializer<'de> {
                             rows_count,
                         } => {
                             wrap_keyed_item!(key);
-                            indent_modifier += 2;
+                            indent_modifier += indent_size as isize;
                             goto!(State::ParseTabularArray {
                                 key,
                                 headers,
@@ -1225,7 +1229,7 @@ impl<'de> Deserializer<'de> {
                     }
 
                     if indent_modifier > 0 {
-                        indent_modifier -= 2;
+                        indent_modifier -= indent_size as isize;
                     }
 
                     depth -= 1;

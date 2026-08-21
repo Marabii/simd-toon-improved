@@ -12,7 +12,7 @@ mod value;
 pub use self::se::*;
 pub use self::value::*;
 use crate::{BorrowedValue, OwnedValue};
-use crate::{Buffers, Deserializer, Error, ErrorType, Node, Result, macros::stry};
+use crate::{Buffers, DecodeOptions, Deserializer, Error, ErrorType, Node, Result, macros::stry};
 use serde::de::DeserializeOwned;
 use serde_ext::Deserialize;
 use std::fmt;
@@ -57,7 +57,22 @@ pub fn from_slice<'a, T>(s: &'a mut [u8]) -> Result<T>
 where
     T: Deserialize<'a>,
 {
-    let mut deserializer = stry!(Deserializer::from_slice(s));
+    from_slice_with_options(s, DecodeOptions::new())
+}
+
+/// parses a byte slice using a serde deserializer, using the given decode
+/// options.
+/// note that the slice will be rewritten in the process.
+///
+/// # Errors
+///
+/// Will return `Err` if `s` is invalid JSON.
+#[cfg_attr(not(feature = "no-inline"), inline)]
+pub fn from_slice_with_options<'a, T>(s: &'a mut [u8], options: DecodeOptions) -> Result<T>
+where
+    T: Deserialize<'a>,
+{
+    let mut deserializer = stry!(Deserializer::from_slice_with_options(s, options));
     T::deserialize(&mut deserializer)
 }
 
@@ -98,7 +113,33 @@ pub unsafe fn from_str<'a, T>(s: &'a mut str) -> Result<T>
 where
     T: Deserialize<'a>,
 {
-    let mut deserializer = stry!(Deserializer::from_slice(unsafe { s.as_bytes_mut() }));
+    unsafe { from_str_with_options(s, DecodeOptions::new()) }
+}
+
+/// Parses a str using a serde deserializer, using the given decode options.
+/// note that the slice will be rewritten in the process and
+/// might not remain a valid utf8 string in its entirety.
+///
+/// It is recommended to use `from_slice_with_options` instead.
+///
+/// # Errors
+///
+/// Will return `Err` if `s` is invalid JSON.
+///
+/// # Safety
+///
+/// This function mutates the string passed into it, it's a convenience wrapper around
+/// `from_slice_with_options`, holding the same guarantees as `str::as_bytes_mut` in that after the
+/// call &str might include invalid utf8 bytes.
+#[cfg_attr(not(feature = "no-inline"), inline)]
+pub unsafe fn from_str_with_options<'a, T>(s: &'a mut str, options: DecodeOptions) -> Result<T>
+where
+    T: Deserialize<'a>,
+{
+    let mut deserializer = stry!(Deserializer::from_slice_with_options(
+        unsafe { s.as_bytes_mut() },
+        options
+    ));
 
     T::deserialize(&mut deserializer)
 }
@@ -147,7 +188,29 @@ where
 /// Will return `Err` if an IO error is encountered while reading
 /// rdr or if the readers content is invalid JSON.
 #[cfg_attr(not(feature = "no-inline"), inline)]
-pub fn from_reader<R, T>(mut rdr: R) -> Result<T>
+pub fn from_reader<R, T>(rdr: R) -> Result<T>
+where
+    R: io::Read,
+    T: DeserializeOwned,
+{
+    from_reader_with_options(rdr, DecodeOptions::new())
+}
+
+/// parses a Reader using a serde deserializer, using the given decode options.
+///
+/// # Warning
+///
+/// Since simd-json does not support streaming and requires mutability of the data, this function
+/// will read the entire reader into memory before parsing it.
+///
+/// You might do better using `from_slice_with_options` and managing the read buffer yourself.
+///
+/// # Errors
+///
+/// Will return `Err` if an IO error is encountered while reading
+/// rdr or if the readers content is invalid JSON.
+#[cfg_attr(not(feature = "no-inline"), inline)]
+pub fn from_reader_with_options<R, T>(mut rdr: R, options: DecodeOptions) -> Result<T>
 where
     R: io::Read,
     T: DeserializeOwned,
@@ -156,7 +219,7 @@ where
     if let Err(e) = rdr.read_to_end(&mut data) {
         return Err(Error::generic(ErrorType::Io(e)));
     }
-    let mut deserializer = stry!(Deserializer::from_slice(&mut data));
+    let mut deserializer = stry!(Deserializer::from_slice_with_options(&mut data, options));
     T::deserialize(&mut deserializer)
 }
 
