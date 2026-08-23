@@ -649,6 +649,10 @@ impl<'de> Deserializer<'de> {
 
             Self::find_structural_bits(input, &mut buffer.structural_indexes)
                 .map_err(Error::generic)?;
+
+            // Guarantee the structural stream always ends on a '\n'
+            input_buffer.as_mut_ptr().add(len).write(b'\n');
+            buffer.structural_indexes.push(len as u32);
         };
 
         Self::build_tape(

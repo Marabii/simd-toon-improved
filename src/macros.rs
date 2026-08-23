@@ -1201,6 +1201,7 @@ macro_rules! unlikely {
 ///
 /// Technique borrowed from here: <https://github.com/rust-lang/hashbrown/pull/209>
 #[cfg(not(feature = "hints"))]
+#[collapse_debuginfo(yes)]
 macro_rules! unlikely {
     ($e:expr_2021) => {{
         #[inline]

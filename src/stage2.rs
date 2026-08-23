@@ -141,8 +141,13 @@ enum HeaderType {
     /// keyed tabular objects or tabular arrays
     BlockArraySimpleValue { key: (usize, usize) },
 
-    /// A regular object key, not a tabular array or some other complex header.
-    SimpleKey { key: (usize, usize) },
+    /// It marks the start of an object,
+    /// Could be an empty object or regular object key,
+    /// not a tabular array or some other complex header.
+    ObjectStart { key: Option<(usize, usize)> },
+
+    /// Just an empty object, no key, no value.
+    EmptyObject,
 
     /// SimpleArray: Could either be an Inline Array or a Block Array,
     /// We decide after parsing it.
@@ -155,8 +160,8 @@ enum HeaderType {
     /// ```
     /// items[0]:
     /// ```
-    /// Unlike every other bracket header this one is a complete value on its
-    /// own: nothing follows the `:` on this line, nothing is nested below it,
+    /// This header is a complete value on its own:
+    /// nothing follows the `:` on this line, nothing is nested below it,
     /// and it is allowed to be the last thing in the document.
     EmptyArray { key: Option<(usize, usize)> },
 
@@ -294,10 +299,12 @@ impl<'de> Deserializer<'de> {
             )
         };
 
+        #[collapse_debuginfo(yes)]
         macro_rules! get {
             ($a:expr_2021, $i:expr_2021) => {{ unsafe { $a.get_kinda_unchecked($i) } }};
         }
 
+        #[collapse_debuginfo(yes)]
         macro_rules! s2try {
             ($e:expr_2021) => {
                 match $e {
@@ -315,6 +322,7 @@ impl<'de> Deserializer<'de> {
             };
         }
 
+        #[collapse_debuginfo(yes)]
         macro_rules! insert_res {
             ($t:expr_2021) => {
                 unsafe {
@@ -324,6 +332,7 @@ impl<'de> Deserializer<'de> {
             };
         }
 
+        #[collapse_debuginfo(yes)]
         macro_rules! success {
             () => {
                 unsafe {
@@ -333,6 +342,7 @@ impl<'de> Deserializer<'de> {
             };
         }
 
+        #[collapse_debuginfo(yes)]
         macro_rules! update_char {
             () => {
                 if i < structural_indexes.len() {
@@ -345,6 +355,7 @@ impl<'de> Deserializer<'de> {
             };
         }
 
+        #[collapse_debuginfo(yes)]
         macro_rules! goto {
             ($state:expr_2021) => {{
                 state = $state;
@@ -353,6 +364,7 @@ impl<'de> Deserializer<'de> {
             }};
         }
 
+        #[collapse_debuginfo(yes)]
         macro_rules! insert_str {
             ($start:expr, $end:expr) => {
                 insert_res!(Node::String(s2try!(parse_str($start, $end))));
@@ -363,6 +375,7 @@ impl<'de> Deserializer<'de> {
             };
         }
 
+        #[collapse_debuginfo(yes)]
         macro_rules! trim_trailing_spaces {
             ($start:expr, $hard_end:expr) => {{
                 let mut end = $hard_end;
@@ -380,6 +393,7 @@ impl<'de> Deserializer<'de> {
 
         // When the type of value is unknown, use this macro to automatically
         // figure out the type and insert the value into the tape.
+        #[collapse_debuginfo(yes)]
         macro_rules! parse_and_insert_value {
             ($start:expr, $end:expr) => {
                 let value_bytes = &input2[$start..$end];
@@ -413,9 +427,10 @@ impl<'de> Deserializer<'de> {
         /// We don't don't the length of the string "Hamza DADDA"
         /// structural indexes will contain both 'H' and 'D'
         /// We thus keep moving forward until we find the delimiter we're looking for.
+        #[collapse_debuginfo(yes)]
         macro_rules! get_value_end {
             ($err:expr, $($expected_delim:expr),+) => {{
-                let mut hard_end = input.len();
+                let hard_end;
 
                 loop {
                     if $(c == $expected_delim)||* {
@@ -425,10 +440,6 @@ impl<'de> Deserializer<'de> {
 
                     if unlikely!(c == b'\n') {
                         fail!($err);
-                    }
-
-                    if i >= structural_indexes.len() {
-                        break;
                     }
 
                     // Keep searching forward
@@ -443,6 +454,7 @@ impl<'de> Deserializer<'de> {
         // without touching the input. Used both by `get_eol_state!` (for the newline
         // that was just crossed) and by `ScopeEnd` when it needs to re-evaluate the
         // very same measurement against an outer (just-popped) scope.
+        #[collapse_debuginfo(yes)]
         macro_rules! eol_state_from_ws {
             ($actual_ws:expr_2021) => {{
                 let actual_ws = $actual_ws;
@@ -461,6 +473,7 @@ impl<'de> Deserializer<'de> {
             }};
         }
 
+        #[collapse_debuginfo(yes)]
         macro_rules! get_eol_state {
             () => {{
                 if i >= structural_indexes.len() {
@@ -490,6 +503,7 @@ impl<'de> Deserializer<'de> {
             }};
         }
 
+        #[collapse_debuginfo(yes)]
         macro_rules! parse_string_number {
             ($start:expr, $end:expr) => {{
                 let value_bytes = &input2[$start..$end];
@@ -534,24 +548,13 @@ impl<'de> Deserializer<'de> {
                     KeyedObject(Vec<(usize, usize)>),
                 }
 
-                if c == b'\n' || i >= structural_indexes.len() {
-                    let key = match key {
-                        Some((start, end)) => (start, end),
-                        None => {
-                            fail!(ErrorType::Syntax);
-                        }
-                    };
-
-                    HeaderType::BlockArraySimpleValue { key }
+                if c == b'\n' {
+                    match key {
+                        Some(key) => HeaderType::BlockArraySimpleValue { key },
+                        None => HeaderType::EmptyObject,
+                    }
                 } else if c == b':' {
-                    let key = match key {
-                        Some((start, end)) => (start, end),
-                        None => {
-                            fail!(ErrorType::Syntax);
-                        }
-                    };
-
-                    HeaderType::SimpleKey { key }
+                    HeaderType::ObjectStart { key }
                 } else if c == b'[' {
                     update_char!();
                     let rows_count_start = idx;
@@ -641,6 +644,7 @@ impl<'de> Deserializer<'de> {
             }};
         }
 
+        #[collapse_debuginfo(yes)]
         macro_rules! close_and_pop_state {
             ($node_variant:ident) => {
                 unsafe {
@@ -682,6 +686,7 @@ impl<'de> Deserializer<'de> {
             };
         }
 
+        #[collapse_debuginfo(yes)]
         macro_rules! fail {
             () => {
                 // We need to ensure that rust doesn't
@@ -722,15 +727,10 @@ impl<'de> Deserializer<'de> {
                     let header_type = read_header!();
 
                     match header_type {
-                        HeaderType::SimpleKey {
-                            key: (key_start, key_end),
-                        } => {
-                            cnt += 1;
-                            insert_str!(key_start, key_end);
-
-                            if i >= structural_indexes.len() {
-                                insert_res!(Node::Object { len: 0, count: 0 });
-                                goto!(State::ScopeEnd);
+                        HeaderType::ObjectStart { key } => {
+                            if let Some((key_start, key_end)) = key {
+                                cnt += 1;
+                                insert_str!(key_start, key_end);
                             }
 
                             update_char!();
@@ -779,7 +779,7 @@ impl<'de> Deserializer<'de> {
                             })
                         }
 
-                        HeaderType::BlockArraySimpleValue { .. } => {
+                        HeaderType::BlockArraySimpleValue { .. } | HeaderType::EmptyObject => {
                             fail!(ErrorType::NoStructure);
                         }
                     }
@@ -985,11 +985,7 @@ impl<'de> Deserializer<'de> {
                             goto!(State::ScopeEnd);
                         }
 
-                        // `- key: value`: the item is an object; open its wrapper, insert
-                        // the first field, then reuse the normal object-value machinery.
-                        HeaderType::SimpleKey {
-                            key: (key_start, key_end),
-                        } => {
+                        HeaderType::EmptyObject => {
                             unsafe {
                                 stack_ptr
                                     .add(depth)
@@ -998,13 +994,24 @@ impl<'de> Deserializer<'de> {
                             last_start = r_i;
                             depth += 1;
                             insert_res!(Node::Object { len: 0, count: 0 });
-                            cnt = 1;
+                            cnt = 0;
+                            goto!(State::ScopeEnd);
+                        }
 
-                            insert_str!(key_start, key_end);
-
-                            if i >= structural_indexes.len() {
+                        // `- key: value`: the item is an object; open its wrapper, insert
+                        // the first field, then reuse the normal object-value machinery.
+                        HeaderType::ObjectStart { key } => {
+                            if let Some((key_start, key_end)) = key {
+                                unsafe {
+                                    stack_ptr
+                                        .add(depth)
+                                        .write(StackState::Array { last_start, cnt });
+                                }
+                                last_start = r_i;
+                                depth += 1;
                                 insert_res!(Node::Object { len: 0, count: 0 });
-                                goto!(State::ScopeEnd);
+                                insert_str!(key_start, key_end);
+                                cnt = 1;
                             }
 
                             update_char!();
