@@ -3,6 +3,7 @@
 #[cfg(feature = "serde_impl")]
 mod conformance;
 
+use crate::DecodeOptions;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::{Deserializer, tape::Node};
 #[cfg(not(target_arch = "wasm32"))]
@@ -17,7 +18,7 @@ fn test_send_sync() {
 
 #[test]
 fn playground2() {
-    let mut d = String::from("items[1]:\n  -\n");
+    let mut d = String::from("items[1]:\n  - items[0]:\n");
     let d = unsafe { d.as_bytes_mut() };
     let simd = Deserializer::from_slice(d).expect("");
     println!("{:?}", simd.tape)
@@ -37,7 +38,8 @@ fn playground() {
 fn test_tape_object_simple() {
     let mut d = String::from("a:\n  b:\n    c: Hamza\n  d: Dadda");
     let d = unsafe { d.as_bytes_mut() };
-    let simd = Deserializer::from_slice(d).expect("");
+    let decode_options = DecodeOptions::lenient();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
     println!("{:?}", simd.tape);
     assert_eq!(
         simd.tape,
@@ -153,7 +155,8 @@ fn test_deeply_nested_rows_elements() {
           text: 1 m",
     );
     let d = unsafe { d.as_bytes_mut() };
-    let simd = Deserializer::from_slice(d).expect("failed to parse");
+    let decode_options = DecodeOptions::lenient();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("failed to parse");
     assert_eq!(
         simd.tape,
         [
@@ -693,6 +696,337 @@ fn test_empty_object_before_sibling_key() {
             Node::String("normals"),
             Node::Array { len: 1, count: 1 },
             Node::Static(StaticNode::U64(0)),
+        ]
+    );
+}
+
+#[test]
+fn test_parses_objects_with_primitive_values() {
+    let mut d = String::from("id: 123\nname: Ada\nactive: true");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::new();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 3, count: 6 },
+            Node::String("id"),
+            Node::Static(StaticNode::I64(123)),
+            Node::String("name"),
+            Node::String("Ada"),
+            Node::String("active"),
+            Node::Static(StaticNode::Bool(true))
+        ]
+    );
+}
+
+#[test]
+fn test_parses_null_values_in_objects() {
+    let mut d = String::from("id: 123\nvalue: null");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::new();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 2, count: 4 },
+            Node::String("id"),
+            Node::Static(StaticNode::I64(123)),
+            Node::String("value"),
+            Node::Static(StaticNode::Null)
+        ]
+    );
+}
+
+#[test]
+fn test_parses_empty_nested_object_header() {
+    let mut d = String::from("user:");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::new();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 2 },
+            Node::String("user"),
+            Node::Object { len: 0, count: 0 }
+        ]
+    );
+}
+
+#[test]
+fn test_bare_key_with_no_children_decodes_as_empty_object() {
+    let mut d = String::from("matches:");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::new();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 2 },
+            Node::String("matches"),
+            Node::Object { len: 0, count: 0 }
+        ]
+    );
+}
+
+#[test]
+fn test_applies_last_write_wins_for_duplicate_sibling_keys_in_non_strict_mode() {
+    let mut d = String::from("name: Ada\nname: Bob");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::lenient();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 2 },
+            Node::String("name"),
+            Node::String("Bob")
+        ]
+    );
+}
+
+#[test]
+fn test_parses_quoted_object_value_with_colon() {
+    let mut d = String::from("note: \"a:b\"");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::new();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 2 },
+            Node::String("note"),
+            Node::String("a:b")
+        ]
+    );
+}
+
+#[test]
+fn test_parses_quoted_object_value_with_newline_escape() {
+    let mut d = String::from("text: \"line1\\nline2\"");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::new();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 2 },
+            Node::String("text"),
+            Node::String("line1\nline2")
+        ]
+    );
+}
+
+#[test]
+fn test_parses_quoted_object_value_with_escaped_quotes() {
+    let mut d = String::from("text: \"say \\\"hello\\\"\"");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::new();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 2 },
+            Node::String("text"),
+            Node::String("say \"hello\"")
+        ]
+    );
+}
+
+#[test]
+fn test_parses_quoted_string_value_that_looks_like_true() {
+    let mut d = String::from("v: \"true\"");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::new();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 2 },
+            Node::String("v"),
+            Node::String("true")
+        ]
+    );
+}
+
+#[test]
+fn test_parses_quoted_string_value_that_looks_like_negative_decimal() {
+    let mut d = String::from("v: \"-7.5\"");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::new();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 2 },
+            Node::String("v"),
+            Node::String("-7.5")
+        ]
+    );
+}
+
+#[test]
+fn test_parses_unquoted_value_shaped_like_an_inline_array_header_after_the_key() {
+    let mut d = String::from("key: foo [2]: bar");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::new();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 2 },
+            Node::String("key"),
+            Node::String("foo [2]: bar")
+        ]
+    );
+}
+
+#[test]
+fn test_decodes_uXXXX_in_quoted_key() {
+    let mut d = String::from("\"a\\u0004b\": 1");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::new();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 2 },
+            Node::String("a\u{0004}b"),
+            Node::Static(StaticNode::I64(1))
+        ]
+    );
+}
+
+#[test]
+fn test_treats_extra_brackets_after_valid_array_segment_as_literal_key_non_strict() {
+    let mut d = String::from("foo[1][bar]: 10");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::lenient();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 2 },
+            Node::String("foo[1][bar]"),
+            Node::Static(StaticNode::I64(10))
+        ]
+    );
+}
+
+#[test]
+fn test_parses_deeply_nested_objects_with_indentation() {
+    let mut d = String::from("a:\n  b:\n    c: deep");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::new();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 6 },
+            Node::String("a"),
+            Node::Object { len: 1, count: 4 },
+            Node::String("b"),
+            Node::Object { len: 1, count: 2 },
+            Node::String("c"),
+            Node::String("deep")
+        ]
+    );
+}
+
+#[test]
+fn test_applies_lww_for_nested_duplicate_sibling_keys_in_non_strict_mode() {
+    let mut d = String::from("outer:\n  name: Ada\n  name: Bob");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::lenient();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 4 },
+            Node::String("outer"),
+            Node::Object { len: 1, count: 2 },
+            Node::String("name"),
+            Node::String("Bob")
+        ]
+    );
+}
+
+#[test]
+fn test_applies_lww_for_duplicate_keys_within_a_list_item_object_in_non_strict_mode() {
+    let mut d = String::from("items[1]:\n  - id: 1\n    id: 2");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::lenient();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 4 },
+            Node::String("items"),
+            Node::Array { len: 1, count: 3 },
+            Node::Object { len: 1, count: 2 },
+            Node::String("id"),
+            Node::Static(StaticNode::I64(2))
+        ]
+    );
+}
+
+#[test]
+fn test_materializes_proto_as_an_ordinary_own_key() {
+    let mut d = String::from("__proto__: polluted");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::new();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 2 },
+            Node::String("__proto__"),
+            Node::String("polluted")
+        ]
+    );
+}
+
+#[test]
+fn test_materializes_proto_tabular_field_name_as_ordinary_own_keys() {
+    let mut d = String::from("rows[2]{__proto__,x}:\n  a,1\n  b,2");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::new();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 12 },
+            Node::String("rows"),
+            Node::Array { len: 2, count: 10 },
+            Node::Object { len: 2, count: 4 },
+            Node::String("__proto__"),
+            Node::String("a"),
+            Node::String("x"),
+            Node::Static(StaticNode::U64(1)),
+            Node::Object { len: 2, count: 4 },
+            Node::String("__proto__"),
+            Node::String("b"),
+            Node::String("x"),
+            Node::Static(StaticNode::U64(2))
+        ]
+    );
+}
+
+#[test]
+fn test_accepts_a_header_key_outside_the_encoder_unquoted_key_pattern() {
+    let mut d = String::from("foo-bar[2]: 1,2");
+    let d = unsafe { d.as_bytes_mut() };
+    let decode_options = DecodeOptions::new();
+    let simd = Deserializer::from_slice_with_options(d, decode_options).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 4 },
+            Node::String("foo-bar"),
+            Node::Array { len: 2, count: 2 },
+            Node::Static(StaticNode::U64(1)),
+            Node::Static(StaticNode::U64(2))
         ]
     );
 }

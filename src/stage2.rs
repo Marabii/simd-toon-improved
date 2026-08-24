@@ -141,10 +141,9 @@ enum HeaderType {
     /// keyed tabular objects or tabular arrays
     BlockArraySimpleValue { key: (usize, usize) },
 
-    /// It marks the start of an object,
-    /// Could be an empty object or regular object key,
+    /// It marks the key of an object,
     /// not a tabular array or some other complex header.
-    ObjectStart { key: Option<(usize, usize)> },
+    ObjectStart { key: (usize, usize) },
 
     /// Just an empty object, no key, no value.
     EmptyObject,
@@ -273,13 +272,10 @@ impl<'de> Deserializer<'de> {
         // Example: State::ParseKey means the parser currently expects to parse a key.
         let mut state;
 
-        // Accumulator for tracking visual indentation shifts (Compact Arrays / Root Arrays)
-        let mut indent_modifier: isize = 0;
-
-        // Whitespace count measured by the last newline crossing (`get_eol_state!`).
-        // Reused by `ScopeEnd` when cascading through several closing scopes for the
-        // same newline, since the newline itself is only consumed once.
-        let mut last_ws: usize = 0;
+        // A stack of whitespaces to keep track of depth
+        // The next items are considered siblings if their indentation is
+        // content_ws_stack.last()
+        let mut content_ws_stack: Vec<usize> = Vec::new();
 
         // Only block arrays need their declared count carried across states.
         // Keyed by depth, so an entry can only ever be consumed by the scope it belongs to.
@@ -450,22 +446,17 @@ impl<'de> Deserializer<'de> {
             }};
         }
 
-        // Compares an already-measured indentation width against the current `depth`,
-        // without touching the input. Used both by `get_eol_state!` (for the newline
-        // that was just crossed) and by `ScopeEnd` when it needs to re-evaluate the
-        // very same measurement against an outer (just-popped) scope.
         #[collapse_debuginfo(yes)]
         macro_rules! eol_state_from_ws {
             ($actual_ws:expr_2021) => {{
                 let actual_ws = $actual_ws;
-                let sibling_ws = (((depth - 1) * indent_size) as isize + indent_modifier) as usize;
-                let nested_ws = (((depth) * indent_size) as isize + indent_modifier) as usize;
+                let sibling_ws = content_ws_stack.last().copied().unwrap_or(0);
 
                 if actual_ws == sibling_ws {
                     EOLState::Sibling
-                } else if actual_ws < sibling_ws && actual_ws.is_multiple_of(indent_size) {
+                } else if actual_ws < sibling_ws {
                     EOLState::CloseScope
-                } else if actual_ws == nested_ws {
+                } else if actual_ws == sibling_ws + indent_size {
                     EOLState::Nested
                 } else {
                     fail!(ErrorType::Syntax);
@@ -497,8 +488,7 @@ impl<'de> Deserializer<'de> {
                         fail!(ErrorType::Syntax);
                     }
 
-                    last_ws = new_idx - old_idx - 1;
-                    eol_state_from_ws!(last_ws)
+                    eol_state_from_ws!(new_idx - old_idx - 1)
                 }
             }};
         }
@@ -554,7 +544,12 @@ impl<'de> Deserializer<'de> {
                         None => HeaderType::EmptyObject,
                     }
                 } else if c == b':' {
-                    HeaderType::ObjectStart { key }
+                    match key {
+                        Some(v) => HeaderType::ObjectStart { key: v },
+                        None => {
+                            fail!(ErrorType::Syntax);
+                        }
+                    }
                 } else if c == b'[' {
                     update_char!();
                     let rows_count_start = idx;
@@ -687,6 +682,11 @@ impl<'de> Deserializer<'de> {
         }
 
         #[collapse_debuginfo(yes)]
+        macro_rules! curr_indent {
+            () => {{ content_ws_stack.last().copied().unwrap_or(0) }};
+        }
+
+        #[collapse_debuginfo(yes)]
         macro_rules! fail {
             () => {
                 // We need to ensure that rust doesn't
@@ -717,6 +717,7 @@ impl<'de> Deserializer<'de> {
         last_start = r_i;
         state = State::ParseKey;
         depth += 1;
+        content_ws_stack.push(0);
         insert_res!(Node::Object { len: 0, count: 0 });
         cnt = 0;
 
@@ -727,11 +728,11 @@ impl<'de> Deserializer<'de> {
                     let header_type = read_header!();
 
                     match header_type {
-                        HeaderType::ObjectStart { key } => {
-                            if let Some((key_start, key_end)) = key {
-                                cnt += 1;
-                                insert_str!(key_start, key_end);
-                            }
+                        HeaderType::ObjectStart {
+                            key: (key_start, key_end),
+                        } => {
+                            cnt += 1;
+                            insert_str!(key_start, key_end);
 
                             update_char!();
                             goto!(State::ParseSimpleObjectValue)
@@ -810,6 +811,8 @@ impl<'de> Deserializer<'de> {
                                 cnt += 1;
                                 insert_str!(key_start, key_end);
 
+                                content_ws_stack.push(curr_indent!() + indent_size);
+
                                 update_char!();
                                 goto!(State::ParseSimpleObjectValue);
                             }
@@ -870,6 +873,8 @@ impl<'de> Deserializer<'de> {
 
                     last_start = r_i;
                     depth += 1;
+                    content_ws_stack
+                        .push(content_ws_stack.last().copied().unwrap_or(0) + indent_size);
                     insert_res!(Node::Array { len: 0, count: 0 });
                     cnt = 0;
 
@@ -927,6 +932,7 @@ impl<'de> Deserializer<'de> {
                     insert_res!(Node::Array { len: 0, count: 0 });
                     cnt = 0;
                     pending_counts.push((depth, count));
+                    content_ws_stack.push(curr_indent!() + indent_size);
                     goto!(State::ExpectBlockArrayItem);
                 }
 
@@ -940,10 +946,6 @@ impl<'de> Deserializer<'de> {
                         if d == depth && unlikely!(cnt >= expected) {
                             fail!(ErrorType::Syntax); // more items than declared
                         }
-                    }
-
-                    if indent_modifier > 0 {
-                        indent_modifier -= indent_size as isize;
                     }
 
                     update_char!(); // move past '-' onto the item's content
@@ -972,20 +974,32 @@ impl<'de> Deserializer<'de> {
                         } => {
                             parse_and_insert_value!(key_start, key_end);
 
-                            if c == b'\n' {
-                                match get_eol_state!() {
-                                    EOLState::Sibling => goto!(State::ExpectBlockArrayItem),
-                                    EOLState::CloseScope => goto!(State::ScopeEnd),
-                                    EOLState::Nested => {
-                                        fail!(ErrorType::NoStructure);
-                                    }
+                            match get_eol_state!() {
+                                EOLState::Sibling => goto!(State::ExpectBlockArrayItem),
+                                EOLState::CloseScope => goto!(State::ScopeEnd),
+                                EOLState::Nested => {
+                                    fail!(ErrorType::NoStructure);
                                 }
                             }
-
-                            goto!(State::ScopeEnd);
                         }
 
                         HeaderType::EmptyObject => {
+                            insert_res!(Node::Object { len: 0, count: 0 });
+
+                            match get_eol_state!() {
+                                EOLState::Sibling => goto!(State::ExpectBlockArrayItem),
+                                EOLState::CloseScope => goto!(State::ScopeEnd),
+                                EOLState::Nested => {
+                                    fail!(ErrorType::NoStructure);
+                                }
+                            }
+                        }
+
+                        // `- key: value`: the item is an object; open its wrapper, insert
+                        // the first field, then reuse the normal object-value machinery.
+                        HeaderType::ObjectStart {
+                            key: (key_start, key_end),
+                        } => {
                             unsafe {
                                 stack_ptr
                                     .add(depth)
@@ -994,25 +1008,10 @@ impl<'de> Deserializer<'de> {
                             last_start = r_i;
                             depth += 1;
                             insert_res!(Node::Object { len: 0, count: 0 });
-                            cnt = 0;
-                            goto!(State::ScopeEnd);
-                        }
+                            insert_str!(key_start, key_end);
+                            cnt = 1;
 
-                        // `- key: value`: the item is an object; open its wrapper, insert
-                        // the first field, then reuse the normal object-value machinery.
-                        HeaderType::ObjectStart { key } => {
-                            if let Some((key_start, key_end)) = key {
-                                unsafe {
-                                    stack_ptr
-                                        .add(depth)
-                                        .write(StackState::Array { last_start, cnt });
-                                }
-                                last_start = r_i;
-                                depth += 1;
-                                insert_res!(Node::Object { len: 0, count: 0 });
-                                insert_str!(key_start, key_end);
-                                cnt = 1;
-                            }
+                            content_ws_stack.push(curr_indent!() + 2);
 
                             update_char!();
                             goto!(State::ParseSimpleObjectValue);
@@ -1026,6 +1025,7 @@ impl<'de> Deserializer<'de> {
                             update_char!(); // step past the header's ':'
 
                             if c == b'\n' {
+                                content_ws_stack.push(curr_indent!());
                                 goto!(State::ParseBlockArray { count, key })
                             } else {
                                 goto!(State::ParseInlineArray { count, key })
@@ -1050,8 +1050,7 @@ impl<'de> Deserializer<'de> {
                             rows_count,
                         } => {
                             wrap_keyed_item!(key);
-
-                            indent_modifier += indent_size as isize;
+                            content_ws_stack.push(curr_indent!() + 2);
                             goto!(State::ParseTabularObjects {
                                 key,
                                 headers,
@@ -1065,7 +1064,7 @@ impl<'de> Deserializer<'de> {
                             rows_count,
                         } => {
                             wrap_keyed_item!(key);
-                            indent_modifier += indent_size as isize;
+                            content_ws_stack.push(curr_indent!() + 2);
                             goto!(State::ParseTabularArray {
                                 key,
                                 headers,
@@ -1098,11 +1097,79 @@ impl<'de> Deserializer<'de> {
                     cnt = 0;
 
                     update_char!(); // step past the header's ':'
-                    update_char!(); // ... and past the line's trailing '\n'
+                    if !matches!(get_eol_state!(), EOLState::Nested) {
+                        fail!(ErrorType::ExpectedArrayContent);
+                    }
 
                     let n_headers = headers.len();
 
-                    for row_idx in 0..rows_count {
+                    content_ws_stack.push(curr_indent!() + indent_size);
+
+                    if rows_count > 0 {
+                        // Handle all rows except the last one
+                        for _ in 0..(rows_count - 1) {
+                            let row_key_start = idx;
+                            let row_key_end = get_value_end!(ErrorType::Syntax, b':');
+
+                            if unlikely!(c != b':') {
+                                fail!(ErrorType::Syntax);
+                            }
+
+                            cnt += 1;
+                            insert_str!(row_key_start, row_key_end);
+
+                            // Open the row's object
+                            unsafe {
+                                stack_ptr
+                                    .add(depth)
+                                    .write(StackState::Object { last_start, cnt });
+                            }
+                            last_start = r_i;
+                            insert_res!(Node::Object { len: 0, count: 0 });
+                            cnt = 0;
+
+                            update_char!(); // skip ':' to reach the first field value
+
+                            for &(h_start, h_end) in headers.iter().take(n_headers - 1) {
+                                insert_str!(h_start, h_end);
+                                cnt += 1;
+
+                                let value_start = idx;
+                                let value_end = get_value_end!(ErrorType::Syntax, b',');
+                                parse_and_insert_value!(value_start, value_end);
+
+                                if unlikely!(c != b',') {
+                                    fail!(ErrorType::Syntax);
+                                }
+                                update_char!();
+                            }
+
+                            let (h_start, h_end) = match headers.last() {
+                                Some(v) => v,
+                                None => {
+                                    fail!();
+                                }
+                            };
+
+                            insert_str!(*h_start, *h_end);
+                            cnt += 1;
+
+                            let value_start = idx;
+                            let value_end = get_value_end!(ErrorType::Syntax, b'\n');
+                            parse_and_insert_value!(value_start, value_end);
+
+                            close_and_pop_state!(Object);
+
+                            match get_eol_state!() {
+                                EOLState::Sibling => {}
+                                // rows must stay at the same indentation
+                                EOLState::CloseScope | EOLState::Nested => {
+                                    fail!(ErrorType::Syntax);
+                                }
+                            }
+                        }
+
+                        // Handle the final row separately
                         let row_key_start = idx;
                         let row_key_end = get_value_end!(ErrorType::Syntax, b':');
 
@@ -1113,7 +1180,6 @@ impl<'de> Deserializer<'de> {
                         cnt += 1;
                         insert_str!(row_key_start, row_key_end);
 
-                        // Open the row's object, e.g. "alice": { "age": 30, "city": "Berlin" }
                         unsafe {
                             stack_ptr
                                 .add(depth)
@@ -1123,35 +1189,37 @@ impl<'de> Deserializer<'de> {
                         insert_res!(Node::Object { len: 0, count: 0 });
                         cnt = 0;
 
-                        update_char!(); // skip ':' to reach the first field value
+                        update_char!();
 
-                        for (h_idx, &(h_start, h_end)) in headers.iter().enumerate() {
+                        for &(h_start, h_end) in headers.iter().take(n_headers - 1) {
                             insert_str!(h_start, h_end);
                             cnt += 1;
 
-                            let is_last_header = h_idx + 1 == n_headers;
                             let value_start = idx;
-                            let value_end = if is_last_header {
-                                get_value_end!(ErrorType::Syntax, b'\n')
-                            } else {
-                                get_value_end!(ErrorType::Syntax, b',')
-                            };
+                            let value_end = get_value_end!(ErrorType::Syntax, b',');
                             parse_and_insert_value!(value_start, value_end);
 
-                            if !is_last_header {
-                                if unlikely!(c != b',') {
-                                    fail!(ErrorType::Syntax);
-                                }
-                                update_char!();
+                            if unlikely!(c != b',') {
+                                fail!(ErrorType::Syntax);
                             }
+                            update_char!();
                         }
+
+                        let (h_start, h_end) = match headers.last() {
+                            Some(v) => v,
+                            None => {
+                                fail!();
+                            }
+                        };
+
+                        insert_str!(*h_start, *h_end);
+                        cnt += 1;
+
+                        let value_start = idx;
+                        let value_end = get_value_end!(ErrorType::Syntax, b'\n');
+                        parse_and_insert_value!(value_start, value_end);
 
                         close_and_pop_state!(Object);
-
-                        let is_last_row = row_idx + 1 == rows_count;
-                        if !is_last_row {
-                            update_char!(); // advance past this row's '\n' to the next row's key
-                        }
                     }
 
                     goto!(State::ScopeEnd);
@@ -1180,14 +1248,69 @@ impl<'de> Deserializer<'de> {
                     cnt = 0;
 
                     update_char!(); // step past the header's ':'
-                    update_char!(); // ... and past the line's trailing '\n'
+                    if !matches!(get_eol_state!(), EOLState::Nested) {
+                        fail!(ErrorType::ExpectedArrayContent);
+                    }
+
+                    content_ws_stack.push(curr_indent!() + indent_size);
 
                     let n_headers = headers.len();
 
-                    for row_idx in 0..rows_count {
+                    if rows_count > 0 {
+                        // Handle all rows except the last one:
+                        for _ in 0..(rows_count - 1) {
+                            cnt += 1;
+
+                            // Open the row's object, e.g. { "sku": "A1", "qty": 2, "price": 9.99 }
+                            unsafe {
+                                stack_ptr
+                                    .add(depth)
+                                    .write(StackState::Array { last_start, cnt });
+                            }
+                            last_start = r_i;
+                            insert_res!(Node::Object { len: 0, count: 0 });
+                            cnt = 0;
+
+                            // Handle n - 1 headers:
+                            for &(h_start, h_end) in headers.iter().take(n_headers - 1) {
+                                insert_str!(h_start, h_end);
+                                cnt += 1;
+
+                                let value_start = idx;
+                                let value_end = get_value_end!(ErrorType::Syntax, b',');
+                                parse_and_insert_value!(value_start, value_end);
+                                update_char!();
+                            }
+
+                            // handle the last header:
+                            let (h_start, h_end) = match headers.last() {
+                                Some(v) => v,
+                                None => {
+                                    fail!();
+                                }
+                            };
+
+                            insert_str!(*h_start, *h_end);
+                            cnt += 1;
+
+                            let value_start = idx;
+                            let value_end = get_value_end!(ErrorType::Syntax, b'\n');
+                            parse_and_insert_value!(value_start, value_end);
+
+                            close_and_pop_state!(Object);
+
+                            match get_eol_state!() {
+                                EOLState::Sibling => {}
+                                // rows must stay at the same indentation
+                                EOLState::CloseScope | EOLState::Nested => {
+                                    fail!(ErrorType::Syntax);
+                                }
+                            }
+                        }
+
+                        // Handle the final row separately:
                         cnt += 1;
 
-                        // Open the row's object, e.g. { "sku": "A1", "qty": 2, "price": 9.99 }
                         unsafe {
                             stack_ptr
                                 .add(depth)
@@ -1197,33 +1320,31 @@ impl<'de> Deserializer<'de> {
                         insert_res!(Node::Object { len: 0, count: 0 });
                         cnt = 0;
 
-                        for (h_idx, &(h_start, h_end)) in headers.iter().enumerate() {
+                        for &(h_start, h_end) in headers.iter().take(n_headers - 1) {
                             insert_str!(h_start, h_end);
                             cnt += 1;
 
-                            let is_last_header = h_idx + 1 == n_headers;
                             let value_start = idx;
-                            let value_end = if is_last_header {
-                                get_value_end!(ErrorType::Syntax, b'\n')
-                            } else {
-                                get_value_end!(ErrorType::Syntax, b',')
-                            };
+                            let value_end = get_value_end!(ErrorType::Syntax, b',');
                             parse_and_insert_value!(value_start, value_end);
-
-                            if !is_last_header {
-                                if unlikely!(c != b',') {
-                                    fail!(ErrorType::Syntax);
-                                }
-                                update_char!();
-                            }
+                            update_char!();
                         }
+
+                        let (h_start, h_end) = match headers.last() {
+                            Some(v) => v,
+                            None => {
+                                fail!();
+                            }
+                        };
+
+                        insert_str!(*h_start, *h_end);
+                        cnt += 1;
+
+                        let value_start = idx;
+                        let value_end = get_value_end!(ErrorType::Syntax, b'\n');
+                        parse_and_insert_value!(value_start, value_end);
 
                         close_and_pop_state!(Object);
-
-                        let is_last_row = row_idx + 1 == rows_count;
-                        if !is_last_row {
-                            update_char!(); // advance past this row's '\n' to the next row's first value
-                        }
                     }
 
                     goto!(State::ScopeEnd);
@@ -1243,11 +1364,8 @@ impl<'de> Deserializer<'de> {
                         }
                     }
 
-                    if indent_modifier > 0 {
-                        indent_modifier -= indent_size as isize;
-                    }
-
                     depth -= 1;
+                    content_ws_stack.pop();
 
                     unsafe {
                         // Backfill the tape:
@@ -1289,7 +1407,7 @@ impl<'de> Deserializer<'de> {
                                 let eol_state = if c == b'\n' {
                                     get_eol_state!()
                                 } else {
-                                    eol_state_from_ws!(last_ws)
+                                    eol_state_from_ws!(curr_indent!())
                                 };
 
                                 match eol_state {
@@ -1321,7 +1439,7 @@ impl<'de> Deserializer<'de> {
                                 let eol_state = if c == b'\n' {
                                     get_eol_state!()
                                 } else {
-                                    eol_state_from_ws!(last_ws)
+                                    eol_state_from_ws!(curr_indent!())
                                 };
 
                                 match eol_state {
@@ -1341,10 +1459,8 @@ impl<'de> Deserializer<'de> {
 
                             StackState::Start => {
                                 // Skip any trailing `\n` structurals (EOF terminators).
-                                while i < structural_indexes.len()
-                                    && *get!(input2, *get!(structural_indexes, i) as usize) == b'\n'
-                                {
-                                    i += 1;
+                                while i < structural_indexes.len() && c == b'\n' {
+                                    update_char!();
                                 }
                                 if i == structural_indexes.len() {
                                     success!();
