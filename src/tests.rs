@@ -18,7 +18,7 @@ fn test_send_sync() {
 
 #[test]
 fn playground2() {
-    let mut d = String::from("items[1]:\n  - items[0]:\n");
+    let mut d = String::from("items[2]:\n  - properties:\n      state:\n        type: string\n  - id: 2\n");
     let d = unsafe { d.as_bytes_mut() };
     let simd = Deserializer::from_slice(d).expect("");
     println!("{:?}", simd.tape)

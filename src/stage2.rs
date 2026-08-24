@@ -281,6 +281,13 @@ impl<'de> Deserializer<'de> {
         // Keyed by depth, so an entry can only ever be consumed by the scope it belongs to.
         let mut pending_counts: Vec<(usize, usize)> = Vec::new(); // (depth, expected)
 
+        // The indentation of the next real token, measured the one time `get_eol_state!`
+        // actually reads a newline. A ScopeEnd cascade (dedenting past several containers
+        // at once) re-reads this instead of the newline, which no longer exists at those
+        // levels, so it must reuse this measurement rather than compare a level's own
+        // expected indentation to itself.
+        let mut last_dedent_ws: usize = 0;
+
         #[cfg(all(
             feature = "runtime-detection",
             any(target_arch = "x86_64", target_arch = "x86"),
@@ -450,7 +457,7 @@ impl<'de> Deserializer<'de> {
         macro_rules! eol_state_from_ws {
             ($actual_ws:expr_2021) => {{
                 let actual_ws = $actual_ws;
-                let sibling_ws = content_ws_stack.last().copied().unwrap_or(0);
+                let sibling_ws = curr_indent!();
 
                 if actual_ws == sibling_ws {
                     EOLState::Sibling
@@ -488,7 +495,8 @@ impl<'de> Deserializer<'de> {
                         fail!(ErrorType::Syntax);
                     }
 
-                    eol_state_from_ws!(new_idx - old_idx - 1)
+                    last_dedent_ws = new_idx - old_idx - 1;
+                    eol_state_from_ws!(last_dedent_ws)
                 }
             }};
         }
@@ -1395,19 +1403,16 @@ impl<'de> Deserializer<'de> {
                                 last_start = l;
                                 cnt = parent_cnt;
 
-                                if i >= structural_indexes.len() {
-                                    goto!(State::ScopeEnd);
-                                }
-
                                 // `c == b'\n'` means this newline hasn't been consumed yet
                                 // (fresh close, e.g. right after a tabular block). Otherwise
                                 // we're cascading through several closes for a newline that
-                                // `get_eol_state!` already consumed, so reuse its measurement
-                                // instead of expecting another (nonexistent) `\n`.
+                                // `get_eol_state!` already consumed, so reuse `last_dedent_ws`
+                                // (the indentation it measured) instead of expecting another
+                                // (nonexistent) `\n`.
                                 let eol_state = if c == b'\n' {
                                     get_eol_state!()
                                 } else {
-                                    eol_state_from_ws!(curr_indent!())
+                                    eol_state_from_ws!(last_dedent_ws)
                                 };
 
                                 match eol_state {
@@ -1439,7 +1444,7 @@ impl<'de> Deserializer<'de> {
                                 let eol_state = if c == b'\n' {
                                     get_eol_state!()
                                 } else {
-                                    eol_state_from_ws!(curr_indent!())
+                                    eol_state_from_ws!(last_dedent_ws)
                                 };
 
                                 match eol_state {
