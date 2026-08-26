@@ -17,18 +17,61 @@ fn test_send_sync() {
 }
 
 #[test]
-fn playground2() {
-    let mut d = String::from("items[2]:\n  - properties:\n      state:\n        type: string\n  - id: 2\n");
+fn test_root_keyless_block_array() {
+    let mut d = String::from("[2]:\n  - a\n  - b");
     let d = unsafe { d.as_bytes_mut() };
     let simd = Deserializer::from_slice(d).expect("");
-    println!("{:?}", simd.tape)
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Array { len: 2, count: 2 },
+            Node::String("a"),
+            Node::String("b"),
+        ]
+    );
+}
+
+#[test]
+fn test_root_keyless_inline_array() {
+    let mut d = String::from("[2]: a, b");
+    let d = unsafe { d.as_bytes_mut() };
+    let simd = Deserializer::from_slice(d).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Array { len: 2, count: 2 },
+            Node::String("a"),
+            Node::String("b"),
+        ]
+    );
+}
+
+#[test]
+fn test_empty_root_array_with_key() {
+    let mut d = String::from("items[0]:");
+    let d = unsafe { d.as_bytes_mut() };
+    let simd = Deserializer::from_slice(d).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 2 },
+            Node::String("items"),
+            Node::Array { len: 0, count: 0 },
+        ]
+    );
+}
+
+#[test]
+fn test_empty_root_array_without_key() {
+    let mut d = String::from("[0]:");
+    let d = unsafe { d.as_bytes_mut() };
+    let simd = Deserializer::from_slice(d).expect("");
+    assert_eq!(simd.tape, [Node::Array { len: 0, count: 0 },]);
 }
 
 #[test]
 fn playground() {
-    let mut d = String::from(
-        "items[1]:\n  - users[2:]{age,city}:\n      alice: 30,Berlin\n      bob: 25,Oslo\n",
-    );
+    let mut d = String::from("");
     let d = unsafe { d.as_bytes_mut() };
     let simd = Deserializer::from_slice(d).expect("");
     println!("{:?}", simd.tape)
