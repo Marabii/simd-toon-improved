@@ -94,7 +94,7 @@ fn run_decode_test(tc: &TestCase) -> Result<(), String> {
         Ok(Ok(actual)) if tc.should_error => Err(format!(
             "expected an error but decoded successfully: {actual}"
         )),
-        Ok(Ok(actual)) if actual == tc.expected => Ok(()),
+        Ok(Ok(actual)) if json_matches(&actual, &tc.expected) => Ok(()),
         Ok(Ok(actual)) => Err(format!(
             "decoded value does not match expected\n    expected: {}\n    actual:   {}",
             tc.expected, actual
@@ -104,6 +104,28 @@ fn run_decode_test(tc: &TestCase) -> Result<(), String> {
         Err(_) if tc.should_error => Ok(()),
         Err(payload) => Err(format!("decode panicked: {}", panic_message(&payload))),
     }
+}
+
+fn json_matches(actual: &serde_json::Value, expected: &serde_json::Value) -> bool {
+    match (actual, expected) {
+        (serde_json::Value::Number(a), serde_json::Value::Number(b)) => numbers_equal(a, b),
+        (serde_json::Value::Array(a), serde_json::Value::Array(b)) => {
+            a.len() == b.len() && a.iter().zip(b).all(|(a, b)| json_matches(a, b))
+        }
+        (serde_json::Value::Object(a), serde_json::Value::Object(b)) => {
+            a.len() == b.len()
+                && a.iter()
+                    .all(|(k, v)| b.get(k).is_some_and(|bv| json_matches(v, bv)))
+        }
+        _ => actual == expected,
+    }
+}
+
+/// Exact (variant-aware) equality first, since that's precise even for
+/// integers too large to round-trip through `f64`; falls back to comparing
+/// by value so e.g. `Float(-1000.0)` matches `PosInt`/`NegInt(-1000)`.
+fn numbers_equal(a: &serde_json::Number, b: &serde_json::Number) -> bool {
+    a == b || matches!((a.as_f64(), b.as_f64()), (Some(a), Some(b)) if a == b)
 }
 
 fn panic_message(payload: &(dyn std::any::Any + Send)) -> String {

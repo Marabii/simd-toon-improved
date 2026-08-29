@@ -87,6 +87,8 @@ enum State {
     /// ```
     /// {"items":[ {"sku":"A1","qty":2,"price":9.99}, {"sku":"B2","qty":1,"price":14.5} ]}
     /// ```
+    /// Side note, I'm well aware there's a risk of writing to unallocated memory since tabular arrays don't have
+    /// enough structurals, I'll work on it later.
     ParseTabularArray {
         key: Option<(usize, usize)>,
         headers: Vec<(usize, usize)>,
@@ -1108,7 +1110,7 @@ impl<'de> Deserializer<'de> {
                     let value_end = get_value_end!(ErrorType::Syntax, b'\n');
                     parse_and_insert_value!(value_start, value_end);
 
-                    content_ws_stack.push(curr_indent!() + indent_size);
+                    content_ws_stack.push(curr_indent!());
                     match get_eol_state!() {
                         EOLState::CloseScope | EOLState::Sibling => goto!(State::ScopeEnd),
                         EOLState::Nested => {
