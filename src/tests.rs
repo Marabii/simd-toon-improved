@@ -63,7 +63,7 @@ fn test_empty_root_array_with_key() {
 
 #[test]
 fn test_empty_root_array_without_key() {
-    let mut d = String::from("[0]:");
+    let mut d = String::from("[0]:\n       #   lasndflk;ansdf;lnasdf");
     let d = unsafe { d.as_bytes_mut() };
     let simd = Deserializer::from_slice(d).expect("");
     assert_eq!(simd.tape, [Node::Array { len: 0, count: 0 },]);
@@ -71,7 +71,7 @@ fn test_empty_root_array_without_key() {
 
 #[test]
 fn playground() {
-    let mut d = String::from("");
+    let mut d = String::from("name: Hamza\n      # something\nage: 21");
     let d = unsafe { d.as_bytes_mut() };
     let simd = Deserializer::from_slice(d).expect("");
     println!("{:?}", simd.tape)
@@ -1072,4 +1072,142 @@ fn test_accepts_a_header_key_outside_the_encoder_unquoted_key_pattern() {
             Node::Static(StaticNode::U64(2))
         ]
     );
+}
+
+#[test]
+fn test_comment_line_is_absorbed_by_the_line_above() {
+    let mut d = String::from("name: Hamza\n  # some comment\nage: 21");
+    let d = unsafe { d.as_bytes_mut() };
+    let simd = Deserializer::from_slice(d).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 2, count: 4 },
+            Node::String("name"),
+            Node::String("Hamza"),
+            Node::String("age"),
+            Node::Static(StaticNode::U64(21)),
+        ]
+    );
+}
+
+#[test]
+fn test_consecutive_comment_lines_collapse_into_one_run_of_spaces() {
+    let mut d = String::from("a: 1\n# c1\n  # c2\n# c3\nb: 2");
+    let d = unsafe { d.as_bytes_mut() };
+    let simd = Deserializer::from_slice(d).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 2, count: 4 },
+            Node::String("a"),
+            Node::Static(StaticNode::U64(1)),
+            Node::String("b"),
+            Node::Static(StaticNode::U64(2)),
+        ]
+    );
+}
+
+#[test]
+fn test_comment_does_not_count_as_a_list_item() {
+    let mut d = String::from("items[2]:\n  - a\n  # note\n  - b");
+    let d = unsafe { d.as_bytes_mut() };
+    let simd = Deserializer::from_slice(d).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 4 },
+            Node::String("items"),
+            Node::Array { len: 2, count: 2 },
+            Node::String("a"),
+            Node::String("b"),
+        ]
+    );
+}
+
+#[test]
+fn test_outdented_comment_does_not_close_the_scope_it_sits_in() {
+    let mut d = String::from("user:\n  id: 1\n# outdented note\n  name: Ada");
+    let d = unsafe { d.as_bytes_mut() };
+    let simd = Deserializer::from_slice(d).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 6 },
+            Node::String("user"),
+            Node::Object { len: 2, count: 4 },
+            Node::String("id"),
+            Node::Static(StaticNode::U64(1)),
+            Node::String("name"),
+            Node::String("Ada"),
+        ]
+    );
+}
+
+#[test]
+fn test_hash_that_is_not_a_lines_first_token_stays_data() {
+    let mut d = String::from("note: #x");
+    let d = unsafe { d.as_bytes_mut() };
+    let simd = Deserializer::from_slice(d).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 2 },
+            Node::String("note"),
+            Node::String("#x"),
+        ]
+    );
+}
+
+#[test]
+fn test_quoted_hash_leading_cell_stays_data() {
+    let mut d = String::from("items[1]{tag}:\n  \"#a\"");
+    let d = unsafe { d.as_bytes_mut() };
+    let simd = Deserializer::from_slice(d).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 5 },
+            Node::String("items"),
+            Node::Array { len: 1, count: 3 },
+            Node::Object { len: 1, count: 2 },
+            Node::String("tag"),
+            Node::String("#a"),
+        ]
+    );
+}
+
+#[test]
+fn test_tab_indented_hash_is_not_a_comment() {
+    // Only U+0020 may precede the '#', so this line stays data -- and a tab in
+    // indentation is an error in strict mode.
+    let mut d = String::from("a: 1\n\t# not a comment");
+    let d = unsafe { d.as_bytes_mut() };
+    assert!(Deserializer::from_slice(d).is_err());
+}
+
+/// A comment, and the indentation in front of one, can outrun the 64-byte block
+/// stage 1 classifies at a time; the run has to carry across blocks, and the
+/// newline it swallows may already have been emitted as a structural.
+#[test]
+fn test_comments_spanning_simd_block_boundaries() {
+    for indent in 0..80 {
+        for body in [0, 1, 63, 64, 65, 200] {
+            let src = format!("a: 1\n{}# {}\nb: 2", " ".repeat(indent), "x".repeat(body));
+            let mut d = src.clone().into_bytes();
+            let simd = Deserializer::from_slice(&mut d)
+                .unwrap_or_else(|e| panic!("{src:?} failed to decode: {e}"));
+            assert_eq!(
+                simd.tape,
+                [
+                    Node::Object { len: 2, count: 4 },
+                    Node::String("a"),
+                    Node::Static(StaticNode::U64(1)),
+                    Node::String("b"),
+                    Node::Static(StaticNode::U64(2)),
+                ],
+                "unexpected tape for {src:?}"
+            );
+        }
+    }
 }

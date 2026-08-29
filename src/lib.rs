@@ -26,6 +26,7 @@ pub mod serde;
 /// serde related helper functions
 pub mod tests;
 
+use crate::comments_stripper::CommentStripper;
 use crate::error::InternalError;
 #[cfg(feature = "serde_impl")]
 pub use crate::serde::{
@@ -46,6 +47,7 @@ pub use crate::parser::Parser;
 pub mod prelude;
 
 mod charutils;
+mod comments_stripper;
 #[macro_use]
 mod macros;
 mod error;
@@ -194,7 +196,17 @@ pub(crate) trait Stage1Parse {
 
     unsafe fn unsigned_lteq_against_input(&self, maxval: Self::SimdRepresentation) -> u64;
 
-    unsafe fn find_whitespace_and_structurals(&self, whitespace: &mut u64, structurals: &mut u64);
+    /// Classifies a 64-byte block. `structurals` and `whitespace` drive stage 1
+    /// proper; `newlines` and `hashes` are what the comment pre-pass needs to
+    /// find full-line `#` comments (a newline is structural too, but the
+    /// pre-pass has to tell it apart from the other structural bytes).
+    unsafe fn find_whitespace_structurals_hashes(
+        &self,
+        whitespace: &mut u64,
+        structurals: &mut u64,
+        newlines: &mut u64,
+        hashes: &mut u64,
+    );
 
     unsafe fn flatten_bits(base: &mut Vec<u32>, idx: u32, bits: u64);
 
@@ -394,7 +406,7 @@ type ClassifyBytesFn = for<'invoke> unsafe fn(&'invoke [u8]) -> BasicTypes;
     any(target_arch = "x86_64", target_arch = "x86"),
 ))]
 type FindStructuralBitsFn = unsafe fn(
-    input: &[u8],
+    input: &mut [u8],
     structural_indexes: &mut Vec<u32>,
 ) -> std::result::Result<(), ErrorType>;
 
@@ -491,7 +503,7 @@ impl Deserializer<'_> {
         any(target_arch = "x86_64", target_arch = "x86"),
     ))]
     pub(crate) unsafe fn find_structural_bits(
-        input: &[u8],
+        input: &mut [u8],
         structural_indexes: &mut Vec<u32>,
     ) -> std::result::Result<(), ErrorType> {
         unsafe {
@@ -504,7 +516,7 @@ impl Deserializer<'_> {
             // without them every primitive stays an outlined call per 64-byte block.
             #[target_feature(enable = "avx2", enable = "pclmulqdq")]
             unsafe fn find_structural_bits_avx2(
-                input: &[u8],
+                input: &mut [u8],
                 structural_indexes: &mut Vec<u32>,
             ) -> core::result::Result<(), error::ErrorType> {
                 unsafe {
@@ -528,7 +540,7 @@ impl Deserializer<'_> {
 
             #[cfg_attr(not(feature = "no-inline"), inline)]
             unsafe fn get_fastest(
-                input: &[u8],
+                input: &mut [u8],
                 structural_indexes: &mut Vec<u32>,
             ) -> core::result::Result<(), error::ErrorType> {
                 unsafe {
@@ -633,6 +645,11 @@ impl<'de> Deserializer<'de> {
         }
 
         unsafe {
+            // Stage 1 blanks out comment lines in `input` as it goes, so it has
+            // to run before the copy stage 2 reads from is taken.
+            Self::find_structural_bits(input, &mut buffer.structural_indexes)
+                .map_err(Error::generic)?;
+
             input_buffer
                 .as_mut_ptr()
                 .copy_from_nonoverlapping(input.as_ptr(), len);
@@ -646,9 +663,6 @@ impl<'de> Deserializer<'de> {
 
             // safety: all bytes are initialized
             input_buffer.set_len(simd_safe_len);
-
-            Self::find_structural_bits(input, &mut buffer.structural_indexes)
-                .map_err(Error::generic)?;
 
             // Guarantee the structural stream always ends on a '\n'
             input_buffer.as_mut_ptr().add(len).write(b'\n');
@@ -718,12 +732,15 @@ impl<'de> Deserializer<'de> {
     #[cfg_attr(not(feature = "no-inline"), inline)]
     #[allow(clippy::cast_possible_truncation)]
     pub(crate) unsafe fn _find_structural_bits<S: Stage1Parse>(
-        input: &[u8],
+        input: &mut [u8],
         structural_indexes: &mut Vec<u32>,
     ) -> std::result::Result<(), ErrorType> {
         let len = input.len();
-        // 8 is a heuristic number to estimate it turns out a rate of 1/8 structural characters
-        // leads almost never to relocations.
+        // Comment stripping rewrites the input in place, so stage 1 works
+        // through a raw pointer: the per-block `&[u8]` view below is dropped
+        // before anything is written back through it.
+        let base: *mut u8 = input.as_mut_ptr();
+        // The len / 8 is a heuristic that used to work on json but needs to be re-evaluated for TOON.
         structural_indexes.clear();
         structural_indexes.reserve(len / 8);
 
@@ -745,6 +762,8 @@ impl<'de> Deserializer<'de> {
         // the
         // purposes of pseudo-structural character detection so we initialize to 1
         let mut prev_iter_ends_pseudo_pred: u64 = 1;
+        // rewrites full-line `#` comments into spaces as the blocks go by
+        let mut comments = CommentStripper::new(base, len);
 
         // structurals are persistent state across loop as we flatten them on the
         // subsequent iteration into our array pointed to be base_ptr.
@@ -786,7 +805,31 @@ impl<'de> Deserializer<'de> {
             unsafe { S::flatten_bits(structural_indexes, idx as u32, structurals) };
 
             let mut whitespace: u64 = 0;
-            unsafe { input.find_whitespace_and_structurals(&mut whitespace, &mut structurals) };
+            let mut newlines: u64 = 0;
+            let mut hashes: u64 = 0;
+            unsafe {
+                input.find_whitespace_structurals_hashes(
+                    &mut whitespace,
+                    &mut structurals,
+                    &mut newlines,
+                    &mut hashes,
+                )
+            };
+
+            let blanked = unsafe {
+                comments.strip_block(
+                    idx,
+                    newlines,
+                    whitespace,
+                    hashes & !quote_mask,
+                    structural_indexes,
+                )
+            };
+
+            // Blanked bytes are whitespace now, so they neither carry structure
+            // themselves nor suppress the pseudo-structural after them.
+            whitespace |= blanked;
+            structurals &= !blanked;
 
             // fixup structurals to reflect quotes and add pseudo-structural characters
             structurals = S::finalize_structurals(
@@ -796,6 +839,10 @@ impl<'de> Deserializer<'de> {
                 quote_bits,
                 &mut prev_iter_ends_pseudo_pred,
             );
+
+            // `finalize_structurals` puts the quote bits back; a quote inside a
+            // comment is not one.
+            structurals &= !blanked;
             idx += SIMDINPUT_LENGTH;
         }
 
@@ -805,9 +852,7 @@ impl<'de> Deserializer<'de> {
         if idx < len {
             let mut tmpbuf: [u8; SIMDINPUT_LENGTH] = [0x20; SIMDINPUT_LENGTH];
             unsafe {
-                tmpbuf
-                    .as_mut_ptr()
-                    .copy_from(input.as_ptr().add(idx), len - idx);
+                tmpbuf.as_mut_ptr().copy_from(base.add(idx), len - idx);
             };
             unsafe { utf8_validator.update_from_chunks(&tmpbuf) };
 
@@ -832,7 +877,32 @@ impl<'de> Deserializer<'de> {
             unsafe { S::flatten_bits(structural_indexes, idx as u32, structurals) };
 
             let mut whitespace: u64 = 0;
-            unsafe { input.find_whitespace_and_structurals(&mut whitespace, &mut structurals) };
+            let mut newlines: u64 = 0;
+            let mut hashes: u64 = 0;
+            unsafe {
+                input.find_whitespace_structurals_hashes(
+                    &mut whitespace,
+                    &mut structurals,
+                    &mut newlines,
+                    &mut hashes,
+                )
+            };
+
+            // Rewrite full-line comments as spaces. A quoted '#' is data, never
+            // the start of one.
+            let blanked = unsafe {
+                comments.strip_block(
+                    idx,
+                    newlines,
+                    whitespace,
+                    hashes & !quote_mask,
+                    structural_indexes,
+                )
+            };
+            // Blanked bytes are whitespace now, so they neither carry structure
+            // themselves nor suppress the pseudo-structural after them.
+            whitespace |= blanked;
+            structurals &= !blanked;
 
             // fixup structurals to reflect quotes and add pseudo-structural characters
             structurals = S::finalize_structurals(
@@ -842,8 +912,13 @@ impl<'de> Deserializer<'de> {
                 quote_bits,
                 &mut prev_iter_ends_pseudo_pred,
             );
+
+            // `finalize_structurals` puts the quote bits back; a quote inside a
+            // comment is not one.
+            structurals &= !blanked;
             idx += SIMDINPUT_LENGTH;
         }
+
         // This test isn't in upstream, for some reason the error mask is et for then.
         if prev_iter_inside_quote != 0 {
             return Err(ErrorType::Syntax);

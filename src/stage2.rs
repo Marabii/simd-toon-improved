@@ -457,6 +457,9 @@ impl<'de> Deserializer<'de> {
         #[collapse_debuginfo(yes)]
         macro_rules! get_value_end {
             ($err:expr, $($expected_delim:expr),+) => {{
+                // `idx` walks forward below, so the token's first byte has to be
+                // taken now -- it is the floor the trim must not walk past.
+                let token_start = idx;
                 let hard_end;
 
                 loop {
@@ -473,7 +476,7 @@ impl<'de> Deserializer<'de> {
                     update_char!();
                 }
 
-                trim_trailing_spaces!(idx, hard_end)
+                trim_trailing_spaces!(token_start, hard_end)
             }};
         }
 

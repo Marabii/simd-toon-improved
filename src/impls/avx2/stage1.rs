@@ -23,8 +23,8 @@ use arch::{
 macro_rules! low_nibble_mask {
     () => {
         _mm256_setr_epi8(
-            32, 0, 0, 0, 0, 0, 0, 0, 0, 16, 1, 2, 4, 72, 0, 0, 32, 0, 0, 0, 0, 0, 0, 0, 0, 16, 1,
-            2, 4, 72, 0, 0,
+            32, 0, 0, -128, 0, 0, 0, 0, 0, 16, 65, 2, 4, 8, 0, 0, 32, 0, 0, -128, 0, 0, 0, 0, 0,
+            16, 65, 2, 4, 8, 0, 0,
         )
     };
 }
@@ -32,7 +32,7 @@ macro_rules! low_nibble_mask {
 macro_rules! high_nibble_mask {
     () => {
         _mm256_setr_epi8(
-            81, 0, 44, 1, 0, 10, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0, 81, 0, 44, 1, 0, 10, 0, 14, 0, 0,
+            88, 0, -84, 1, 0, 10, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0, 88, 0, -84, 1, 0, 10, 0, 14, 0, 0,
             0, 0, 0, 0, 0, 0,
         )
     };
@@ -120,21 +120,39 @@ impl Stage1Parse for SimdInput {
     #[cfg_attr(not(feature = "no-inline"), inline)]
     #[allow(clippy::cast_sign_loss)]
     #[target_feature(enable = "avx2")]
-    unsafe fn find_whitespace_and_structurals(&self, whitespace: &mut u64, structurals: &mut u64) {
+    unsafe fn find_whitespace_structurals_hashes(
+        &self,
+        whitespace: &mut u64,
+        structurals: &mut u64,
+        newlines: &mut u64,
+        hashes: &mut u64,
+    ) {
         unsafe {
-            // Bit 0 (1): : (0x3A), \n (0x0A) -> Structural
-            // Bit 1 (2): [ (0x5B), { (0x7B) -> Structural
-            // Bit 2 (4): , (0x2C), | (0x7C) -> Structural
-            // Bit 3 (8): - (0x2D), ] (0x5D), } (0x7D) -> Structural
-            // Bit 4 (16): \t (0x09) -> Structural
-            // Bit 5 (32):       (0x20) -> Whitespace
-            // Bit 6 (64): \r (0x0D) -> Whitespace
+            // Bit 0 (1): : (0x3A)
+            // Bit 1 (2): [ (0x5B), { (0x7B)
+            // Bit 2 (4): , (0x2C), | (0x7C)
+            // Bit 3 (8): - (0x2D), ] (0x5D), } (0x7D), and \r (0x0D)
+            // Bit 4 (16): \t (0x09)
+            // Bit 5 (32):   (0x20)
+            // Bit 6 (64): \n (0x0A)
+            // Bit 7 (128): # (0x23)
 
             let low_nibble_mask: __m256i = low_nibble_mask!();
             let high_nibble_mask: __m256i = high_nibble_mask!();
 
-            let structural_shufti_mask: __m256i = _mm256_set1_epi8(0x1F);
-            let whitespace_shufti_mask: __m256i = _mm256_set1_epi8(0x60);
+            // Structurals mask: 0x1F (Bits 0-4) | 0x40 (Bit 6 for \n) = 0x5F
+            let structural_shufti_mask: __m256i = _mm256_set1_epi8(0x5F);
+
+            // Whitespace mask: 0x20 (Bit 5 for space only).
+            // (\r is now inherently part of the structural mask via Bit 3).
+            let whitespace_shufti_mask: __m256i = _mm256_set1_epi8(0x20);
+
+            // Newline mask: Bit 6 is 0x40. Newlines are also structural, but the
+            // comment pre-pass needs them on their own to find line boundaries.
+            let newline_shufti_mask: __m256i = _mm256_set1_epi8(0x40);
+
+            // Hash mask: Bit 7 is 0x80. In Rust's signed i8, this is -128.
+            let hash_shufti_mask: __m256i = _mm256_set1_epi8(-128);
 
             let v_lo: __m256i = _mm256_and_si256(
                 _mm256_shuffle_epi8(low_nibble_mask, self.v0),
@@ -151,36 +169,28 @@ impl Stage1Parse for SimdInput {
                     _mm256_and_si256(_mm256_srli_epi32(self.v1, 4), _mm256_set1_epi8(0x7f)),
                 ),
             );
-            let tmp_lo: __m256i = _mm256_cmpeq_epi8(
-                _mm256_and_si256(v_lo, structural_shufti_mask),
-                _mm256_set1_epi8(0),
-            );
-            let tmp_hi: __m256i = _mm256_cmpeq_epi8(
-                _mm256_and_si256(v_hi, structural_shufti_mask),
-                _mm256_set1_epi8(0),
-            );
 
-            // We depend on this static_cast_u32 as `_mm256_movemask_epi8` returns a i32
-            // and rusts conversion of i32 to u64 and u32 to u64 isn't equivalent
-            // in the case if i32 a negative flag (highest  bit set to 1)
-            // carries over to the entire upper half in the u64 to be set to 1 as well
+            // Each class is `(v & class_bit) == 0` inverted: the compare marks the
+            // bytes *without* the bit, so the movemask has to be negated.
+            #[cfg_attr(not(feature = "no-inline"), inline)]
+            #[target_feature(enable = "avx2")]
+            unsafe fn class_mask(v_lo: __m256i, v_hi: __m256i, class: __m256i) -> u64 {
+                unsafe {
+                    let tmp_lo: __m256i =
+                        _mm256_cmpeq_epi8(_mm256_and_si256(v_lo, class), _mm256_set1_epi8(0));
+                    let tmp_hi: __m256i =
+                        _mm256_cmpeq_epi8(_mm256_and_si256(v_hi, class), _mm256_set1_epi8(0));
 
-            let structural_res_0: u64 = u64::from(static_cast_u32!(_mm256_movemask_epi8(tmp_lo)));
-            let structural_res_1: u64 = u64::from(static_cast_u32!(_mm256_movemask_epi8(tmp_hi)));
-            *structurals = !(structural_res_0 | (structural_res_1 << 32));
+                    let res_0: u64 = u64::from(static_cast_u32!(_mm256_movemask_epi8(tmp_lo)));
+                    let res_1: u64 = u64::from(static_cast_u32!(_mm256_movemask_epi8(tmp_hi)));
+                    !(res_0 | (res_1 << 32))
+                }
+            }
 
-            let tmp_ws_lo: __m256i = _mm256_cmpeq_epi8(
-                _mm256_and_si256(v_lo, whitespace_shufti_mask),
-                _mm256_set1_epi8(0),
-            );
-            let tmp_ws_hi: __m256i = _mm256_cmpeq_epi8(
-                _mm256_and_si256(v_hi, whitespace_shufti_mask),
-                _mm256_set1_epi8(0),
-            );
-
-            let ws_res_0: u64 = u64::from(static_cast_u32!(_mm256_movemask_epi8(tmp_ws_lo)));
-            let ws_res_1: u64 = u64::from(static_cast_u32!(_mm256_movemask_epi8(tmp_ws_hi)));
-            *whitespace = !(ws_res_0 | (ws_res_1 << 32));
+            *structurals = class_mask(v_lo, v_hi, structural_shufti_mask);
+            *whitespace = class_mask(v_lo, v_hi, whitespace_shufti_mask);
+            *newlines = class_mask(v_lo, v_hi, newline_shufti_mask);
+            *hashes = class_mask(v_lo, v_hi, hash_shufti_mask);
         }
     }
 
