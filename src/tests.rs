@@ -71,7 +71,7 @@ fn test_empty_root_array_without_key() {
 
 #[test]
 fn playground() {
-    let mut d = String::from("value: -0e1");
+    let mut d = String::from("name: hamza\t");
     let d = unsafe { d.as_bytes_mut() };
     let simd = Deserializer::from_slice(d).expect("");
     println!("{:?}", simd.tape)

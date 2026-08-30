@@ -410,7 +410,7 @@ impl<'de> Deserializer<'de> {
                 let mut end = $hard_end;
                 while end > $start {
                     let prev_char = *get!(input2, end - 1);
-                    if prev_char == b' ' || prev_char == b'\r' || prev_char == b'\t' {
+                    if prev_char == b' ' || prev_char == b'\r' {
                         end -= 1;
                     } else {
                         break;
@@ -504,28 +504,28 @@ impl<'de> Deserializer<'de> {
         macro_rules! get_eol_state {
             () => {{
                 if i >= structural_indexes.len() {
-                    goto!(State::ScopeEnd);
-                }
-
-                if unlikely!(c != b'\n') {
-                    fail!(ErrorType::Syntax);
-                }
-
-                let old_idx = idx;
-                update_char!();
-
-                if i >= structural_indexes.len() {
                     EOLState::CloseScope
                 } else {
-                    let new_idx = idx;
-
-                    // Prevents double newline characters
-                    if unlikely!(c == b'\n') {
+                    if unlikely!(c != b'\n') {
                         fail!(ErrorType::Syntax);
                     }
 
-                    last_dedent_ws = new_idx - old_idx - 1;
-                    eol_state_from_ws!(last_dedent_ws)
+                    let old_idx = idx;
+                    update_char!();
+
+                    if i >= structural_indexes.len() {
+                        EOLState::CloseScope
+                    } else {
+                        let new_idx = idx;
+
+                        // Prevents double newline characters
+                        if unlikely!(c == b'\n') {
+                            fail!(ErrorType::Syntax);
+                        }
+
+                        last_dedent_ws = new_idx - old_idx - 1;
+                        eol_state_from_ws!(last_dedent_ws)
+                    }
                 }
             }};
         }
@@ -676,6 +676,62 @@ impl<'de> Deserializer<'de> {
             }};
         }
 
+        /// The frame that saves the container we are currently *inside of*.
+        /// `frame!(keyed key)`: a keyed header only occurs inside an object,
+        /// an unkeyed one only inside an array.
+        #[collapse_debuginfo(yes)]
+        macro_rules! frame {
+            (Object) => {
+                StackState::Object { last_start, cnt }
+            };
+            (Array) => {
+                StackState::Array { last_start, cnt }
+            };
+            (keyed $key:expr_2021) => {
+                if $key.is_some() {
+                    frame!(Object)
+                } else {
+                    frame!(Array)
+                }
+            };
+        }
+
+        /// Usage:
+        ///   open_scope!(Object | Array, parent: frame!(..), indent: <children's ws>);
+        ///   open_scope!(Array, parent: frame!(..), indent: <ws>, expect: <declared len>);
+        #[collapse_debuginfo(yes)]
+        macro_rules! open_scope {
+            ($node:ident, parent: $parent:expr_2021, indent: $ws:expr_2021
+                $(, expect: $count:expr_2021)?) => {{
+                // Evaluate everything that describes the *parent* before touching state.
+                let parent = $parent;
+                let ws = $ws;
+                unsafe { stack_ptr.add(depth).write(parent) };
+                depth += 1;
+                content_ws_stack.push(ws);
+                $( pending_counts.push((depth, $count)); )?
+                last_start = r_i;
+                insert_res!(Node::$node { len: 0, count: 0 });
+                cnt = 0;
+            }};
+        }
+
+        /// Used only in Tabular formats when handling different rows.
+        /// Used in conjuction with close_and_pop_state macro to handle differen rows.
+        #[collapse_debuginfo(yes)]
+        macro_rules! open_row {
+            ($node:ident, parent: $parent:expr_2021) => {{
+                let parent = $parent;
+                unsafe { stack_ptr.add(depth).write(parent) };
+                last_start = r_i;
+                insert_res!(Node::$node { len: 0, count: 0 });
+                cnt = 0;
+            }};
+        }
+
+        /// Used only in Tabular formats when handling different rows.
+        /// we handle all rows in a single loop without moving to ScopeEnd to close
+        /// the current node and update the state which is where this macro comes in handy.
         #[collapse_debuginfo(yes)]
         macro_rules! close_and_pop_state {
             ($node_variant:ident) => {
@@ -926,24 +982,11 @@ impl<'de> Deserializer<'de> {
 
                         match get_eol_state!() {
                             EOLState::Nested => {
-                                unsafe {
-                                    stack_ptr
-                                        .add(depth)
-                                        .write(StackState::Object { last_start, cnt });
-                                }
-                                last_start = r_i;
-                                depth += 1;
-
-                                insert_res!(Node::Object { len: 0, count: 0 });
-                                cnt = 0;
-
+                                open_scope!(Object, parent: frame!(Object), indent: curr_indent!() + indent_size);
                                 let key_start = idx;
                                 let key_end = get_value_end!(ErrorType::Syntax, b':');
                                 cnt += 1;
                                 insert_str!(key_start, key_end);
-
-                                content_ws_stack.push(curr_indent!() + indent_size);
-
                                 update_char!();
                                 goto!(State::ParseSimpleObjectValue);
                             }
@@ -1012,20 +1055,7 @@ impl<'de> Deserializer<'de> {
                         insert_str!(key_start, key_end);
                     }
 
-                    unsafe {
-                        stack_ptr.add(depth).write(if key.is_some() {
-                            StackState::Object { last_start, cnt }
-                        } else {
-                            StackState::Array { last_start, cnt }
-                        });
-                    }
-
-                    last_start = r_i;
-                    depth += 1;
-                    insert_res!(Node::Array { len: 0, count: 0 });
-                    cnt = 0;
-
-                    content_ws_stack.push(curr_indent!() + indent_size);
+                    open_scope!(Array, parent: frame!(keyed key), indent: curr_indent!() + indent_size);
                     match get_eol_state!() {
                         EOLState::CloseScope | EOLState::Sibling => goto!(State::ScopeEnd),
                         EOLState::Nested => {
@@ -1076,18 +1106,7 @@ impl<'de> Deserializer<'de> {
                         insert_str!(key_start, key_end);
                     }
 
-                    unsafe {
-                        stack_ptr.add(depth).write(if key.is_some() {
-                            StackState::Object { last_start, cnt }
-                        } else {
-                            StackState::Array { last_start, cnt }
-                        });
-                    }
-
-                    last_start = r_i;
-                    depth += 1;
-                    insert_res!(Node::Array { len: 0, count: 0 });
-                    cnt = 0;
+                    open_scope!(Array, parent: frame!(keyed key), indent: curr_indent!());
 
                     // Parse all elements except the last one
                     for _ in 1..count {
@@ -1110,7 +1129,6 @@ impl<'de> Deserializer<'de> {
                     let value_end = get_value_end!(ErrorType::Syntax, b'\n');
                     parse_and_insert_value!(value_start, value_end);
 
-                    content_ws_stack.push(curr_indent!());
                     match get_eol_state!() {
                         EOLState::CloseScope | EOLState::Sibling => goto!(State::ScopeEnd),
                         EOLState::Nested => {
@@ -1144,21 +1162,8 @@ impl<'de> Deserializer<'de> {
                         fail!(ErrorType::ExpectedArrayContent);
                     }
 
-                    unsafe {
-                        stack_ptr.add(depth).write(if key.is_some() {
-                            StackState::Object { last_start, cnt }
-                        } else {
-                            StackState::Array { last_start, cnt }
-                        });
-                    }
-
-                    last_start = r_i;
-                    depth += 1;
-                    insert_res!(Node::Array { len: 0, count: 0 });
-                    cnt = 0;
-
+                    open_scope!(Array, parent: frame!(keyed key), indent: curr_indent!() + indent_size);
                     pending_counts.push((depth, count));
-                    content_ws_stack.push(curr_indent!() + indent_size);
                     goto!(State::ExpectBlockArrayItem);
                 }
 
@@ -1227,19 +1232,9 @@ impl<'de> Deserializer<'de> {
                         HeaderType::ObjectStart {
                             key: (key_start, key_end),
                         } => {
-                            unsafe {
-                                stack_ptr
-                                    .add(depth)
-                                    .write(StackState::Array { last_start, cnt });
-                            }
-                            last_start = r_i;
-                            depth += 1;
-                            insert_res!(Node::Object { len: 0, count: 0 });
+                            open_scope!(Object, parent: frame!(Array), indent: curr_indent!() + 2);
                             insert_str!(key_start, key_end);
-                            cnt = 1;
-
-                            content_ws_stack.push(curr_indent!() + 2);
-
+                            cnt += 1;
                             update_char!();
                             goto!(State::ParseSimpleObjectValue);
                         }
@@ -1304,26 +1299,14 @@ impl<'de> Deserializer<'de> {
                         insert_str!(key_start, key_end);
                     }
 
-                    unsafe {
-                        stack_ptr.add(depth).write(if key.is_some() {
-                            StackState::Object { last_start, cnt }
-                        } else {
-                            StackState::Array { last_start, cnt }
-                        });
-                    }
-                    last_start = r_i;
-                    depth += 1;
-                    insert_res!(Node::Object { len: 0, count: 0 });
-                    cnt = 0;
-
                     update_char!(); // step past the header's ':'
                     if !matches!(get_eol_state!(), EOLState::Nested) {
                         fail!(ErrorType::ExpectedArrayContent);
                     }
 
-                    let n_headers = headers.len();
+                    open_scope!(Object, parent: frame!(keyed key), indent: curr_indent!() + indent_size);
 
-                    content_ws_stack.push(curr_indent!() + indent_size);
+                    let n_headers = headers.len();
 
                     if rows_count > 0 {
                         // Handle all rows except the last one
@@ -1339,14 +1322,7 @@ impl<'de> Deserializer<'de> {
                             insert_str!(row_key_start, row_key_end);
 
                             // Open the row's object
-                            unsafe {
-                                stack_ptr
-                                    .add(depth)
-                                    .write(StackState::Object { last_start, cnt });
-                            }
-                            last_start = r_i;
-                            insert_res!(Node::Object { len: 0, count: 0 });
-                            cnt = 0;
+                            open_row!(Object, parent: frame!(Object));
 
                             update_char!(); // skip ':' to reach the first field value
 
@@ -1400,14 +1376,7 @@ impl<'de> Deserializer<'de> {
                         cnt += 1;
                         insert_str!(row_key_start, row_key_end);
 
-                        unsafe {
-                            stack_ptr
-                                .add(depth)
-                                .write(StackState::Object { last_start, cnt });
-                        }
-                        last_start = r_i;
-                        insert_res!(Node::Object { len: 0, count: 0 });
-                        cnt = 0;
+                        open_row!(Object, parent: frame!(Object));
 
                         update_char!();
 
@@ -1455,24 +1424,12 @@ impl<'de> Deserializer<'de> {
                         insert_str!(key_start, key_end);
                     }
 
-                    unsafe {
-                        stack_ptr.add(depth).write(if key.is_some() {
-                            StackState::Object { last_start, cnt }
-                        } else {
-                            StackState::Array { last_start, cnt }
-                        });
-                    }
-                    last_start = r_i;
-                    depth += 1;
-                    insert_res!(Node::Array { len: 0, count: 0 });
-                    cnt = 0;
-
                     update_char!(); // step past the header's ':'
                     if !matches!(get_eol_state!(), EOLState::Nested) {
                         fail!(ErrorType::ExpectedArrayContent);
                     }
 
-                    content_ws_stack.push(curr_indent!() + indent_size);
+                    open_scope!(Array, parent: frame!(keyed key), indent: curr_indent!() + indent_size);
 
                     let n_headers = headers.len();
 
@@ -1481,15 +1438,7 @@ impl<'de> Deserializer<'de> {
                         for _ in 0..(rows_count - 1) {
                             cnt += 1;
 
-                            // Open the row's object, e.g. { "sku": "A1", "qty": 2, "price": 9.99 }
-                            unsafe {
-                                stack_ptr
-                                    .add(depth)
-                                    .write(StackState::Array { last_start, cnt });
-                            }
-                            last_start = r_i;
-                            insert_res!(Node::Object { len: 0, count: 0 });
-                            cnt = 0;
+                            open_row!(Object, parent: frame!(Array));
 
                             // Handle n - 1 headers:
                             for &(h_start, h_end) in headers.iter().take(n_headers - 1) {
@@ -1530,15 +1479,7 @@ impl<'de> Deserializer<'de> {
 
                         // Handle the final row separately:
                         cnt += 1;
-
-                        unsafe {
-                            stack_ptr
-                                .add(depth)
-                                .write(StackState::Array { last_start, cnt });
-                        }
-                        last_start = r_i;
-                        insert_res!(Node::Object { len: 0, count: 0 });
-                        cnt = 0;
+                        open_row!(Object, parent: frame!(Array));
 
                         for &(h_start, h_end) in headers.iter().take(n_headers - 1) {
                             insert_str!(h_start, h_end);
