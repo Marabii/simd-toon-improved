@@ -105,7 +105,11 @@ enum State {
     /// ```
     /// {"orders":[ {"id":1,"customer":{"name":"Ada","country":"DK"},"total":99}, {"id":2,"customer":{"name":"Bob","country":"UK"},"total":149} ]}
     /// ```
-    ParseNestedFieldGroupsArray,
+    ParseNestedFieldGroupsArray {
+        key: Option<(usize, usize)>,
+        fields: Vec<FieldEntry>,
+        rows_count: usize,
+    },
 
     /// Parse Mixed and Non-Uniform Arrays
     /// ```
@@ -153,6 +157,29 @@ pub(crate) enum StackState {
     Start,
     Object { last_start: usize, cnt: usize },
     Array { last_start: usize, cnt: usize },
+}
+
+#[derive(Debug)]
+enum FieldEntry {
+    Leaf((usize, usize)),
+    Nested {
+        name: (usize, usize),
+        children: Vec<FieldEntry>,
+    },
+}
+
+impl FieldEntry {
+    /// The depth-first, pre-order leaf-field count: how many cells one row
+    /// occupies once nested field groups are expanded in place (§9.3).
+    fn leaf_count(fields: &[FieldEntry]) -> usize {
+        fields
+            .iter()
+            .map(|f| match f {
+                FieldEntry::Leaf(_) => 1,
+                FieldEntry::Nested { children, .. } => Self::leaf_count(children),
+            })
+            .sum()
+    }
 }
 
 #[derive(Debug)]
@@ -207,6 +234,19 @@ enum HeaderType {
     TabularArray {
         key: Option<(usize, usize)>,
         headers: Vec<(usize, usize)>,
+        rows_count: usize,
+    },
+
+    /// Tabular Arrays where at least one field entry carries its own nested
+    /// field group:
+    /// ```
+    /// orders[2]{id,customer{name,country},total}:
+    /// ```
+    /// Rows stay flat; the leaf-field sequence is the depth-first, pre-order
+    /// walk of `fields` (§9.3).
+    NestedFieldGroupsArray {
+        key: Option<(usize, usize)>,
+        fields: Vec<FieldEntry>,
         rows_count: usize,
     },
 }
@@ -573,6 +613,7 @@ impl<'de> Deserializer<'de> {
                     SimpleArray,
                     TabularArray(Vec<(usize, usize)>),
                     KeyedObject(Vec<(usize, usize)>),
+                    NestedFieldGroups(Vec<FieldEntry>),
                 }
 
                 if c == b'\n' {
@@ -613,37 +654,109 @@ impl<'de> Deserializer<'de> {
                         if matches!(kind, TabularKind::SimpleArray) {
                             kind = TabularKind::TabularArray(Vec::new());
                         }
-                        // This vector records the start and end of every header
-                        // Example: When parsing: users[2:]{age,city}:
-                        // it should record the positions of 'age' and 'city'
-                        let mut headers: Vec<(usize, usize)> = Vec::new();
 
                         if unlikely!(c != b'{') {
                             fail!(ErrorType::Syntax);
                         }
 
-                        loop {
-                            update_char!();
+                        let mut field_stack: Vec<Vec<FieldEntry>> = vec![Vec::new()];
+                        let mut pending_names: Vec<(usize, usize)> = Vec::new();
+                        let mut has_nested_group = false;
 
-                            if c == b':' {
-                                break;
-                            }
+                        let fields = 'field_list: loop {
+                            update_char!();
 
                             if unlikely!(i > structural_indexes.len()) {
                                 fail!(ErrorType::Syntax);
                             }
 
                             let value_start = idx;
-                            let value_end = get_value_end!(ErrorType::Syntax, b',', b'}');
-                            headers.push((value_start, value_end));
-                        }
+                            let value_end = get_value_end!(ErrorType::Syntax, b',', b'}', b'{');
+
+                            if c == b'{' {
+                                has_nested_group = true;
+                                field_stack.push(Vec::new());
+                                pending_names.push((value_start, value_end));
+                                continue;
+                            }
+
+                            match field_stack.last_mut() {
+                                Some(level) => {
+                                    level.push(FieldEntry::Leaf((value_start, value_end)));
+                                }
+                                None => {
+                                    fail!(ErrorType::NoStructure);
+                                }
+                            }
+
+                            // A leaf can close one or more field lists at
+                            // once (e.g. the innermost `}` of `a{b{c}}`), so
+                            // keep popping until we hit a sibling `,` or run
+                            // out of levels, at which point the whole header
+                            // field list is done.
+                            while c == b'}' {
+                                let children = match field_stack.pop() {
+                                    Some(v) => v,
+                                    None => {
+                                        fail!(ErrorType::NoStructure);
+                                    }
+                                };
+
+                                if field_stack.is_empty() {
+                                    update_char!(); // step past this '}' onto the header's ':'
+                                    break 'field_list children;
+                                }
+
+                                let name = match pending_names.pop() {
+                                    Some(v) => v,
+                                    None => {
+                                        fail!(ErrorType::NoStructure);
+                                    }
+                                };
+
+                                match field_stack.last_mut() {
+                                    Some(level) => {
+                                        level.push(FieldEntry::Nested { name, children });
+                                    }
+                                    None => {
+                                        fail!(ErrorType::NoStructure);
+                                    }
+                                }
+
+                                update_char!(); // step past this '}' onto ',' or the next '}'
+                            }
+                        };
 
                         match kind {
+                            TabularKind::TabularArray(_) if has_nested_group => {
+                                kind = TabularKind::NestedFieldGroups(fields);
+                            }
                             TabularKind::TabularArray(_) => {
-                                kind = TabularKind::TabularArray(headers);
+                                kind = TabularKind::TabularArray(
+                                    fields
+                                        .into_iter()
+                                        .map(|f| match f {
+                                            FieldEntry::Leaf(span) => span,
+                                            FieldEntry::Nested { .. } => unreachable!(),
+                                        })
+                                        .collect(),
+                                );
+                            }
+                            TabularKind::KeyedObject(_) if has_nested_group => {
+                                // Nested field groups in keyed headers aren't
+                                // supported yet.
+                                fail!(ErrorType::NoStructure);
                             }
                             TabularKind::KeyedObject(_) => {
-                                kind = TabularKind::KeyedObject(headers);
+                                kind = TabularKind::KeyedObject(
+                                    fields
+                                        .into_iter()
+                                        .map(|f| match f {
+                                            FieldEntry::Leaf(span) => span,
+                                            FieldEntry::Nested { .. } => unreachable!(),
+                                        })
+                                        .collect(),
+                                );
                             }
                             _ => {
                                 fail!(ErrorType::NoStructure);
@@ -662,6 +775,13 @@ impl<'de> Deserializer<'de> {
                             headers,
                             rows_count,
                         },
+                        TabularKind::NestedFieldGroups(fields) => {
+                            HeaderType::NestedFieldGroupsArray {
+                                key,
+                                fields,
+                                rows_count,
+                            }
+                        }
                         TabularKind::SimpleArray if rows_count == 0 => {
                             HeaderType::EmptyArray { key }
                         }
@@ -834,7 +954,8 @@ impl<'de> Deserializer<'de> {
             HeaderType::SimpleArray { key, .. }
             | HeaderType::EmptyArray { key }
             | HeaderType::KeyedTabularObjects { key, .. }
-            | HeaderType::TabularArray { key, .. } => (key.is_some(), key.is_none()),
+            | HeaderType::TabularArray { key, .. }
+            | HeaderType::NestedFieldGroupsArray { key, .. } => (key.is_some(), key.is_none()),
             HeaderType::PrimitiveValue { .. } => (false, false),
             HeaderType::EmptyObject { .. } => (true, false),
         };
@@ -908,6 +1029,18 @@ impl<'de> Deserializer<'de> {
                 };
             }
 
+            HeaderType::NestedFieldGroupsArray {
+                key,
+                fields,
+                rows_count,
+            } => {
+                state = State::ParseNestedFieldGroupsArray {
+                    key,
+                    fields,
+                    rows_count,
+                };
+            }
+
             HeaderType::PrimitiveValue { .. } | HeaderType::EmptyObject => {
                 fail!(ErrorType::NoStructure);
             }
@@ -967,6 +1100,18 @@ impl<'de> Deserializer<'de> {
                             })
                         }
 
+                        HeaderType::NestedFieldGroupsArray {
+                            key,
+                            fields,
+                            rows_count,
+                        } => {
+                            goto!(State::ParseNestedFieldGroupsArray {
+                                key,
+                                fields,
+                                rows_count
+                            })
+                        }
+
                         HeaderType::PrimitiveValue { .. } | HeaderType::EmptyObject => {
                             fail!(ErrorType::NoStructure);
                         }
@@ -983,12 +1128,7 @@ impl<'de> Deserializer<'de> {
                         match get_eol_state!() {
                             EOLState::Nested => {
                                 open_scope!(Object, parent: frame!(Object), indent: curr_indent!() + indent_size);
-                                let key_start = idx;
-                                let key_end = get_value_end!(ErrorType::Syntax, b':');
-                                cnt += 1;
-                                insert_str!(key_start, key_end);
-                                update_char!();
-                                goto!(State::ParseSimpleObjectValue);
+                                goto!(State::ParseHeader);
                             }
 
                             EOLState::Sibling => {
@@ -1286,6 +1426,19 @@ impl<'de> Deserializer<'de> {
                                 rows_count
                             })
                         }
+
+                        HeaderType::NestedFieldGroupsArray {
+                            key,
+                            fields,
+                            rows_count,
+                        } => {
+                            wrap_keyed_item!(key);
+                            goto!(State::ParseNestedFieldGroupsArray {
+                                key,
+                                fields,
+                                rows_count
+                            })
+                        }
                     }
                 }
 
@@ -1511,6 +1664,144 @@ impl<'de> Deserializer<'de> {
                     goto!(State::ScopeEnd);
                 }
 
+                State::ParseNestedFieldGroupsArray {
+                    key,
+                    fields,
+                    rows_count,
+                } => {
+                    if let Some((key_start, key_end)) = key {
+                        cnt += 1;
+                        insert_str!(key_start, key_end);
+                    }
+
+                    update_char!(); // step past the header's ':'
+                    if !matches!(get_eol_state!(), EOLState::Nested) {
+                        fail!(ErrorType::ExpectedArrayContent);
+                    }
+
+                    open_scope!(Array, parent: frame!(keyed key), indent: curr_indent!() + indent_size);
+
+                    let n_leaves = FieldEntry::leaf_count(&fields);
+
+                    for row_idx in 0..rows_count {
+                        cnt += 1;
+
+                        // Open the row as a genuine nested scope (a real
+                        // `depth` increment), not the depth-neutral
+                        // `open_row!` used for flat tabular rows: a nested
+                        // field group inside this row needs its own free
+                        // stack slot to save/restore against, and that slot
+                        // is the row's current depth. Reusing `open_row!`'s
+                        // depth-neutral slot here would collide with the
+                        // first nested group's slot, corrupting the row's
+                        // saved (last_start, cnt) once that group closes.
+                        unsafe { stack_ptr.add(depth).write(frame!(Array)) };
+                        depth += 1;
+                        last_start = r_i;
+                        insert_res!(Node::Object { len: 0, count: 0 });
+                        cnt = 0;
+
+                        // Depth-first, pre-order walk of the row's field
+                        // tree. `cursor_stack[0]` is always this row's own
+                        // (top-level) field list; a `Nested` entry pushes a
+                        // frame for its children and likewise opens a real
+                        // nested scope (§9.3).
+                        let mut cursor_stack: Vec<(&[FieldEntry], usize)> =
+                            vec![(fields.as_slice(), 0)];
+                        let mut leaves_consumed = 0usize;
+
+                        loop {
+                            let (siblings, pos) = match cursor_stack.last() {
+                                Some(&frame) => frame,
+                                None => {
+                                    fail!();
+                                }
+                            };
+
+                            if pos >= siblings.len() {
+                                cursor_stack.pop();
+
+                                if cursor_stack.is_empty() {
+                                    // The row's own field list is done.
+                                    break;
+                                }
+
+                                // Close the nested object this level opened
+                                // and resume its parent (§9.3).
+                                depth -= 1;
+                                close_and_pop_state!(Object);
+                                continue;
+                            }
+
+                            match cursor_stack.last_mut() {
+                                Some(frame) => frame.1 = pos + 1,
+                                None => {
+                                    fail!();
+                                }
+                            }
+
+                            match &siblings[pos] {
+                                FieldEntry::Leaf((h_start, h_end)) => {
+                                    insert_str!(*h_start, *h_end);
+                                    cnt += 1;
+                                    leaves_consumed += 1;
+
+                                    let is_last_leaf = leaves_consumed == n_leaves;
+                                    let value_start = idx;
+                                    let value_end = if is_last_leaf {
+                                        get_value_end!(ErrorType::Syntax, b'\n')
+                                    } else {
+                                        get_value_end!(ErrorType::Syntax, b',')
+                                    };
+                                    parse_and_insert_value!(value_start, value_end);
+
+                                    if !is_last_leaf {
+                                        if unlikely!(c != b',') {
+                                            fail!(ErrorType::Syntax);
+                                        }
+                                        update_char!();
+                                    }
+                                }
+
+                                FieldEntry::Nested { name, children } => {
+                                    insert_str!(name.0, name.1);
+                                    cnt += 1;
+
+                                    // A real (depth-incrementing) scope, but
+                                    // without an indentation level: nested
+                                    // field groups are inline within the
+                                    // same row, so `content_ws_stack` (and
+                                    // its EOL-detection use) doesn't apply
+                                    // here the way it does for line-based
+                                    // scopes.
+                                    unsafe { stack_ptr.add(depth).write(frame!(Object)) };
+                                    depth += 1;
+                                    last_start = r_i;
+                                    insert_res!(Node::Object { len: 0, count: 0 });
+                                    cnt = 0;
+
+                                    cursor_stack.push((children.as_slice(), 0));
+                                }
+                            }
+                        }
+
+                        depth -= 1;
+                        close_and_pop_state!(Object);
+
+                        if row_idx + 1 < rows_count {
+                            match get_eol_state!() {
+                                EOLState::Sibling => {}
+                                // rows must stay at the same indentation
+                                EOLState::CloseScope | EOLState::Nested => {
+                                    fail!(ErrorType::Syntax);
+                                }
+                            }
+                        }
+                    }
+
+                    goto!(State::ScopeEnd);
+                }
+
                 State::ScopeEnd => {
                     if unlikely!(depth == 0) {
                         fail!(ErrorType::Syntax);
@@ -1629,9 +1920,6 @@ impl<'de> Deserializer<'de> {
                             }
                         }
                     }
-                }
-                _ => {
-                    fail!();
                 }
             }
         }
