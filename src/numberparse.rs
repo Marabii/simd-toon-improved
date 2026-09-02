@@ -4,7 +4,6 @@ mod correct;
 #[cfg(feature = "approx-number-parsing")]
 mod approx;
 
-use crate::safer_unchecked::GetSaferUnchecked;
 
 #[cfg(all(
     target_arch = "x86",
@@ -33,36 +32,6 @@ use arch::{
 #[cfg_attr(not(feature = "no-inline"), inline)]
 pub fn is_integer(c: u8) -> bool {
     c.is_ascii_digit()
-}
-
-// We need to check that the character following a zero is valid. This is
-// probably frequent and it is hard than it looks. We are building all of this
-// just to differentiate between 0x1 (invalid), 0,1 (valid) 0e1 (valid)...
-const STRUCTURAL_OR_WHITESPACE_OR_EXPONENT_OR_DECIMAL_NEGATED: [bool; 256] = [
-    false, true, true, true, true, true, true, true, true, false, false, true, true, false, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, false, true, true, true, true, true, true, true, true, true, true, true, false, true,
-    false, true, true, true, true, true, true, true, true, true, true, true, false, true, true,
-    true, true, true, true, true, true, true, true, false, true, true, true, true, true, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    false, true, false, true, true, true, true, true, true, true, false, true, true, true, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, false, true, false, true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true, true,
-];
-
-#[cfg_attr(not(feature = "no-inline"), inline)]
-fn is_not_structural_or_whitespace_or_exponent_or_decimal(c: u8) -> bool {
-    unsafe {
-        *STRUCTURAL_OR_WHITESPACE_OR_EXPONENT_OR_DECIMAL_NEGATED.get_kinda_unchecked(c as usize)
-    }
 }
 
 // #ifdef _MSC_VER

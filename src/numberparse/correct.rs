@@ -1,13 +1,12 @@
 mod numberconst;
 
 use self::numberconst::{MANTISSA_128, POW10, POW10_COMPONENTS};
-use super::{is_integer, is_not_structural_or_whitespace_or_exponent_or_decimal};
+use super::is_integer;
 
 #[cfg(feature = "swar-number-parsing")]
 use super::{is_made_of_eight_digits_fast, parse_eight_digits_unrolled};
 
 use crate::StaticNode;
-use crate::charutils::is_structural_or_whitespace;
 use crate::error::Error;
 #[allow(unused_imports)]
 use crate::macros::{static_cast_i64, unlikely};
@@ -51,6 +50,11 @@ fn multiply_as_u128(a: u64, b: u64) -> (u64, u64) {
 }
 
 impl Deserializer<'_> {
+    /// Reads the value spanning `start..end` as a TOON number.
+    ///
+    /// `Err` is a normal outcome, it would ust be considered a string pper TOON spec.
+    /// the spec makes every token outside it (`05`,
+    /// `1.`, `.5`, `+1`, `0x10`, `1_000`, `NaN`, ...) a *string*.
     #[cfg_attr(not(feature = "no-inline"), inline)]
     #[allow(
         unused_unsafe,
@@ -58,22 +62,27 @@ impl Deserializer<'_> {
         clippy::cast_possible_truncation,
         clippy::too_many_lines
     )]
-    pub(crate) fn parse_number(idx: usize, buf: &[u8], negative: bool) -> Result<StaticNode> {
-        let start_idx = idx;
-        let mut idx = idx;
+    pub(crate) fn try_parse_number(
+        start: usize,
+        end: usize,
+        buf: &[u8],
+        negative: bool,
+    ) -> Result<StaticNode> {
+        let mut idx = start;
         if negative {
             idx += 1;
             if !is_integer(get!(buf, idx)) {
                 err!(idx, get!(buf, idx))
             }
         }
-        let mut start = idx;
+        let mut mantissa_start = idx;
         let mut num: u64 = 0;
         if get!(buf, idx) == b'0' {
+            // A leading zero can only ever be the entire integer part. No
+            // lookahead is needed to reject `05` or `0x1`: consuming just the
+            // `0` leaves `idx` short of `end`, and the span check at the
+            // bottom turns both into strings.
             idx += 1;
-            if is_not_structural_or_whitespace_or_exponent_or_decimal(get!(buf, idx)) {
-                err!(idx, get!(buf, idx))
-            }
         } else {
             if !is_integer(get!(buf, idx)) {
                 err!(idx, get!(buf, idx))
@@ -131,7 +140,7 @@ impl Deserializer<'_> {
         // the '-' was counted, pushing 18-digit negative integers (which fit
         // an i64 comfortably: < 10^18 <= i64::MAX) onto the cold
         // `parse_large_integer` path.
-        let mut digit_count = idx - start_idx - 1 - usize::from(negative);
+        let mut digit_count = idx - start - 1 - usize::from(negative);
         match get!(buf, idx) {
             b'e' | b'E' => {
                 is_float = true;
@@ -174,24 +183,23 @@ impl Deserializer<'_> {
             }
             _ => {}
         }
-        // The byte terminating the number must be structural-or-whitespace.
-        // Checked here, before dispatching, so it also covers the cold
-        // `parse_large_integer` and `f64_from_parts_slow` paths below, which
-        // do not re-validate the terminator themselves.
-        if is_structural_or_whitespace(get!(buf, idx)) == 0 {
+        // The number has to fill the span exactly. Checked here, before
+        // dispatching, so it also covers the cold `parse_large_integer` and
+        // `f64_from_parts_slow` paths below, which do not re-validate it.
+        if idx != end {
             err!(idx, get!(buf, idx))
         }
         if is_float {
             if unlikely!(digit_count >= 19) {
-                let orig_start = start;
-                while get!(buf, start) == b'0' || get!(buf, start) == b'.' {
-                    start += 1;
+                let orig_start = mantissa_start;
+                while get!(buf, mantissa_start) == b'0' || get!(buf, mantissa_start) == b'.' {
+                    mantissa_start += 1;
                 }
-                digit_count = digit_count.wrapping_sub(start.wrapping_sub(orig_start));
+                digit_count = digit_count.wrapping_sub(mantissa_start.wrapping_sub(orig_start));
                 if digit_count >= 19 {
                     return f64_from_parts_slow(
-                        unsafe { buf.get_kinda_unchecked(start_idx..idx) },
-                        start_idx,
+                        unsafe { buf.get_kinda_unchecked(start..end) },
+                        start,
                     );
                 }
             }
@@ -199,11 +207,11 @@ impl Deserializer<'_> {
                 !negative,
                 num,
                 exponent as i32,
-                unsafe { buf.get_kinda_unchecked(start_idx..idx) },
-                start_idx,
+                unsafe { buf.get_kinda_unchecked(start..end) },
+                start,
             )
         } else if unlikely!(digit_count >= 18) {
-            parse_large_integer(start_idx, buf, negative, idx)
+            parse_large_integer(start, buf, negative, end)
         } else {
             Ok(if negative {
                 StaticNode::I64(unsafe { static_cast_i64!(num.wrapping_neg()) })
@@ -219,12 +227,12 @@ impl Deserializer<'_> {
 #[cold]
 #[allow(clippy::cast_possible_wrap)]
 fn parse_large_integer(
-    start_idx: usize,
+    start: usize,
     buf: &[u8],
     negative: bool,
-    #[allow(unused_variables)] end_index: usize,
+    #[allow(unused_variables)] end: usize,
 ) -> Result<StaticNode> {
-    let mut idx = start_idx;
+    let mut idx = start;
     if negative {
         idx += 1;
     }
@@ -238,12 +246,12 @@ fn parse_large_integer(
             let digit = u64::from(get!(buf, idx) - b'0');
             {
                 let (res, overflowed) = 10_u64.overflowing_mul(num);
-                check_overflow!(overflowed, buf, idx, start_idx, end_index);
+                check_overflow!(overflowed, buf, idx, start, end);
                 num = res;
             }
             {
                 let (res, overflowed) = num.overflowing_add(digit);
-                check_overflow!(overflowed, buf, idx, start_idx, end_index);
+                check_overflow!(overflowed, buf, idx, start, end);
                 num = res;
             }
             idx += 1;
@@ -252,7 +260,7 @@ fn parse_large_integer(
     match (negative, num) {
         (true, 9_223_372_036_854_775_808) => Ok(StaticNode::I64(i64::MIN)),
         (true, 9_223_372_036_854_775_809..=u64::MAX) => {
-            check_overflow!(true, buf, idx, start_idx, end_index);
+            check_overflow!(true, buf, idx, start, end);
             err!(idx, get!(buf, idx))
         }
         (true, 0..=9_223_372_036_854_775_807) => Ok(StaticNode::I64(-(num as i64))),
@@ -264,12 +272,12 @@ fn parse_large_integer(
 #[cold]
 #[allow(clippy::cast_possible_wrap)]
 fn parse_large_integer(
-    start_idx: usize,
+    start: usize,
     buf: &[u8],
     negative: bool,
-    #[allow(unused_variables)] end_index: usize,
+    #[allow(unused_variables)] end: usize,
 ) -> Result<StaticNode> {
-    let mut idx = start_idx;
+    let mut idx = start;
     if negative {
         idx += 1;
     }
@@ -283,12 +291,12 @@ fn parse_large_integer(
             let digit = u128::from(get!(buf, idx) - b'0');
             {
                 let (res, overflowed) = 10_u128.overflowing_mul(num);
-                check_overflow!(overflowed, buf, idx, start_idx, end_index);
+                check_overflow!(overflowed, buf, idx, start, end);
                 num = res;
             }
             {
                 let (res, overflowed) = num.overflowing_add(digit);
-                check_overflow!(overflowed, buf, idx, start_idx, end_index);
+                check_overflow!(overflowed, buf, idx, start, end);
                 num = res;
             }
             idx += 1;
@@ -427,6 +435,15 @@ mod test {
         to_value(val)
     }
 
+    fn assert_stays_string(src: &str) {
+        assert_eq!(
+            to_value_from_str(src)
+                .unwrap_or_else(|e| panic!("{src:?} should decode as a string, got {e:?}")),
+            Value::from(src),
+            "{src:?} is outside the number grammar and must stay a string"
+        );
+    }
+
     #[allow(clippy::float_cmp)]
     #[test]
     fn float() -> Result<(), crate::Error> {
@@ -510,16 +527,12 @@ mod test {
 
     #[test]
     fn int_leading_zero() {
-        // JSON forbids leading zeroes: a `0` may only be followed by a
-        // structural/whitespace/exponent/decimal byte, never another digit.
-        assert!(to_value_from_str("01").is_err());
-        assert!(to_value_from_str("00").is_err());
-        assert!(to_value_from_str("012").is_err());
-        assert!(to_value_from_str("0123").is_err());
-        assert!(to_value_from_str("-01").is_err());
-        assert!(to_value_from_str("-00").is_err());
-        assert!(to_value_from_str("[01]").is_err());
-        assert!(to_value_from_str("[-01]").is_err());
+        assert_stays_string("01");
+        assert_stays_string("00");
+        assert_stays_string("012");
+        assert_stays_string("0123");
+        assert_stays_string("-01");
+        assert_stays_string("-00");
     }
 
     #[test]
@@ -543,15 +556,13 @@ mod test {
 
     #[test]
     fn int_bad_exponent() {
-        // An integer carrying an exponent marker still needs at least one
-        // exponent digit; a bare sign after `e`/`E` is not enough.
-        assert!(to_value_from_str("1e").is_err());
-        assert!(to_value_from_str("2E").is_err());
-        assert!(to_value_from_str("1e+").is_err());
-        assert!(to_value_from_str("1e-").is_err());
-        assert!(to_value_from_str("9e+").is_err());
-        assert!(to_value_from_str("[1e]").is_err());
-        assert!(to_value_from_str("[9e-]").is_err());
+        // An exponent marker still needs at least one exponent digit; a bare
+        // sign after `e`/`E` is not enough, so the token stays a string.
+        assert_stays_string("1e");
+        assert_stays_string("2E");
+        assert_stays_string("1e+");
+        assert_stays_string("1e-");
+        assert_stays_string("9e+");
     }
 
     #[test]
@@ -565,10 +576,11 @@ mod test {
 
     #[test]
     fn bad_dot() {
-        assert!(to_value_from_str("1.").is_err());
-        assert!(to_value_from_str("1.e").is_err());
-        assert!(to_value_from_str("100000000000000000000000000000000000000000000.").is_err());
-        assert!(to_value_from_str("100000000000000000000000000000000000000000000.e").is_err());
+        // A trailing dot needs a digit after it, so these stay strings.
+        assert_stays_string("1.");
+        assert_stays_string("1.e");
+        assert_stays_string("100000000000000000000000000000000000000000000.");
+        assert_stays_string("100000000000000000000000000000000000000000000.e");
     }
 
     #[test]
@@ -592,10 +604,10 @@ mod test {
 
     #[test]
     fn infinite_exponent() {
-        assert!(to_value_from_str("1e309").is_err());
-        assert!(to_value_from_str("1e1000").is_err());
-        assert!(to_value_from_str("100000000000000000000000000000000000000000000e309").is_err());
-        assert!(to_value_from_str("100000000000000000000000000000000000000000000e1000").is_err());
+        assert_stays_string("1e309");
+        assert_stays_string("1e1000");
+        assert_stays_string("100000000000000000000000000000000000000000000e309");
+        assert_stays_string("100000000000000000000000000000000000000000000e1000");
     }
 
     #[test]
@@ -649,8 +661,10 @@ mod test {
             to_value_from_str("-9223372036854775808")?,
             Static(I64(i64::MIN))
         );
+        // Past i64: in the grammar but not representable, so it falls back to
+        // a string rather than failing the document (see `infinite_exponent`).
         #[cfg(not(any(feature = "128bit", feature = "big-int-as-float")))]
-        assert!(to_value_from_str("-9223372036854775809").is_err());
+        assert_stays_string("-9223372036854775809");
         // 8-digit-block integer path: 9/16/17/19/20 digits (positive)
         assert_eq!(to_value_from_str("123456789")?, Static(U64(123_456_789)));
         assert_eq!(
@@ -666,7 +680,7 @@ mod test {
             Static(U64(u64::MAX))
         );
         #[cfg(not(any(feature = "128bit", feature = "big-int-as-float")))]
-        assert!(to_value_from_str("18446744073709551616").is_err());
+        assert_stays_string("18446744073709551616");
         Ok(())
     }
 

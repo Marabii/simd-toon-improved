@@ -345,23 +345,6 @@ pub struct Deserializer<'de> {
     idx: usize,
 }
 
-/// TOON doesn't use quotes all the time.
-/// We call `classify_bytes` to determine whether the value is a number, string, boolean or null.
-#[derive(Debug, PartialEq)]
-pub enum BasicTypes {
-    /// Number
-    Number,
-
-    /// String
-    String,
-
-    /// Boolean
-    Boolean(bool),
-
-    /// Null
-    Null,
-}
-
 // architecture dependant parse_str
 
 #[derive(Debug, Clone, Copy)]
@@ -396,11 +379,6 @@ type ParseStrFn = for<'invoke, 'de> unsafe fn(
     usize,
     usize,
 ) -> std::result::Result<&'de str, error::Error>;
-#[cfg(all(
-    feature = "runtime-detection",
-    any(target_arch = "x86_64", target_arch = "x86"),
-))]
-type ClassifyBytesFn = for<'invoke> unsafe fn(&'invoke [u8]) -> BasicTypes;
 #[cfg(all(
     feature = "runtime-detection",
     any(target_arch = "x86_64", target_arch = "x86"),
@@ -455,20 +433,6 @@ impl<'de> Deserializer<'de> {
             impls::avx2::parse_str
         } else {
             todo!("No parse_str implementation available for your architecture yet");
-        }
-    }
-
-    /// Resolves the most suitable `classify_bytes` implementation once; callers (stage 2) hoist this out of the per-string hot path so each JSON string costs a plain indirect call instead of detection + dispatch (T6).
-    #[cfg_attr(not(feature = "no-inline"), inline)]
-    #[cfg(all(
-        feature = "runtime-detection",
-        any(target_arch = "x86_64", target_arch = "x86"),
-    ))]
-    pub(crate) fn classify_bytes_fn() -> ClassifyBytesFn {
-        if std::is_x86_feature_detected!("avx2") {
-            impls::avx2::classify_bytes
-        } else {
-            todo!("No classify_bytes implementation available for your architecture yet");
         }
     }
 

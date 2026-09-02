@@ -1,9 +1,5 @@
-use super::{
-    is_integer, is_made_of_eight_digits_fast,
-    is_not_structural_or_whitespace_or_exponent_or_decimal, parse_eight_digits_unrolled,
-};
+use super::{is_integer, is_made_of_eight_digits_fast, parse_eight_digits_unrolled};
 use crate::StaticNode;
-use crate::charutils::is_structural_or_whitespace;
 #[allow(unused_imports)]
 use crate::macros::{static_cast_i64, unlikely};
 use crate::safer_unchecked::GetSaferUnchecked;
@@ -79,7 +75,7 @@ impl Deserializer<'_> {
         clippy::cast_precision_loss,
         clippy::too_many_lines
     )]
-    fn parse_float(idx: usize, p: &[u8], negative: bool) -> Result<StaticNode> {
+    fn parse_float(idx: usize, span_len: usize, p: &[u8], negative: bool) -> Result<StaticNode> {
         let mut digitcount = usize::from(negative);
         let mut i: f64;
         let mut digit: u8;
@@ -202,7 +198,7 @@ impl Deserializer<'_> {
         }
 
         d = unsafe { *p.get_kinda_unchecked(digitcount) };
-        if is_structural_or_whitespace(d) == 0 {
+        if digitcount != span_len {
             Err(Self::error_c(
                 idx + digitcount,
                 d as char,
@@ -224,7 +220,12 @@ impl Deserializer<'_> {
     #[cfg(not(feature = "128bit"))]
     #[inline(never)]
     #[allow(clippy::cast_possible_wrap)]
-    fn parse_large_integer(idx: usize, buf: &[u8], negative: bool) -> Result<StaticNode> {
+    fn parse_large_integer(
+        idx: usize,
+        span_len: usize,
+        buf: &[u8],
+        negative: bool,
+    ) -> Result<StaticNode> {
         let mut digitcount = usize::from(negative);
         let mut i: u64;
         let mut d = unsafe { *buf.get_kinda_unchecked(digitcount) };
@@ -269,7 +270,7 @@ impl Deserializer<'_> {
             ));
         }
 
-        if is_structural_or_whitespace(d) == 0 {
+        if digitcount != span_len {
             Err(Self::error_c(
                 idx + digitcount,
                 d as char,
@@ -285,7 +286,12 @@ impl Deserializer<'_> {
     #[cfg(feature = "128bit")]
     #[inline(never)]
     #[allow(clippy::cast_possible_wrap)]
-    fn parse_large_integer(idx: usize, buf: &[u8], negative: bool) -> Result<StaticNode> {
+    fn parse_large_integer(
+        idx: usize,
+        span_len: usize,
+        buf: &[u8],
+        negative: bool,
+    ) -> Result<StaticNode> {
         let mut digitcount = usize::from(negative);
         let mut i: u128;
         let mut d = unsafe { *buf.get_kinda_unchecked(digitcount) };
@@ -330,7 +336,7 @@ impl Deserializer<'_> {
             ));
         }
 
-        if is_structural_or_whitespace(d) == 0 {
+        if digitcount != span_len {
             Err(Self::error_c(
                 idx + digitcount,
                 d as char,
@@ -360,7 +366,17 @@ impl Deserializer<'_> {
         clippy::cast_possible_wrap,
         clippy::too_many_lines
     )]
-    pub(crate) fn parse_number(idx: usize, buf: &[u8], negative: bool) -> Result<StaticNode> {
+    /// Reads the value spanning `start..end` as a TOON number; see
+    /// `correct::try_parse_number` for why `Err` means "this token is a
+    /// string" rather than a document failure.
+    pub(crate) fn try_parse_number(
+        start: usize,
+        end: usize,
+        buf: &[u8],
+        negative: bool,
+    ) -> Result<StaticNode> {
+        let idx = start;
+        let span_len = end - start;
         let buf = unsafe { buf.get_kinda_unchecked(idx..) };
         let mut byte_count = usize::from(negative);
         let mut ignore_count: u8 = 0;
@@ -369,16 +385,11 @@ impl Deserializer<'_> {
         let mut d = unsafe { *buf.get_kinda_unchecked(byte_count) };
         let mut digit: u8;
         if d == b'0' {
-            // 0 cannot be followed by an integer
+            // A leading zero can only ever be the entire integer part; `05`
+            // and `0x1` stop short of the span and the check at the bottom
+            // turns them into strings.
             byte_count += 1;
             d = unsafe { *buf.get_kinda_unchecked(byte_count) };
-            if is_not_structural_or_whitespace_or_exponent_or_decimal(d) {
-                return Err(Self::error_c(
-                    idx + byte_count,
-                    d as char,
-                    ErrorType::InvalidNumber,
-                ));
-            }
             i = 0;
         } else {
             if !is_integer(d) {
@@ -520,7 +531,7 @@ impl Deserializer<'_> {
                 // this is uncommon!!!
                 // this is almost never going to get called!!!
                 // we start anew, going slowly!!!
-                return Self::parse_float(idx, buf, negative);
+                return Self::parse_float(idx, span_len, buf, negative);
             }
             ///////////
             // We want 0.1e1 to be a float.
@@ -529,7 +540,7 @@ impl Deserializer<'_> {
                 StaticNode::from(0.0)
             } else {
                 if !(-323..=308).contains(&exponent) {
-                    return Self::parse_float(idx, buf, negative);
+                    return Self::parse_float(idx, span_len, buf, negative);
                 }
 
                 let mut d1: f64 = i as f64;
@@ -539,7 +550,7 @@ impl Deserializer<'_> {
         } else {
             if unlikely!(byte_count >= 18) {
                 // this is uncommon!!!
-                return Self::parse_large_integer(idx, buf, negative);
+                return Self::parse_large_integer(idx, span_len, buf, negative);
             }
             if negative {
                 unsafe { StaticNode::I64(static_cast_i64!(i.wrapping_neg())) }
@@ -547,14 +558,14 @@ impl Deserializer<'_> {
                 StaticNode::U64(i)
             }
         };
-        if is_structural_or_whitespace(d) == 0 {
+        if byte_count == span_len {
+            Ok(v)
+        } else {
             Err(Self::error_c(
                 idx + byte_count,
                 d as char,
                 ErrorType::InvalidNumber,
             ))
-        } else {
-            Ok(v)
         }
     }
 }

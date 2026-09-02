@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-use crate::BasicTypes;
 use crate::StaticNode;
 #[allow(unused_imports)]
 use crate::macros::unlikely;
@@ -289,12 +288,6 @@ impl<'de> Deserializer<'de> {
         ))]
         let parse_str_fn = Self::parse_str_fn();
 
-        #[cfg(all(
-            feature = "runtime-detection",
-            any(target_arch = "x86_64", target_arch = "x86"),
-        ))]
-        let classify_bytes_fn = Self::classify_bytes_fn();
-
         let res_ptr = res.as_mut_ptr();
         let stack_ptr = stack.as_mut_ptr();
 
@@ -452,31 +445,37 @@ impl<'de> Deserializer<'de> {
             }};
         }
 
-        // When the type of value is unknown, use this macro to automatically
-        // figure out the type and insert the value into the tape.
         #[collapse_debuginfo(yes)]
-        macro_rules! parse_and_insert_value {
+        macro_rules! insert_inferred_value {
             ($start:expr, $end:expr) => {
-                let value_bytes = &input2[$start..$end];
-                let basic_type = unsafe { classify_bytes_fn(value_bytes) };
-                match basic_type {
-                    BasicTypes::Number => {
-                        let is_negative = *get!(input2, $start) == b'-';
-                        insert_res!(Node::Static(s2try!(Self::parse_number(
-                            $start,
-                            input2,
-                            is_negative,
-                        ))));
+                match *get!(input2, $start) {
+                    first @ (b'0'..=b'9' | b'-') => {
+                        match Self::try_parse_number($start, $end, input2, first == b'-') {
+                            Ok(number) => {
+                                insert_res!(Node::Static(number));
+                            }
+                            // Not a number after all -- `05`, `1.`, `12 monkeys`,
+                            // `-Infinity` -- which makes it a string.
+                            Err(_) => {
+                                insert_str!($start, $end);
+                            }
+                        }
                     }
-                    BasicTypes::String => {
-                        insert_str!($start, $end);
-                    }
-                    BasicTypes::Boolean(b) => {
-                        insert_res!(Node::Static(StaticNode::Bool(b)));
-                    }
-                    BasicTypes::Null => {
-                        insert_res!(Node::Static(StaticNode::Null));
-                    }
+
+                    _ => match &input2[$start..$end] {
+                        b"true" => {
+                            insert_res!(Node::Static(StaticNode::Bool(true)));
+                        }
+                        b"false" => {
+                            insert_res!(Node::Static(StaticNode::Bool(false)));
+                        }
+                        b"null" => {
+                            insert_res!(Node::Static(StaticNode::Null));
+                        }
+                        _ => {
+                            insert_str!($start, $end);
+                        }
+                    },
                 }
             };
         }
@@ -928,7 +927,7 @@ impl<'de> Deserializer<'de> {
                 fail!(ErrorType::Syntax);
             }
 
-            parse_and_insert_value!(val_start, val_end);
+            insert_inferred_value!(val_start, val_end);
             success!();
         }
 
@@ -1135,7 +1134,7 @@ impl<'de> Deserializer<'de> {
                     if &input2[value_start..value_end] == b"[]" {
                         insert_res!(Node::Array { len: 0, count: 0 });
                     } else {
-                        parse_and_insert_value!(value_start, value_end);
+                        insert_inferred_value!(value_start, value_end);
                     }
 
                     if i >= structural_indexes.len() {
@@ -1199,7 +1198,7 @@ impl<'de> Deserializer<'de> {
 
                         let value_start = idx;
                         let value_end = get_value_end!(ErrorType::Syntax, b',');
-                        parse_and_insert_value!(value_start, value_end);
+                        insert_inferred_value!(value_start, value_end);
 
                         if unlikely!(c != b',') {
                             fail!(ErrorType::Syntax);
@@ -1212,7 +1211,7 @@ impl<'de> Deserializer<'de> {
                     cnt += 1;
                     let value_start = idx;
                     let value_end = get_value_end!(ErrorType::Syntax, b'\n');
-                    parse_and_insert_value!(value_start, value_end);
+                    insert_inferred_value!(value_start, value_end);
 
                     content_ws_stack.push(curr_indent!() + indent_size);
                     match get_eol_state!() {
@@ -1237,7 +1236,7 @@ impl<'de> Deserializer<'de> {
 
                         let value_start = idx;
                         let value_end = get_value_end!(ErrorType::Syntax, b',');
-                        parse_and_insert_value!(value_start, value_end);
+                        insert_inferred_value!(value_start, value_end);
 
                         if unlikely!(c != b',') {
                             fail!(ErrorType::Syntax);
@@ -1250,7 +1249,7 @@ impl<'de> Deserializer<'de> {
                     cnt += 1;
                     let value_start = idx;
                     let value_end = get_value_end!(ErrorType::Syntax, b'\n');
-                    parse_and_insert_value!(value_start, value_end);
+                    insert_inferred_value!(value_start, value_end);
 
                     match get_eol_state!() {
                         EOLState::CloseScope | EOLState::Sibling => goto!(State::ScopeEnd),
@@ -1327,7 +1326,7 @@ impl<'de> Deserializer<'de> {
                         HeaderType::PrimitiveValue {
                             val: (val_start, val_end),
                         } => {
-                            parse_and_insert_value!(val_start, val_end);
+                            insert_inferred_value!(val_start, val_end);
 
                             match get_eol_state!() {
                                 EOLState::Sibling => goto!(State::ExpectBlockArrayItem),
@@ -1444,6 +1443,15 @@ impl<'de> Deserializer<'de> {
 
                     let n_headers = headers.len();
 
+                    #[collapse_debuginfo(yes)]
+                    macro_rules! reject_cell_less_row {
+                        ($start:expr, $end:expr) => {
+                            if unlikely!(n_headers == 1 && $start == $end) {
+                                fail!(ErrorType::ExpectedArrayContent);
+                            }
+                        };
+                    }
+
                     if rows_count > 0 {
                         // Handle all rows except the last one
                         for _ in 0..(rows_count - 1) {
@@ -1468,7 +1476,7 @@ impl<'de> Deserializer<'de> {
 
                                 let value_start = idx;
                                 let value_end = get_value_end!(ErrorType::Syntax, b',');
-                                parse_and_insert_value!(value_start, value_end);
+                                insert_inferred_value!(value_start, value_end);
 
                                 if unlikely!(c != b',') {
                                     fail!(ErrorType::Syntax);
@@ -1488,7 +1496,8 @@ impl<'de> Deserializer<'de> {
 
                             let value_start = idx;
                             let value_end = get_value_end!(ErrorType::Syntax, b'\n');
-                            parse_and_insert_value!(value_start, value_end);
+                            reject_cell_less_row!(value_start, value_end);
+                            insert_inferred_value!(value_start, value_end);
 
                             close_and_pop_state!(Object);
 
@@ -1522,7 +1531,7 @@ impl<'de> Deserializer<'de> {
 
                             let value_start = idx;
                             let value_end = get_value_end!(ErrorType::Syntax, b',');
-                            parse_and_insert_value!(value_start, value_end);
+                            insert_inferred_value!(value_start, value_end);
 
                             if unlikely!(c != b',') {
                                 fail!(ErrorType::Syntax);
@@ -1542,7 +1551,8 @@ impl<'de> Deserializer<'de> {
 
                         let value_start = idx;
                         let value_end = get_value_end!(ErrorType::Syntax, b'\n');
-                        parse_and_insert_value!(value_start, value_end);
+                        reject_cell_less_row!(value_start, value_end);
+                        insert_inferred_value!(value_start, value_end);
 
                         close_and_pop_state!(Object);
                     }
@@ -1583,7 +1593,7 @@ impl<'de> Deserializer<'de> {
 
                                 let value_start = idx;
                                 let value_end = get_value_end!(ErrorType::Syntax, b',');
-                                parse_and_insert_value!(value_start, value_end);
+                                insert_inferred_value!(value_start, value_end);
                                 update_char!();
                             }
 
@@ -1600,7 +1610,7 @@ impl<'de> Deserializer<'de> {
 
                             let value_start = idx;
                             let value_end = get_value_end!(ErrorType::Syntax, b'\n');
-                            parse_and_insert_value!(value_start, value_end);
+                            insert_inferred_value!(value_start, value_end);
 
                             close_and_pop_state!(Object);
 
@@ -1623,7 +1633,7 @@ impl<'de> Deserializer<'de> {
 
                             let value_start = idx;
                             let value_end = get_value_end!(ErrorType::Syntax, b',');
-                            parse_and_insert_value!(value_start, value_end);
+                            insert_inferred_value!(value_start, value_end);
                             update_char!();
                         }
 
@@ -1639,7 +1649,7 @@ impl<'de> Deserializer<'de> {
 
                         let value_start = idx;
                         let value_end = get_value_end!(ErrorType::Syntax, b'\n');
-                        parse_and_insert_value!(value_start, value_end);
+                        insert_inferred_value!(value_start, value_end);
 
                         close_and_pop_state!(Object);
                     }
@@ -1696,12 +1706,12 @@ impl<'de> Deserializer<'de> {
                                                 let value_start = idx;
                                                 let value_end =
                                                     get_value_end!(ErrorType::Syntax, b'\n');
-                                                parse_and_insert_value!(value_start, value_end);
+                                                insert_inferred_value!(value_start, value_end);
                                             } else {
                                                 let value_start = idx;
                                                 let value_end =
                                                     get_value_end!(ErrorType::Syntax, b',');
-                                                parse_and_insert_value!(value_start, value_end);
+                                                insert_inferred_value!(value_start, value_end);
                                                 update_char!();
                                             }
                                         }
@@ -1761,11 +1771,11 @@ impl<'de> Deserializer<'de> {
                                             let value_start = idx;
                                             let value_end =
                                                 get_value_end!(ErrorType::Syntax, b'\n');
-                                            parse_and_insert_value!(value_start, value_end);
+                                            insert_inferred_value!(value_start, value_end);
                                         } else {
                                             let value_start = idx;
                                             let value_end = get_value_end!(ErrorType::Syntax, b',');
-                                            parse_and_insert_value!(value_start, value_end);
+                                            insert_inferred_value!(value_start, value_end);
                                             update_char!();
                                         }
                                     }
