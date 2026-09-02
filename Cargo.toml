@@ -1,5 +1,5 @@
 [package]
-name = "simd-json"
+name = "simd-toon"
 version = "0.17.3"
 authors = ["Heinz N. Gies <heinz@licenser.net>", "Sunny Gleason"]
 edition = "2024"

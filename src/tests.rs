@@ -70,8 +70,47 @@ fn test_empty_root_array_without_key() {
 }
 
 #[test]
+fn test_tape_nested_field_groups() {
+    let mut d = String::from("items[2]{id,geo{point{lat,lon}}}:\n  1,1.5,2.5\n  2,3,4");
+    let d = unsafe { d.as_bytes_mut() };
+
+    let simd = Deserializer::from_slice(d).expect("");
+
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 1, count: 24 },
+            Node::String("items"),
+            Node::Array { len: 2, count: 22 },
+            Node::Object { len: 2, count: 10 },
+            Node::String("id"),
+            Node::Static(StaticNode::U64(1)),
+            Node::String("geo"),
+            Node::Object { len: 1, count: 6 },
+            Node::String("point"),
+            Node::Object { len: 2, count: 4 },
+            Node::String("lat"),
+            Node::Static(StaticNode::F64(1.5)),
+            Node::String("lon"),
+            Node::Static(StaticNode::F64(2.5)),
+            Node::Object { len: 2, count: 10 },
+            Node::String("id"),
+            Node::Static(StaticNode::U64(2)),
+            Node::String("geo"),
+            Node::Object { len: 1, count: 6 },
+            Node::String("point"),
+            Node::Object { len: 2, count: 4 },
+            Node::String("lat"),
+            Node::Static(StaticNode::U64(3)),
+            Node::String("lon"),
+            Node::Static(StaticNode::U64(4)),
+        ]
+    );
+}
+
+#[test]
 fn playground() {
-    let mut d = String::from("name: hamza\t");
+    let mut d = String::from("items[2]{id,geo{point{lat,lon}}}:\n  1,1.5,2.5\n  2,3,4");
     let d = unsafe { d.as_bytes_mut() };
     let simd = Deserializer::from_slice(d).expect("");
     println!("{:?}", simd.tape)

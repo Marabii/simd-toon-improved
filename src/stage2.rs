@@ -105,7 +105,11 @@ enum State {
     /// ```
     /// {"orders":[ {"id":1,"customer":{"name":"Ada","country":"DK"},"total":99}, {"id":2,"customer":{"name":"Bob","country":"UK"},"total":149} ]}
     /// ```
-    ParseNestedFieldGroupsArray,
+    ParseNestedFieldGroupsArray {
+        key: Option<(usize, usize)>,
+        nested_fields: NestedFields,
+        rows_count: usize,
+    },
 
     /// Parse Mixed and Non-Uniform Arrays
     /// ```
@@ -153,6 +157,21 @@ pub(crate) enum StackState {
     Start,
     Object { last_start: usize, cnt: usize },
     Array { last_start: usize, cnt: usize },
+}
+
+#[derive(Debug)]
+enum FieldEntry {
+    Leaf((usize, usize)),
+    Nested {
+        name: (usize, usize),
+        children: Vec<FieldEntry>,
+    },
+}
+
+#[derive(Debug)]
+struct NestedFields {
+    field_entries: Vec<FieldEntry>,
+    leaf_count: usize,
 }
 
 #[derive(Debug)]
@@ -207,6 +226,19 @@ enum HeaderType {
     TabularArray {
         key: Option<(usize, usize)>,
         headers: Vec<(usize, usize)>,
+        rows_count: usize,
+    },
+
+    /// Tabular Arrays where at least one field entry carries its own nested
+    /// field group:
+    /// ```
+    /// orders[2]{id,customer{name,country},total}:
+    /// ```
+    /// Rows stay flat; the leaf-field sequence is the depth-first, pre-order
+    /// walk of `fields` (§9.3).
+    NestedFieldGroupsArray {
+        key: Option<(usize, usize)>,
+        nested_fields: NestedFields,
         rows_count: usize,
     },
 }
@@ -573,6 +605,7 @@ impl<'de> Deserializer<'de> {
                     SimpleArray,
                     TabularArray(Vec<(usize, usize)>),
                     KeyedObject(Vec<(usize, usize)>),
+                    NestedFieldGroups(NestedFields),
                 }
 
                 if c == b'\n' {
@@ -613,37 +646,114 @@ impl<'de> Deserializer<'de> {
                         if matches!(kind, TabularKind::SimpleArray) {
                             kind = TabularKind::TabularArray(Vec::new());
                         }
-                        // This vector records the start and end of every header
-                        // Example: When parsing: users[2:]{age,city}:
-                        // it should record the positions of 'age' and 'city'
-                        let mut headers: Vec<(usize, usize)> = Vec::new();
 
                         if unlikely!(c != b'{') {
                             fail!(ErrorType::Syntax);
                         }
 
-                        loop {
-                            update_char!();
+                        let mut field_stack: Vec<Vec<FieldEntry>> = vec![Vec::new()];
+                        let mut pending_names: Vec<(usize, usize)> = Vec::new();
+                        let mut has_nested_group = false;
+                        let mut leaf_count = 0;
 
-                            if c == b':' {
-                                break;
-                            }
+                        let fields = 'field_list: loop {
+                            update_char!();
 
                             if unlikely!(i > structural_indexes.len()) {
                                 fail!(ErrorType::Syntax);
                             }
 
                             let value_start = idx;
-                            let value_end = get_value_end!(ErrorType::Syntax, b',', b'}');
-                            headers.push((value_start, value_end));
-                        }
+                            let value_end = get_value_end!(ErrorType::Syntax, b',', b'}', b'{');
+
+                            if c == b'{' {
+                                has_nested_group = true;
+                                field_stack.push(Vec::new());
+                                pending_names.push((value_start, value_end));
+                                continue;
+                            }
+
+                            match field_stack.last_mut() {
+                                Some(level) => {
+                                    leaf_count += 1;
+                                    level.push(FieldEntry::Leaf((value_start, value_end)));
+                                }
+                                None => {
+                                    fail!(ErrorType::NoStructure);
+                                }
+                            }
+
+                            // A leaf can close one or more field lists at
+                            // once (e.g. the innermost `}` of `a{b{c}}`), so
+                            // keep popping until we hit a sibling `,` or run
+                            // out of levels, at which point the whole header
+                            // field list is done.
+                            while c == b'}' {
+                                let children = match field_stack.pop() {
+                                    Some(v) => v,
+                                    None => {
+                                        fail!(ErrorType::NoStructure);
+                                    }
+                                };
+
+                                if field_stack.is_empty() {
+                                    update_char!(); // step past this '}' onto the header's ':'
+                                    break 'field_list children;
+                                }
+
+                                let name = match pending_names.pop() {
+                                    Some(v) => v,
+                                    None => {
+                                        fail!(ErrorType::NoStructure);
+                                    }
+                                };
+
+                                match field_stack.last_mut() {
+                                    Some(level) => {
+                                        level.push(FieldEntry::Nested { name, children });
+                                    }
+                                    None => {
+                                        fail!(ErrorType::NoStructure);
+                                    }
+                                }
+
+                                update_char!(); // step past this '}' onto ',' or the next '}'
+                            }
+                        };
 
                         match kind {
+                            TabularKind::TabularArray(_) if has_nested_group => {
+                                kind = TabularKind::NestedFieldGroups(NestedFields {
+                                    field_entries: fields,
+                                    leaf_count,
+                                });
+                            }
                             TabularKind::TabularArray(_) => {
-                                kind = TabularKind::TabularArray(headers);
+                                kind = TabularKind::TabularArray(
+                                    fields
+                                        .into_iter()
+                                        .map(|f| match f {
+                                            FieldEntry::Leaf(span) => span,
+                                            FieldEntry::Nested { .. } => unreachable!(),
+                                        })
+                                        .collect(),
+                                );
+                            }
+                            TabularKind::KeyedObject(_) if has_nested_group => {
+                                // Nested field groups in keyed headers aren't
+                                // supported yet.
+                                fail!(ErrorType::NoStructure);
                             }
                             TabularKind::KeyedObject(_) => {
-                                kind = TabularKind::KeyedObject(headers);
+                                kind = TabularKind::KeyedObject(
+                                    fields
+                                        .into_iter()
+                                        .map(|f| match f {
+                                            FieldEntry::Leaf(span) => span,
+                                            FieldEntry::Nested { .. } => unreachable!(),
+                                        })
+                                        .collect(),
+                                );
                             }
                             _ => {
                                 fail!(ErrorType::NoStructure);
@@ -662,6 +772,13 @@ impl<'de> Deserializer<'de> {
                             headers,
                             rows_count,
                         },
+                        TabularKind::NestedFieldGroups(nested_fields) => {
+                            HeaderType::NestedFieldGroupsArray {
+                                key,
+                                nested_fields,
+                                rows_count,
+                            }
+                        }
                         TabularKind::SimpleArray if rows_count == 0 => {
                             HeaderType::EmptyArray { key }
                         }
@@ -710,6 +827,22 @@ impl<'de> Deserializer<'de> {
                 depth += 1;
                 content_ws_stack.push(ws);
                 $( pending_counts.push((depth, $count)); )?
+                last_start = r_i;
+                insert_res!(Node::$node { len: 0, count: 0 });
+                cnt = 0;
+            }};
+        }
+
+        /// Usage:
+        ///   open_scope!(Object | Array, parent: frame!(..));
+        /// Used in 
+        #[collapse_debuginfo(yes)]
+        macro_rules! open_scope_no_indent {
+            ($node:ident, parent: $parent:expr_2021) => {{
+                // Evaluate everything that describes the *parent* before touching state.
+                let parent = $parent;
+                unsafe { stack_ptr.add(depth).write(parent) };
+                depth += 1;
                 last_start = r_i;
                 insert_res!(Node::$node { len: 0, count: 0 });
                 cnt = 0;
@@ -834,9 +967,10 @@ impl<'de> Deserializer<'de> {
             HeaderType::SimpleArray { key, .. }
             | HeaderType::EmptyArray { key }
             | HeaderType::KeyedTabularObjects { key, .. }
-            | HeaderType::TabularArray { key, .. } => (key.is_some(), key.is_none()),
+            | HeaderType::TabularArray { key, .. }
+            | HeaderType::NestedFieldGroupsArray { key, .. } => (key.is_some(), key.is_none()),
             HeaderType::PrimitiveValue { .. } => (false, false),
-            HeaderType::EmptyObject { .. } => (true, false),
+            HeaderType::EmptyObject => (true, false),
         };
 
         if root_is_object {
@@ -908,6 +1042,18 @@ impl<'de> Deserializer<'de> {
                 };
             }
 
+            HeaderType::NestedFieldGroupsArray {
+                key,
+                nested_fields,
+                rows_count,
+            } => {
+                state = State::ParseNestedFieldGroupsArray {
+                    key,
+                    nested_fields,
+                    rows_count,
+                };
+            }
+
             HeaderType::PrimitiveValue { .. } | HeaderType::EmptyObject => {
                 fail!(ErrorType::NoStructure);
             }
@@ -967,6 +1113,18 @@ impl<'de> Deserializer<'de> {
                             })
                         }
 
+                        HeaderType::NestedFieldGroupsArray {
+                            key,
+                            nested_fields,
+                            rows_count,
+                        } => {
+                            goto!(State::ParseNestedFieldGroupsArray {
+                                key,
+                                nested_fields,
+                                rows_count
+                            })
+                        }
+
                         HeaderType::PrimitiveValue { .. } | HeaderType::EmptyObject => {
                             fail!(ErrorType::NoStructure);
                         }
@@ -983,12 +1141,7 @@ impl<'de> Deserializer<'de> {
                         match get_eol_state!() {
                             EOLState::Nested => {
                                 open_scope!(Object, parent: frame!(Object), indent: curr_indent!() + indent_size);
-                                let key_start = idx;
-                                let key_end = get_value_end!(ErrorType::Syntax, b':');
-                                cnt += 1;
-                                insert_str!(key_start, key_end);
-                                update_char!();
-                                goto!(State::ParseSimpleObjectValue);
+                                goto!(State::ParseHeader);
                             }
 
                             EOLState::Sibling => {
@@ -1286,6 +1439,19 @@ impl<'de> Deserializer<'de> {
                                 rows_count
                             })
                         }
+
+                        HeaderType::NestedFieldGroupsArray {
+                            key,
+                            nested_fields,
+                            rows_count,
+                        } => {
+                            wrap_keyed_item!(key);
+                            goto!(State::ParseNestedFieldGroupsArray {
+                                key,
+                                nested_fields,
+                                rows_count
+                            })
+                        }
                     }
                 }
 
@@ -1511,6 +1677,162 @@ impl<'de> Deserializer<'de> {
                     goto!(State::ScopeEnd);
                 }
 
+                State::ParseNestedFieldGroupsArray {
+                    key,
+                    nested_fields:
+                        NestedFields {
+                            ref field_entries,
+                            leaf_count,
+                        },
+                    rows_count,
+                } => {
+                    if let Some((key_start, key_end)) = key {
+                        cnt += 1;
+                        insert_str!(key_start, key_end);
+                    }
+
+                    update_char!(); // step past the header's ':'
+                    if !matches!(get_eol_state!(), EOLState::Nested) {
+                        fail!(ErrorType::ExpectedArrayContent);
+                    }
+
+                    // We can't use recursion so we use a stack instead.
+                    enum WorkItem<'a> {
+                        Process(&'a FieldEntry),
+                        CloseScope,
+                    }
+
+                    let mut entry_stack: Vec<WorkItem> = Vec::new();
+                    open_scope!(Array, parent: frame!(keyed key), indent: curr_indent!() + indent_size);
+
+                    for _ in 0..(rows_count - 1) {
+                        cnt += 1;
+                        open_scope_no_indent!(Object, parent: frame!(Array));
+
+                        let mut curr_leaf_count = 0;
+
+                        for field_entry in field_entries {
+                            entry_stack.push(WorkItem::Process(field_entry));
+
+                            while let Some(work_item) = entry_stack.pop() {
+                                match work_item {
+                                    WorkItem::Process(current_entry) => match current_entry {
+                                        FieldEntry::Leaf((h_start, h_end)) => {
+                                            insert_str!(*h_start, *h_end);
+                                            cnt += 1;
+                                            curr_leaf_count += 1;
+
+                                            if unlikely!(curr_leaf_count == leaf_count) {
+                                                let value_start = idx;
+                                                let value_end =
+                                                    get_value_end!(ErrorType::Syntax, b'\n');
+                                                parse_and_insert_value!(value_start, value_end);
+                                            } else {
+                                                let value_start = idx;
+                                                let value_end =
+                                                    get_value_end!(ErrorType::Syntax, b',');
+                                                parse_and_insert_value!(value_start, value_end);
+                                                update_char!();
+                                            }
+                                        }
+
+                                        FieldEntry::Nested {
+                                            name: (h_start, h_end),
+                                            children,
+                                        } => {
+                                            insert_str!(*h_start, *h_end);
+                                            cnt += 1;
+
+                                            open_scope_no_indent!(Object, parent: frame!(Object));
+
+                                            entry_stack.push(WorkItem::CloseScope);
+
+                                            for child in children.iter().rev() {
+                                                entry_stack.push(WorkItem::Process(child));
+                                            }
+                                        }
+                                    },
+
+                                    WorkItem::CloseScope => {
+                                        depth -= 1;
+                                        close_and_pop_state!(Object);
+                                    }
+                                }
+                            }
+                        }
+
+                        depth -= 1;
+                        close_and_pop_state!(Object);
+
+                        match get_eol_state!() {
+                            EOLState::Sibling => {}
+                            // rows must stay at the same indentation
+                            EOLState::CloseScope | EOLState::Nested => {
+                                fail!(ErrorType::Syntax);
+                            }
+                        }
+                    }
+
+                    cnt += 1;
+                    open_scope_no_indent!(Object, parent: frame!(Array));
+
+                    let mut curr_leaf_count = 0;
+
+                    for field_entry in field_entries {
+                        entry_stack.push(WorkItem::Process(field_entry));
+
+                        while let Some(work_item) = entry_stack.pop() {
+                            match work_item {
+                                WorkItem::Process(current_entry) => match current_entry {
+                                    FieldEntry::Leaf((h_start, h_end)) => {
+                                        insert_str!(*h_start, *h_end);
+                                        cnt += 1;
+                                        curr_leaf_count += 1;
+
+                                        if unlikely!(curr_leaf_count == leaf_count) {
+                                            let value_start = idx;
+                                            let value_end =
+                                                get_value_end!(ErrorType::Syntax, b'\n');
+                                            parse_and_insert_value!(value_start, value_end);
+                                        } else {
+                                            let value_start = idx;
+                                            let value_end = get_value_end!(ErrorType::Syntax, b',');
+                                            parse_and_insert_value!(value_start, value_end);
+                                            update_char!();
+                                        }
+                                    }
+
+                                    FieldEntry::Nested {
+                                        name: (h_start, h_end),
+                                        children,
+                                    } => {
+                                        insert_str!(*h_start, *h_end);
+                                        cnt += 1;
+
+                                        open_scope_no_indent!(Object, parent: frame!(Object));
+
+                                        entry_stack.push(WorkItem::CloseScope);
+
+                                        for child in children.iter().rev() {
+                                            entry_stack.push(WorkItem::Process(child));
+                                        }
+                                    }
+                                },
+
+                                WorkItem::CloseScope => {
+                                    depth -= 1;
+                                    close_and_pop_state!(Object);
+                                }
+                            }
+                        }
+                    }
+
+                    depth -= 1;
+                    close_and_pop_state!(Object);
+
+                    goto!(State::ScopeEnd);
+                }
+
                 State::ScopeEnd => {
                     if unlikely!(depth == 0) {
                         fail!(ErrorType::Syntax);
@@ -1629,9 +1951,6 @@ impl<'de> Deserializer<'de> {
                             }
                         }
                     }
-                }
-                _ => {
-                    fail!();
                 }
             }
         }
