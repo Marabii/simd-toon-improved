@@ -815,47 +815,15 @@ impl<'de> Deserializer<'de> {
 
         /// Usage:
         ///   open_scope!(Object | Array, parent: frame!(..), indent: <children's ws>);
-        ///   open_scope!(Array, parent: frame!(..), indent: <ws>, expect: <declared len>);
         #[collapse_debuginfo(yes)]
         macro_rules! open_scope {
-            ($node:ident, parent: $parent:expr_2021, indent: $ws:expr_2021
-                $(, expect: $count:expr_2021)?) => {{
+            ($node:ident, parent: $parent:expr_2021, indent: $ws:expr_2021) => {{
                 // Evaluate everything that describes the *parent* before touching state.
                 let parent = $parent;
                 let ws = $ws;
                 unsafe { stack_ptr.add(depth).write(parent) };
                 depth += 1;
                 content_ws_stack.push(ws);
-                $( pending_counts.push((depth, $count)); )?
-                last_start = r_i;
-                insert_res!(Node::$node { len: 0, count: 0 });
-                cnt = 0;
-            }};
-        }
-
-        /// Usage:
-        ///   open_scope!(Object | Array, parent: frame!(..));
-        /// Used in 
-        #[collapse_debuginfo(yes)]
-        macro_rules! open_scope_no_indent {
-            ($node:ident, parent: $parent:expr_2021) => {{
-                // Evaluate everything that describes the *parent* before touching state.
-                let parent = $parent;
-                unsafe { stack_ptr.add(depth).write(parent) };
-                depth += 1;
-                last_start = r_i;
-                insert_res!(Node::$node { len: 0, count: 0 });
-                cnt = 0;
-            }};
-        }
-
-        /// Used only in Tabular formats when handling different rows.
-        /// Used in conjuction with close_and_pop_state macro to handle differen rows.
-        #[collapse_debuginfo(yes)]
-        macro_rules! open_row {
-            ($node:ident, parent: $parent:expr_2021) => {{
-                let parent = $parent;
-                unsafe { stack_ptr.add(depth).write(parent) };
                 last_start = r_i;
                 insert_res!(Node::$node { len: 0, count: 0 });
                 cnt = 0;
@@ -868,6 +836,8 @@ impl<'de> Deserializer<'de> {
         #[collapse_debuginfo(yes)]
         macro_rules! close_and_pop_state {
             ($node_variant:ident) => {
+                content_ws_stack.pop();
+                depth -= 1;
                 unsafe {
                     match *res_ptr.add(last_start) {
                         Node::$node_variant {
@@ -1488,7 +1458,7 @@ impl<'de> Deserializer<'de> {
                             insert_str!(row_key_start, row_key_end);
 
                             // Open the row's object
-                            open_row!(Object, parent: frame!(Object));
+                            open_scope!(Object, parent: frame!(Object), indent: curr_indent!());
 
                             update_char!(); // skip ':' to reach the first field value
 
@@ -1542,7 +1512,7 @@ impl<'de> Deserializer<'de> {
                         cnt += 1;
                         insert_str!(row_key_start, row_key_end);
 
-                        open_row!(Object, parent: frame!(Object));
+                        open_scope!(Object, parent: frame!(Object), indent: curr_indent!());
 
                         update_char!();
 
@@ -1604,7 +1574,7 @@ impl<'de> Deserializer<'de> {
                         for _ in 0..(rows_count - 1) {
                             cnt += 1;
 
-                            open_row!(Object, parent: frame!(Array));
+                            open_scope!(Object, parent: frame!(Array), indent: curr_indent!());
 
                             // Handle n - 1 headers:
                             for &(h_start, h_end) in headers.iter().take(n_headers - 1) {
@@ -1645,7 +1615,7 @@ impl<'de> Deserializer<'de> {
 
                         // Handle the final row separately:
                         cnt += 1;
-                        open_row!(Object, parent: frame!(Array));
+                        open_scope!(Object, parent: frame!(Array), indent: curr_indent!());
 
                         for &(h_start, h_end) in headers.iter().take(n_headers - 1) {
                             insert_str!(h_start, h_end);
@@ -1707,7 +1677,7 @@ impl<'de> Deserializer<'de> {
 
                     for _ in 0..(rows_count - 1) {
                         cnt += 1;
-                        open_scope_no_indent!(Object, parent: frame!(Array));
+                        open_scope!(Object, parent: frame!(Array), indent: curr_indent!());
 
                         let mut curr_leaf_count = 0;
 
@@ -1743,7 +1713,7 @@ impl<'de> Deserializer<'de> {
                                             insert_str!(*h_start, *h_end);
                                             cnt += 1;
 
-                                            open_scope_no_indent!(Object, parent: frame!(Object));
+                                            open_scope!(Object, parent: frame!(Object), indent: curr_indent!());
 
                                             entry_stack.push(WorkItem::CloseScope);
 
@@ -1754,14 +1724,12 @@ impl<'de> Deserializer<'de> {
                                     },
 
                                     WorkItem::CloseScope => {
-                                        depth -= 1;
                                         close_and_pop_state!(Object);
                                     }
                                 }
                             }
                         }
 
-                        depth -= 1;
                         close_and_pop_state!(Object);
 
                         match get_eol_state!() {
@@ -1774,7 +1742,7 @@ impl<'de> Deserializer<'de> {
                     }
 
                     cnt += 1;
-                    open_scope_no_indent!(Object, parent: frame!(Array));
+                    open_scope!(Object, parent: frame!(Array), indent: curr_indent!());
 
                     let mut curr_leaf_count = 0;
 
@@ -1809,7 +1777,7 @@ impl<'de> Deserializer<'de> {
                                         insert_str!(*h_start, *h_end);
                                         cnt += 1;
 
-                                        open_scope_no_indent!(Object, parent: frame!(Object));
+                                        open_scope!(Object, parent: frame!(Object), indent: curr_indent!());
 
                                         entry_stack.push(WorkItem::CloseScope);
 
@@ -1820,14 +1788,12 @@ impl<'de> Deserializer<'de> {
                                 },
 
                                 WorkItem::CloseScope => {
-                                    depth -= 1;
                                     close_and_pop_state!(Object);
                                 }
                             }
                         }
                     }
 
-                    depth -= 1;
                     close_and_pop_state!(Object);
 
                     goto!(State::ScopeEnd);
