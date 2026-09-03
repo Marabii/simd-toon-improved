@@ -590,6 +590,7 @@ impl<'de> Deserializer<'de> {
         /// Stepping past it is the
         /// caller's job, because only the caller knows whether the header is
         /// allowed to be the final thing in the document.
+        #[collapse_debuginfo(yes)]
         macro_rules! read_header {
             () => {{
                 let key_start = idx;
@@ -600,194 +601,183 @@ impl<'de> Deserializer<'de> {
                     None
                 };
 
-                enum TabularKind {
-                    SimpleArray,
-                    TabularArray(Vec<(usize, usize)>),
-                    KeyedObject(Vec<(usize, usize)>),
-                    NestedFieldGroups(NestedFields),
-                }
-
-                if c == b'\n' {
-                    match key {
-                        Some(key) => HeaderType::PrimitiveValue { val: key },
-                        None => HeaderType::EmptyObject,
-                    }
-                } else if c == b':' {
-                    match key {
+                match c {
+                    b':' => match key {
                         Some(v) => HeaderType::ObjectStart { key: v },
                         None => {
                             fail!(ErrorType::Syntax);
                         }
-                    }
-                } else if c == b'[' {
-                    update_char!();
-                    let rows_count_start = idx;
+                    },
 
-                    update_char!();
-                    let rows_count_end = idx;
-                    let rows_count =
-                        parse_string_number!(rows_count_start, rows_count_end) as usize;
+                    b'\n' => match key {
+                        Some(key) => HeaderType::PrimitiveValue { val: key },
+                        None => HeaderType::EmptyObject,
+                    },
 
-                    let mut kind = TabularKind::SimpleArray;
-
-                    if c == b':' {
+                    b'[' => {
+                        // The row count sits between the `[` and whatever token
+                        // closes the segment (`]`, or the `:` of `[N:]`).
                         update_char!();
-                        if unlikely!(c != b']') {
-                            fail!(ErrorType::Syntax);
-                        }
+                        let rows_count_start = idx;
+                        update_char!();
+                        let rows_count = parse_string_number!(rows_count_start, idx) as usize;
 
-                        kind = TabularKind::KeyedObject(Vec::new());
-                    }
-
-                    update_char!();
-
-                    if c == b'{' {
-                        if matches!(kind, TabularKind::SimpleArray) {
-                            kind = TabularKind::TabularArray(Vec::new());
-                        }
-
-                        if unlikely!(c != b'{') {
-                            fail!(ErrorType::Syntax);
-                        }
-
-                        let mut field_stack: Vec<Vec<FieldEntry>> = vec![Vec::new()];
-                        let mut pending_names: Vec<(usize, usize)> = Vec::new();
-                        let mut has_nested_group = false;
-                        let mut leaf_count = 0;
-
-                        let fields = 'field_list: loop {
+                        // `[N:]` marks keyed tabular objects, `[N]` an array.
+                        let keyed = c == b':';
+                        if keyed {
                             update_char!();
-
-                            if unlikely!(i > structural_indexes.len()) {
+                            if unlikely!(c != b']') {
                                 fail!(ErrorType::Syntax);
                             }
+                        }
 
-                            let value_start = idx;
-                            let value_end = get_value_end!(ErrorType::Syntax, b',', b'}', b'{');
+                        update_char!(); // step past the ']'
 
-                            if c == b'{' {
-                                has_nested_group = true;
-                                field_stack.push(Vec::new());
-                                pending_names.push((value_start, value_end));
-                                continue;
-                            }
-
-                            match field_stack.last_mut() {
-                                Some(level) => {
-                                    leaf_count += 1;
-                                    level.push(FieldEntry::Leaf((value_start, value_end)));
+                        if c != b'{' {
+                            // No field list, so the header is already complete.
+                            if keyed {
+                                HeaderType::KeyedTabularObjects {
+                                    key,
+                                    headers: Vec::new(),
+                                    rows_count,
                                 }
-                                None => {
-                                    fail!(ErrorType::NoStructure);
+                            } else if rows_count == 0 {
+                                HeaderType::EmptyArray { key }
+                            } else {
+                                HeaderType::SimpleArray {
+                                    count: rows_count,
+                                    key,
                                 }
                             }
+                        } else {
+                            // Fast path: a flat field list collected straight
+                            // into the `Vec<(usize, usize)>` the tabular states
+                            // want. A nested field group is rare, so it only
+                            // pays for the richer `FieldEntry` tree when one
+                            // actually shows up, reusing what we have as level 0.
+                            let mut fields: Vec<(usize, usize)> = Vec::with_capacity(8);
+                            let mut nested: Option<NestedFields> = None;
 
-                            // A leaf can close one or more field lists at
-                            // once (e.g. the innermost `}` of `a{b{c}}`), so
-                            // keep popping until we hit a sibling `,` or run
-                            // out of levels, at which point the whole header
-                            // field list is done.
-                            while c == b'}' {
-                                let children = match field_stack.pop() {
-                                    Some(v) => v,
-                                    None => {
-                                        fail!(ErrorType::NoStructure);
-                                    }
-                                };
+                            loop {
+                                update_char!();
 
-                                if field_stack.is_empty() {
+                                let value_start = idx;
+                                let value_end = get_value_end!(ErrorType::Syntax, b',', b'}', b'{');
+
+                                if unlikely!(c == b'{') {
+                                    let mut leaf_count = fields.len();
+                                    let mut field_stack: Vec<Vec<FieldEntry>> =
+                                        Vec::with_capacity(4);
+                                    field_stack
+                                        .push(fields.drain(..).map(FieldEntry::Leaf).collect());
+                                    field_stack.push(Vec::new());
+                                    let mut pending_names: Vec<(usize, usize)> =
+                                        vec![(value_start, value_end)];
+
+                                    let field_entries = 'field_list: loop {
+                                        update_char!();
+
+                                        let value_start = idx;
+                                        let value_end =
+                                            get_value_end!(ErrorType::Syntax, b',', b'}', b'{');
+
+                                        if c == b'{' {
+                                            field_stack.push(Vec::new());
+                                            pending_names.push((value_start, value_end));
+                                            continue;
+                                        }
+
+                                        match field_stack.last_mut() {
+                                            Some(level) => {
+                                                leaf_count += 1;
+                                                level.push(FieldEntry::Leaf((value_start, value_end)));
+                                            }
+                                            None => {
+                                                fail!(ErrorType::NoStructure);
+                                            }
+                                        }
+
+                                        // A leaf can close one or more field lists at
+                                        // once (e.g. the innermost `}` of `a{b{c}}`), so
+                                        // keep popping until we hit a sibling `,` or run
+                                        // out of levels, at which point the whole header
+                                        // field list is done.
+                                        while c == b'}' {
+                                            let children = match field_stack.pop() {
+                                                Some(v) => v,
+                                                None => {
+                                                    fail!(ErrorType::NoStructure);
+                                                }
+                                            };
+
+                                            if field_stack.is_empty() {
+                                                update_char!(); // step past this '}' onto the header's ':'
+                                                break 'field_list children;
+                                            }
+
+                                            let name = match pending_names.pop() {
+                                                Some(v) => v,
+                                                None => {
+                                                    fail!(ErrorType::NoStructure);
+                                                }
+                                            };
+
+                                            match field_stack.last_mut() {
+                                                Some(level) => {
+                                                    level.push(FieldEntry::Nested { name, children });
+                                                }
+                                                None => {
+                                                    fail!(ErrorType::NoStructure);
+                                                }
+                                            }
+
+                                            update_char!(); // step past this '}' onto ',' or the next '}'
+                                        }
+                                    };
+
+                                    nested = Some(NestedFields {
+                                        field_entries,
+                                        leaf_count,
+                                    });
+                                    break;
+                                }
+
+                                fields.push((value_start, value_end));
+
+                                if c == b'}' {
                                     update_char!(); // step past this '}' onto the header's ':'
-                                    break 'field_list children;
+                                    break;
                                 }
-
-                                let name = match pending_names.pop() {
-                                    Some(v) => v,
-                                    None => {
-                                        fail!(ErrorType::NoStructure);
-                                    }
-                                };
-
-                                match field_stack.last_mut() {
-                                    Some(level) => {
-                                        level.push(FieldEntry::Nested { name, children });
-                                    }
-                                    None => {
-                                        fail!(ErrorType::NoStructure);
-                                    }
-                                }
-
-                                update_char!(); // step past this '}' onto ',' or the next '}'
                             }
-                        };
 
-                        match kind {
-                            TabularKind::TabularArray(_) if has_nested_group => {
-                                kind = TabularKind::NestedFieldGroups(NestedFields {
-                                    field_entries: fields,
-                                    leaf_count,
-                                });
-                            }
-                            TabularKind::TabularArray(_) => {
-                                kind = TabularKind::TabularArray(
-                                    fields
-                                        .into_iter()
-                                        .map(|f| match f {
-                                            FieldEntry::Leaf(span) => span,
-                                            FieldEntry::Nested { .. } => unreachable!(),
-                                        })
-                                        .collect(),
-                                );
-                            }
-                            TabularKind::KeyedObject(_) if has_nested_group => {
+                            match nested {
                                 // Nested field groups in keyed headers aren't
                                 // supported yet.
-                                fail!(ErrorType::NoStructure);
-                            }
-                            TabularKind::KeyedObject(_) => {
-                                kind = TabularKind::KeyedObject(
-                                    fields
-                                        .into_iter()
-                                        .map(|f| match f {
-                                            FieldEntry::Leaf(span) => span,
-                                            FieldEntry::Nested { .. } => unreachable!(),
-                                        })
-                                        .collect(),
-                                );
-                            }
-                            _ => {
-                                fail!(ErrorType::NoStructure);
+                                Some(_) if keyed => {
+                                    fail!(ErrorType::NoStructure);
+                                }
+                                Some(nested_fields) => HeaderType::NestedFieldGroupsArray {
+                                    key,
+                                    nested_fields,
+                                    rows_count,
+                                },
+                                None if keyed => HeaderType::KeyedTabularObjects {
+                                    key,
+                                    headers: fields,
+                                    rows_count,
+                                },
+                                None => HeaderType::TabularArray {
+                                    key,
+                                    headers: fields,
+                                    rows_count,
+                                },
                             }
                         }
                     }
 
-                    match kind {
-                        TabularKind::KeyedObject(headers) => HeaderType::KeyedTabularObjects {
-                            key,
-                            headers,
-                            rows_count,
-                        },
-                        TabularKind::TabularArray(headers) => HeaderType::TabularArray {
-                            key,
-                            headers,
-                            rows_count,
-                        },
-                        TabularKind::NestedFieldGroups(nested_fields) => {
-                            HeaderType::NestedFieldGroupsArray {
-                                key,
-                                nested_fields,
-                                rows_count,
-                            }
-                        }
-                        TabularKind::SimpleArray if rows_count == 0 => {
-                            HeaderType::EmptyArray { key }
-                        }
-                        TabularKind::SimpleArray => HeaderType::SimpleArray {
-                            count: rows_count,
-                            key,
-                        },
+                    _ => {
+                        fail!(ErrorType::Syntax);
                     }
-                } else {
-                    fail!(ErrorType::Syntax);
                 }
             }};
         }
