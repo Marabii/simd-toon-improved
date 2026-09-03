@@ -43,6 +43,7 @@ enum State {
         key: Option<(usize, usize)>,
         headers: Vec<(usize, usize)>,
         rows_count: usize,
+        delimiter: u8,
     },
 
     /// Parse inline array
@@ -57,12 +58,14 @@ enum State {
     ParseInlineArray {
         count: usize,
         key: Option<(usize, usize)>,
+        delimiter: u8,
     },
 
     /// Same as ParseInlineArray but meant to be called only from root arrays.
     ParseInlineArrayRoot {
         count: usize,
         key: Option<(usize, usize)>,
+        delimiter: u8,
     },
 
     /// Parse empty array:
@@ -92,6 +95,7 @@ enum State {
         key: Option<(usize, usize)>,
         headers: Vec<(usize, usize)>,
         rows_count: usize,
+        delimiter: u8,
     },
 
     /// Parse nested field groups array
@@ -108,6 +112,7 @@ enum State {
         key: Option<(usize, usize)>,
         nested_fields: NestedFields,
         rows_count: usize,
+        delimiter: u8,
     },
 
     /// Parse Mixed and Non-Uniform Arrays
@@ -197,6 +202,7 @@ enum HeaderType {
     SimpleArray {
         count: usize,
         key: Option<(usize, usize)>,
+        delimiter: u8,
     },
 
     /// EmptyArray:
@@ -216,6 +222,7 @@ enum HeaderType {
         key: Option<(usize, usize)>,
         headers: Vec<(usize, usize)>,
         rows_count: usize,
+        delimiter: u8,
     },
 
     /// Tabular Arrays:
@@ -226,6 +233,7 @@ enum HeaderType {
         key: Option<(usize, usize)>,
         headers: Vec<(usize, usize)>,
         rows_count: usize,
+        delimiter: u8,
     },
 
     /// Tabular Arrays where at least one field entry carries its own nested
@@ -239,6 +247,7 @@ enum HeaderType {
         key: Option<(usize, usize)>,
         nested_fields: NestedFields,
         rows_count: usize,
+        delimiter: u8,
     },
 }
 
@@ -312,7 +321,7 @@ impl<'de> Deserializer<'de> {
         let mut idx: usize = 0;
 
         // Structural byte currently being handled (read from input2[idx]).
-        // Example: c == b'{' when entering an object, c == b',' between values.
+        // Example: c == b'{' when entering an object, c == delimiter between values.
         let mut c: u8 = 0;
 
         // Cursor into `structural_indexes`.
@@ -541,21 +550,34 @@ impl<'de> Deserializer<'de> {
                         fail!(ErrorType::Syntax);
                     }
 
-                    let old_idx = idx;
+                    let mut old_idx = idx;
                     update_char!();
 
                     if i >= structural_indexes.len() {
                         EOLState::CloseScope
                     } else {
-                        let new_idx = idx;
-
-                        // Prevents double newline characters
-                        if unlikely!(c == b'\n') {
-                            fail!(ErrorType::Syntax);
+                        if strict {
+                            if unlikely!(c == b'\n') {
+                                fail!(ErrorType::Syntax);
+                            }
+                        } else {
+                            while c == b'\n' {
+                                old_idx = idx;
+                                if i >= structural_indexes.len() {
+                                    break;
+                                }
+                                update_char!();
+                            }
                         }
 
-                        last_dedent_ws = new_idx - old_idx - 1;
-                        eol_state_from_ws!(last_dedent_ws)
+                        if i >= structural_indexes.len() {
+                            EOLState::CloseScope
+                        } else {
+                            let new_idx = idx;
+
+                            last_dedent_ws = new_idx - old_idx - 1;
+                            eol_state_from_ws!(last_dedent_ws)
+                        }
                     }
                 }
             }};
@@ -580,6 +602,11 @@ impl<'de> Deserializer<'de> {
             }};
         }
 
+        #[collapse_debuginfo(yes)]
+        macro_rules! is_non_default_delimiter {
+            () => {{ c == b'|' || c == b'\t' }};
+        }
+
         /// Reads one line's header and classifies it.
         ///
         /// Whatever the shape, this leaves the cursor on the token that ended
@@ -600,6 +627,8 @@ impl<'de> Deserializer<'de> {
                 } else {
                     None
                 };
+
+                let mut delimiter = b',';
 
                 match c {
                     b':' => match key {
@@ -626,9 +655,15 @@ impl<'de> Deserializer<'de> {
                         let keyed = c == b':';
                         if keyed {
                             update_char!();
-                            if unlikely!(c != b']') {
-                                fail!(ErrorType::Syntax);
-                            }
+                        }
+
+                        if is_non_default_delimiter!() {
+                            delimiter = c;
+                            update_char!(); // step past the delimiter
+                        }
+
+                        if unlikely!(c != b']') {
+                            fail!(ErrorType::Syntax);
                         }
 
                         update_char!(); // step past the ']'
@@ -640,6 +675,7 @@ impl<'de> Deserializer<'de> {
                                     key,
                                     headers: Vec::new(),
                                     rows_count,
+                                    delimiter
                                 }
                             } else if rows_count == 0 {
                                 HeaderType::EmptyArray { key }
@@ -647,6 +683,7 @@ impl<'de> Deserializer<'de> {
                                 HeaderType::SimpleArray {
                                     count: rows_count,
                                     key,
+                                    delimiter
                                 }
                             }
                         } else {
@@ -662,7 +699,7 @@ impl<'de> Deserializer<'de> {
                                 update_char!();
 
                                 let value_start = idx;
-                                let value_end = get_value_end!(ErrorType::Syntax, b',', b'}', b'{');
+                                let value_end = get_value_end!(ErrorType::Syntax, delimiter, b'}', b'{');
 
                                 if unlikely!(c == b'{') {
                                     let mut leaf_count = fields.len();
@@ -679,7 +716,7 @@ impl<'de> Deserializer<'de> {
 
                                         let value_start = idx;
                                         let value_end =
-                                            get_value_end!(ErrorType::Syntax, b',', b'}', b'{');
+                                            get_value_end!(ErrorType::Syntax, delimiter, b'}', b'{');
 
                                         if c == b'{' {
                                             field_stack.push(Vec::new());
@@ -760,16 +797,19 @@ impl<'de> Deserializer<'de> {
                                     key,
                                     nested_fields,
                                     rows_count,
+                                    delimiter
                                 },
                                 None if keyed => HeaderType::KeyedTabularObjects {
                                     key,
                                     headers: fields,
                                     rows_count,
+                                    delimiter
                                 },
                                 None => HeaderType::TabularArray {
                                     key,
                                     headers: fields,
                                     rows_count,
+                                    delimiter
                                 },
                             }
                         }
@@ -924,7 +964,7 @@ impl<'de> Deserializer<'de> {
         let (root_is_object, root_is_array) = match &header_type {
             HeaderType::ObjectStart { .. } => (true, false),
             HeaderType::SimpleArray { key, .. }
-            | HeaderType::EmptyArray { key }
+            | HeaderType::EmptyArray { key, .. }
             | HeaderType::KeyedTabularObjects { key, .. }
             | HeaderType::TabularArray { key, .. }
             | HeaderType::NestedFieldGroupsArray { key, .. } => (key.is_some(), key.is_none()),
@@ -951,7 +991,11 @@ impl<'de> Deserializer<'de> {
                 state = State::ParseSimpleObjectValue;
             }
 
-            HeaderType::SimpleArray { count, key } => {
+            HeaderType::SimpleArray {
+                count,
+                key,
+                delimiter,
+            } => {
                 update_char!(); // step past the header's ':'
 
                 if c == b'\n' {
@@ -962,9 +1006,17 @@ impl<'de> Deserializer<'de> {
                     }
                 } else {
                     if root_is_array {
-                        state = State::ParseInlineArrayRoot { count, key };
+                        state = State::ParseInlineArrayRoot {
+                            count,
+                            key,
+                            delimiter,
+                        };
                     } else {
-                        state = State::ParseInlineArray { count, key };
+                        state = State::ParseInlineArray {
+                            count,
+                            key,
+                            delimiter,
+                        };
                     }
                 }
             }
@@ -981,11 +1033,13 @@ impl<'de> Deserializer<'de> {
                 key,
                 headers,
                 rows_count,
+                delimiter,
             } => {
                 state = State::ParseTabularObjects {
                     key,
                     headers,
                     rows_count,
+                    delimiter,
                 };
             }
 
@@ -993,11 +1047,13 @@ impl<'de> Deserializer<'de> {
                 key,
                 headers,
                 rows_count,
+                delimiter,
             } => {
                 state = State::ParseTabularArray {
                     key,
                     headers,
                     rows_count,
+                    delimiter,
                 };
             }
 
@@ -1005,11 +1061,13 @@ impl<'de> Deserializer<'de> {
                 key,
                 nested_fields,
                 rows_count,
+                delimiter,
             } => {
                 state = State::ParseNestedFieldGroupsArray {
                     key,
                     nested_fields,
                     rows_count,
+                    delimiter,
                 };
             }
 
@@ -1034,17 +1092,25 @@ impl<'de> Deserializer<'de> {
                             goto!(State::ParseSimpleObjectValue)
                         }
 
-                        HeaderType::SimpleArray { count, key } => {
+                        HeaderType::SimpleArray {
+                            count,
+                            key,
+                            delimiter,
+                        } => {
                             update_char!(); // step past the header's ':'
 
                             if c == b'\n' {
                                 goto!(State::ParseBlockArray { count, key })
                             } else {
-                                goto!(State::ParseInlineArray { count, key })
+                                goto!(State::ParseInlineArray {
+                                    count,
+                                    key,
+                                    delimiter
+                                })
                             }
                         }
 
-                        HeaderType::EmptyArray { key } => {
+                        HeaderType::EmptyArray { key, .. } => {
                             goto!(State::ParseEmptyArray { key })
                         }
 
@@ -1052,11 +1118,13 @@ impl<'de> Deserializer<'de> {
                             key,
                             headers,
                             rows_count,
+                            delimiter,
                         } => {
                             goto!(State::ParseTabularObjects {
                                 key,
                                 headers,
-                                rows_count
+                                rows_count,
+                                delimiter
                             })
                         }
 
@@ -1064,11 +1132,13 @@ impl<'de> Deserializer<'de> {
                             key,
                             headers,
                             rows_count,
+                            delimiter,
                         } => {
                             goto!(State::ParseTabularArray {
                                 key,
                                 headers,
-                                rows_count
+                                rows_count,
+                                delimiter
                             })
                         }
 
@@ -1076,11 +1146,13 @@ impl<'de> Deserializer<'de> {
                             key,
                             nested_fields,
                             rows_count,
+                            delimiter,
                         } => {
                             goto!(State::ParseNestedFieldGroupsArray {
                                 key,
                                 nested_fields,
-                                rows_count
+                                rows_count,
+                                delimiter
                             })
                         }
 
@@ -1176,7 +1248,11 @@ impl<'de> Deserializer<'de> {
                     }
                 }
 
-                State::ParseInlineArrayRoot { count, key } => {
+                State::ParseInlineArrayRoot {
+                    count,
+                    key,
+                    delimiter,
+                } => {
                     if let Some((key_start, key_end)) = key {
                         cnt += 1;
                         insert_str!(key_start, key_end);
@@ -1187,10 +1263,10 @@ impl<'de> Deserializer<'de> {
                         cnt += 1;
 
                         let value_start = idx;
-                        let value_end = get_value_end!(ErrorType::Syntax, b',');
+                        let value_end = get_value_end!(ErrorType::Syntax, delimiter);
                         insert_inferred_value!(value_start, value_end);
 
-                        if unlikely!(c != b',') {
+                        if unlikely!(c != delimiter) {
                             fail!(ErrorType::Syntax);
                         }
 
@@ -1212,7 +1288,11 @@ impl<'de> Deserializer<'de> {
                     }
                 }
 
-                State::ParseInlineArray { count, key } => {
+                State::ParseInlineArray {
+                    count,
+                    key,
+                    delimiter,
+                } => {
                     if let Some((key_start, key_end)) = key {
                         cnt += 1;
                         insert_str!(key_start, key_end);
@@ -1225,10 +1305,10 @@ impl<'de> Deserializer<'de> {
                         cnt += 1;
 
                         let value_start = idx;
-                        let value_end = get_value_end!(ErrorType::Syntax, b',');
+                        let value_end = get_value_end!(ErrorType::Syntax, delimiter);
                         insert_inferred_value!(value_start, value_end);
 
-                        if unlikely!(c != b',') {
+                        if unlikely!(c != delimiter) {
                             fail!(ErrorType::Syntax);
                         }
 
@@ -1353,7 +1433,11 @@ impl<'de> Deserializer<'de> {
 
                         // `- [N]: ...` (anonymous): the item is itself an array.
                         // `- key[N]: ...`: an object whose first field is an array.
-                        HeaderType::SimpleArray { count, key } => {
+                        HeaderType::SimpleArray {
+                            count,
+                            key,
+                            delimiter,
+                        } => {
                             wrap_keyed_item!(key);
 
                             update_char!(); // step past the header's ':'
@@ -1362,7 +1446,11 @@ impl<'de> Deserializer<'de> {
                                 content_ws_stack.push(curr_indent!());
                                 goto!(State::ParseBlockArray { count, key })
                             } else {
-                                goto!(State::ParseInlineArray { count, key })
+                                goto!(State::ParseInlineArray {
+                                    count,
+                                    key,
+                                    delimiter
+                                })
                             }
                         }
 
@@ -1377,12 +1465,14 @@ impl<'de> Deserializer<'de> {
                             key,
                             headers,
                             rows_count,
+                            delimiter,
                         } => {
                             wrap_keyed_item!(key);
                             goto!(State::ParseTabularObjects {
                                 key,
                                 headers,
-                                rows_count
+                                rows_count,
+                                delimiter
                             })
                         }
 
@@ -1390,12 +1480,14 @@ impl<'de> Deserializer<'de> {
                             key,
                             headers,
                             rows_count,
+                            delimiter,
                         } => {
                             wrap_keyed_item!(key);
                             goto!(State::ParseTabularArray {
                                 key,
                                 headers,
-                                rows_count
+                                rows_count,
+                                delimiter
                             })
                         }
 
@@ -1403,12 +1495,14 @@ impl<'de> Deserializer<'de> {
                             key,
                             nested_fields,
                             rows_count,
+                            delimiter,
                         } => {
                             wrap_keyed_item!(key);
                             goto!(State::ParseNestedFieldGroupsArray {
                                 key,
                                 nested_fields,
-                                rows_count
+                                rows_count,
+                                delimiter
                             })
                         }
                     }
@@ -1418,6 +1512,7 @@ impl<'de> Deserializer<'de> {
                     key,
                     headers,
                     rows_count,
+                    delimiter,
                 } => {
                     if let Some((key_start, key_end)) = key {
                         cnt += 1;
@@ -1465,10 +1560,10 @@ impl<'de> Deserializer<'de> {
                                 cnt += 1;
 
                                 let value_start = idx;
-                                let value_end = get_value_end!(ErrorType::Syntax, b',');
+                                let value_end = get_value_end!(ErrorType::Syntax, delimiter);
                                 insert_inferred_value!(value_start, value_end);
 
-                                if unlikely!(c != b',') {
+                                if unlikely!(c != delimiter) {
                                     fail!(ErrorType::Syntax);
                                 }
                                 update_char!();
@@ -1520,10 +1615,10 @@ impl<'de> Deserializer<'de> {
                             cnt += 1;
 
                             let value_start = idx;
-                            let value_end = get_value_end!(ErrorType::Syntax, b',');
+                            let value_end = get_value_end!(ErrorType::Syntax, delimiter);
                             insert_inferred_value!(value_start, value_end);
 
-                            if unlikely!(c != b',') {
+                            if unlikely!(c != delimiter) {
                                 fail!(ErrorType::Syntax);
                             }
                             update_char!();
@@ -1554,6 +1649,7 @@ impl<'de> Deserializer<'de> {
                     key,
                     headers,
                     rows_count,
+                    delimiter,
                 } => {
                     if let Some((key_start, key_end)) = key {
                         cnt += 1;
@@ -1582,7 +1678,7 @@ impl<'de> Deserializer<'de> {
                                 cnt += 1;
 
                                 let value_start = idx;
-                                let value_end = get_value_end!(ErrorType::Syntax, b',');
+                                let value_end = get_value_end!(ErrorType::Syntax, delimiter);
                                 insert_inferred_value!(value_start, value_end);
                                 update_char!();
                             }
@@ -1622,7 +1718,7 @@ impl<'de> Deserializer<'de> {
                             cnt += 1;
 
                             let value_start = idx;
-                            let value_end = get_value_end!(ErrorType::Syntax, b',');
+                            let value_end = get_value_end!(ErrorType::Syntax, delimiter);
                             insert_inferred_value!(value_start, value_end);
                             update_char!();
                         }
@@ -1655,6 +1751,7 @@ impl<'de> Deserializer<'de> {
                             leaf_count,
                         },
                     rows_count,
+                    delimiter,
                 } => {
                     if let Some((key_start, key_end)) = key {
                         cnt += 1;
@@ -1700,7 +1797,7 @@ impl<'de> Deserializer<'de> {
                                             } else {
                                                 let value_start = idx;
                                                 let value_end =
-                                                    get_value_end!(ErrorType::Syntax, b',');
+                                                    get_value_end!(ErrorType::Syntax, delimiter);
                                                 insert_inferred_value!(value_start, value_end);
                                                 update_char!();
                                             }
@@ -1764,7 +1861,8 @@ impl<'de> Deserializer<'de> {
                                             insert_inferred_value!(value_start, value_end);
                                         } else {
                                             let value_start = idx;
-                                            let value_end = get_value_end!(ErrorType::Syntax, b',');
+                                            let value_end =
+                                                get_value_end!(ErrorType::Syntax, delimiter);
                                             insert_inferred_value!(value_start, value_end);
                                             update_char!();
                                         }

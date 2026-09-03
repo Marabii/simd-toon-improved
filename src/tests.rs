@@ -110,7 +110,8 @@ fn test_tape_nested_field_groups() {
 
 #[test]
 fn playground() {
-    let mut d = String::from("items[2]{id,geo{point{lat,lon}}}:\n  1,1.5,2.5\n  2,3,4");
+    let mut d =
+        String::from("items[2|]{sku|name|qty|price}:\n  A1|Widget|2|9.99\n  B2|Gadget|1|14.5\n");
     let d = unsafe { d.as_bytes_mut() };
     let simd = Deserializer::from_slice(d).expect("");
     println!("{:?}", simd.tape)
