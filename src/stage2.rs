@@ -542,7 +542,11 @@ impl<'de> Deserializer<'de> {
 
         #[collapse_debuginfo(yes)]
         macro_rules! get_eol_state {
-            () => {{
+            () => {
+                get_eol_state!(false)
+            };
+
+            ($should_error_on_newline: expr) => {{
                 if i >= structural_indexes.len() {
                     EOLState::CloseScope
                 } else {
@@ -553,31 +557,40 @@ impl<'de> Deserializer<'de> {
                     let mut old_idx = idx;
                     update_char!();
 
+                    let mut consecutive_newlines_detected = false;
+
+                    while c == b'\n' {
+                        consecutive_newlines_detected = true;
+                        old_idx = idx;
+                        if i >= structural_indexes.len() {
+                            break;
+                        }
+                        update_char!();
+                    }
+
                     if i >= structural_indexes.len() {
                         EOLState::CloseScope
                     } else {
-                        if strict {
-                            if unlikely!(c == b'\n') {
-                                fail!(ErrorType::Syntax);
-                            }
-                        } else {
-                            while c == b'\n' {
-                                old_idx = idx;
-                                if i >= structural_indexes.len() {
-                                    break;
-                                }
-                                update_char!();
-                            }
+                        last_dedent_ws = idx - old_idx - 1;
+
+                        // A block array's span runs from its header through the last
+                        // line of its content; a blank line inside that span is a
+                        // strict-mode error. The dedent only *leaves* the span once
+                        // it drops below the item indentation of the outermost still-open
+                        // block array -- reaching the declared item count early doesn't
+                        // end the span, only dedenting past it does.
+                        let still_inside_pending_array = pending_counts
+                            .first()
+                            .is_some_and(|&(d, _)| last_dedent_ws >= content_ws_stack[d - 1]);
+
+                        if consecutive_newlines_detected
+                            && strict
+                            && ($should_error_on_newline || still_inside_pending_array)
+                        {
+                            fail!(ErrorType::Syntax);
                         }
 
-                        if i >= structural_indexes.len() {
-                            EOLState::CloseScope
-                        } else {
-                            let new_idx = idx;
-
-                            last_dedent_ws = new_idx - old_idx - 1;
-                            eol_state_from_ws!(last_dedent_ws)
-                        }
+                        eol_state_from_ws!(last_dedent_ws)
                     }
                 }
             }};
@@ -1321,7 +1334,7 @@ impl<'de> Deserializer<'de> {
                     let value_end = get_value_end!(ErrorType::Syntax, b'\n');
                     insert_inferred_value!(value_start, value_end);
 
-                    match get_eol_state!() {
+                    match get_eol_state!(true) {
                         EOLState::CloseScope | EOLState::Sibling => goto!(State::ScopeEnd),
                         EOLState::Nested => {
                             fail!(ErrorType::NoStructure);
@@ -1586,7 +1599,7 @@ impl<'de> Deserializer<'de> {
 
                             close_and_pop_state!(Object);
 
-                            match get_eol_state!() {
+                            match get_eol_state!(true) {
                                 EOLState::Sibling => {}
                                 // rows must stay at the same indentation
                                 EOLState::CloseScope | EOLState::Nested => {
@@ -1700,7 +1713,7 @@ impl<'de> Deserializer<'de> {
 
                             close_and_pop_state!(Object);
 
-                            match get_eol_state!() {
+                            match get_eol_state!(true) {
                                 EOLState::Sibling => {}
                                 // rows must stay at the same indentation
                                 EOLState::CloseScope | EOLState::Nested => {
@@ -1829,7 +1842,7 @@ impl<'de> Deserializer<'de> {
 
                         close_and_pop_state!(Object);
 
-                        match get_eol_state!() {
+                        match get_eol_state!(true) {
                             EOLState::Sibling => {}
                             // rows must stay at the same indentation
                             EOLState::CloseScope | EOLState::Nested => {

@@ -62,6 +62,36 @@ fn test_empty_root_array_with_key() {
 }
 
 #[test]
+fn test_blank_within_block_array_error() {
+    let mut d = String::from("items[1]:\n  - a[1]:\n      - 1\n\n    b: 2\n");
+    let d = unsafe { d.as_bytes_mut() };
+    assert!(Deserializer::from_slice(d).is_err());
+}
+
+#[test]
+fn test_blank_after_block_array_ends() {
+    let mut d = String::from("items[2]:\n  - a: 1\n  - a: 2\n\nnext: v\n");
+    let d = unsafe { d.as_bytes_mut() };
+    let simd = Deserializer::from_slice(d).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 2, count: 10 },
+            Node::String("items"),
+            Node::Array { len: 2, count: 6 },
+            Node::Object { len: 1, count: 2 },
+            Node::String("a"),
+            Node::Static(StaticNode::U64(1)),
+            Node::Object { len: 1, count: 2 },
+            Node::String("a"),
+            Node::Static(StaticNode::U64(2)),
+            Node::String("next"),
+            Node::String("v"),
+        ]
+    );
+}
+
+#[test]
 fn test_empty_root_array_without_key() {
     let mut d = String::from("[0]:\n       #   lasndflk;ansdf;lnasdf");
     let d = unsafe { d.as_bytes_mut() };
