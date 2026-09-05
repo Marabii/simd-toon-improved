@@ -1,4 +1,4 @@
-use crate::SIMDINPUT_LENGTH;
+use crate::{SIMDINPUT_LENGTH, macros::unlikely};
 
 /// As defined by the TOON spec sheet for comments:
 /// `A comment line is a line whose first character after zero or more leading spaces (U+0020) is "#" (U+0023)`
@@ -101,6 +101,10 @@ impl CommentStripper {
 
         // the newline is in a previous block
         let p = idx + opener;
+
+        if unlikely!(p == 0) {
+            return 0;
+        }
 
         let newline = p - 1;
         if structural_indexes.last() == Some(&(newline as u32)) {

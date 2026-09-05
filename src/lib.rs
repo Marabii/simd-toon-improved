@@ -749,7 +749,37 @@ impl<'de> Deserializer<'de> {
             let chunk = unsafe { input.get_kinda_unchecked(idx..idx + 64) };
             unsafe { utf8_validator.update_from_chunks(chunk) };
 
+            // take the previous iterations structural bits, not our current iteration,
+            // and flatten
+            unsafe { S::flatten_bits(structural_indexes, idx as u32, structurals) };
+
+            let mut whitespace: u64 = 0;
+            let mut newlines: u64 = 0;
+            let mut hashes: u64 = 0;
+            unsafe {
+                S::new(chunk).find_whitespace_structurals_hashes(
+                    &mut whitespace,
+                    &mut structurals,
+                    &mut newlines,
+                    &mut hashes,
+                )
+            };
+
+            // Comments are blanked first so that any character sequences that may break the parser (Like an open but not closed quote)
+            // inside a comment are removed first.
+            let blanked = unsafe {
+                comments.strip_block(idx, newlines, whitespace, hashes, structural_indexes)
+            };
+
+            // Blanked bytes are whitespace now, so they neither carry structure
+            // themselves nor suppress the pseudo-structural after them.
+            whitespace |= blanked;
+            structurals &= !blanked;
+
+            // Reload from the now-blanked bytes
+            let chunk = unsafe { input.get_kinda_unchecked(idx..idx + 64) };
             let input = unsafe { S::new(chunk) };
+
             // detect odd sequences of backslashes
             let odd_ends: u64 =
                 input.find_odd_backslash_sequences(&mut prev_iter_ends_odd_backslash);
@@ -763,37 +793,6 @@ impl<'de> Deserializer<'de> {
                 &mut quote_bits,
                 &mut error_mask,
             );
-
-            // take the previous iterations structural bits, not our current iteration,
-            // and flatten
-            unsafe { S::flatten_bits(structural_indexes, idx as u32, structurals) };
-
-            let mut whitespace: u64 = 0;
-            let mut newlines: u64 = 0;
-            let mut hashes: u64 = 0;
-            unsafe {
-                input.find_whitespace_structurals_hashes(
-                    &mut whitespace,
-                    &mut structurals,
-                    &mut newlines,
-                    &mut hashes,
-                )
-            };
-
-            let blanked = unsafe {
-                comments.strip_block(
-                    idx,
-                    newlines,
-                    whitespace,
-                    hashes & !quote_mask,
-                    structural_indexes,
-                )
-            };
-
-            // Blanked bytes are whitespace now, so they neither carry structure
-            // themselves nor suppress the pseudo-structural after them.
-            whitespace |= blanked;
-            structurals &= !blanked;
 
             // fixup structurals to reflect quotes and add pseudo-structural characters
             structurals = S::finalize_structurals(
@@ -820,6 +819,33 @@ impl<'de> Deserializer<'de> {
             };
             unsafe { utf8_validator.update_from_chunks(&tmpbuf) };
 
+            // take the previous iterations structural bits, not our current iteration,
+            // and flatten
+            unsafe { S::flatten_bits(structural_indexes, idx as u32, structurals) };
+
+            let mut whitespace: u64 = 0;
+            let mut newlines: u64 = 0;
+            let mut hashes: u64 = 0;
+            unsafe {
+                S::new(&tmpbuf).find_whitespace_structurals_hashes(
+                    &mut whitespace,
+                    &mut structurals,
+                    &mut newlines,
+                    &mut hashes,
+                )
+            };
+
+            let blanked = unsafe {
+                comments.strip_block(idx, newlines, whitespace, hashes, structural_indexes)
+            };
+            // Blanked bytes are whitespace now, so they neither carry structure
+            // themselves nor suppress the pseudo-structural after them.
+            whitespace |= blanked;
+            structurals &= !blanked;
+
+            unsafe {
+                tmpbuf.as_mut_ptr().copy_from(base.add(idx), len - idx);
+            };
             let input = unsafe { S::new(&tmpbuf) };
 
             // detect odd sequences of backslashes
@@ -835,38 +861,6 @@ impl<'de> Deserializer<'de> {
                 &mut quote_bits,
                 &mut error_mask,
             );
-
-            // take the previous iterations structural bits, not our current iteration,
-            // and flatten
-            unsafe { S::flatten_bits(structural_indexes, idx as u32, structurals) };
-
-            let mut whitespace: u64 = 0;
-            let mut newlines: u64 = 0;
-            let mut hashes: u64 = 0;
-            unsafe {
-                input.find_whitespace_structurals_hashes(
-                    &mut whitespace,
-                    &mut structurals,
-                    &mut newlines,
-                    &mut hashes,
-                )
-            };
-
-            // Rewrite full-line comments as spaces. A quoted '#' is data, never
-            // the start of one.
-            let blanked = unsafe {
-                comments.strip_block(
-                    idx,
-                    newlines,
-                    whitespace,
-                    hashes & !quote_mask,
-                    structural_indexes,
-                )
-            };
-            // Blanked bytes are whitespace now, so they neither carry structure
-            // themselves nor suppress the pseudo-structural after them.
-            whitespace |= blanked;
-            structurals &= !blanked;
 
             // fixup structurals to reflect quotes and add pseudo-structural characters
             structurals = S::finalize_structurals(

@@ -958,6 +958,15 @@ impl<'de> Deserializer<'de> {
         cnt = 0;
 
         update_char!();
+
+        if c == b'#' {
+            update_char!();
+        }
+
+        while c == b'\n' {
+            update_char!();
+        }
+
         let header_type = read_header!();
 
         // This check is used to decide which envelope to put the rest of the items in:
