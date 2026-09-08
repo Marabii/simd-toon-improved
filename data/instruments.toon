@@ -1,0 +1,4941 @@
+graphstate: null
+instruments[63]:
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 1
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 44
+    default_filter_cutoff_enabled: true
+    default_filter_mode: 1
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: true
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[3]{tick,value}:
+        0,0
+        6,3
+        22,53
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,61
+        8,1
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[4]{tick,value}:
+        0,64
+        11,64
+        37,2
+        58,0
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 125
+    default_filter_cutoff_enabled: true
+    default_filter_mode: 1
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 44
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[3]{tick,value}:
+        0,64
+        8,7
+        20,0
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 125
+    default_filter_cutoff_enabled: true
+    default_filter_mode: 1
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 44
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[3]{tick,value}:
+        0,64
+        8,7
+        20,0
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 72
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 1
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 168
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[4]{tick,value}:
+        0,64
+        24,64
+        33,22
+        49,0
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 112
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[4]{tick,value}:
+        0,64
+        14,32
+        27,17
+        51,0
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 42
+    default_filter_cutoff_enabled: true
+    default_filter_mode: 1
+    default_filter_resonance: 25
+    default_filter_resonance_enabled: true
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[3]{tick,value}:
+        0,64
+        3,2
+        31,0
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 42
+    default_filter_cutoff_enabled: true
+    default_filter_mode: 1
+    default_filter_resonance: 25
+    default_filter_resonance_enabled: true
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[3]{tick,value}:
+        0,64
+        3,2
+        31,0
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 27
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 1
+    default_filter_resonance: 52
+    default_filter_resonance_enabled: true
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 3
+      loop_start: 3
+      nodes[4]{tick,value}:
+        0,0
+        22,0
+        24,14
+        27,39
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[8]{tick,value}:
+        0,64
+        4,51
+        12,58
+        23,61
+        35,64
+        36,47
+        53,47
+        68,0
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 2
+      loop_start: 2
+      nodes[4]{tick,value}:
+        0,63
+        7,27
+        32,11
+        100,5
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[6]{tick,value}:
+        0,6
+        15,3
+        29,64
+        52,64
+        61,5
+        73,0
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 333
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 40
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        11,5
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 44
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[3]{tick,value}:
+        0,32
+        137,39
+        221,58
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 30
+    default_filter_cutoff_enabled: true
+    default_filter_mode: 0
+    default_filter_resonance: 52
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 48
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 3
+      loop_start: 3
+      nodes[4]{tick,value}:
+        0,0
+        22,0
+        24,14
+        27,39
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[5]{tick,value}:
+        0,64
+        11,64
+        19,64
+        23,61
+        38,0
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 333
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 1
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 125
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 1
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 2
+      loop_start: 0
+      nodes[3]{tick,value}:
+        0,64
+        20,24
+        47,0
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 125
+    default_filter_cutoff_enabled: true
+    default_filter_mode: 1
+    default_filter_resonance: 50
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[5]{tick,value}:
+        0,64
+        10,64
+        83,15
+        134,4
+        179,0
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 256
+    volume_ramp_up: 0
+  - default_filter_cutoff: 25
+    default_filter_cutoff_enabled: true
+    default_filter_mode: 1
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[3]{tick,value}:
+        0,57
+        10,32
+        84,26
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 2
+      loop_start: 2
+      nodes[3]{tick,value}:
+        0,64
+        7,64
+        15,55
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[3]{tick,value}:
+        0,20
+        10,32
+        84,26
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 2
+      loop_start: 2
+      nodes[3]{tick,value}:
+        0,0
+        5,0
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[3]{tick,value}:
+        0,64
+        104,32
+        191,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 1
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,1
+        66,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 100
+    default_filter_cutoff_enabled: true
+    default_filter_mode: 1
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[4]{tick,value}:
+        0,64
+        224,21
+        739,11
+        3879,0
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 3
+      loop_start: 3
+      nodes[4]{tick,value}:
+        0,0
+        700,18
+        1469,48
+        1588,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,34
+        379,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[7]{tick,value}:
+        0,0
+        119,4
+        248,22
+        318,50
+        344,60
+        365,64
+        384,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 128
+    volume_ramp_up: 128
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 3
+      loop_start: 0
+      nodes[4]{tick,value}:
+        0,32
+        17,39
+        35,24
+        52,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[8]{tick,value}:
+        0,32
+        427,29
+        563,27
+        667,24
+        730,19
+        769,13
+        873,17
+        1325,8
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 3
+      loop_start: 3
+      nodes[4]{tick,value}:
+        0,0
+        127,19
+        192,64
+        384,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 22
+    default_filter_cutoff_enabled: true
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 32
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[3]{tick,value}:
+        0,20
+        10,32
+        84,26
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[3]{tick,value}:
+        0,64
+        35,64
+        45,0
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 256
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 25
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 47
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 3
+      loop_start: 0
+      nodes[4]{tick,value}:
+        0,32
+        32,50
+        72,14
+        115,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,62
+        47,60
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 25
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 3
+      loop_start: 0
+      nodes[4]{tick,value}:
+        0,32
+        32,50
+        72,14
+        115,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,62
+        47,60
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[4]{tick,value}:
+        0,32
+        106,33
+        185,32
+        362,29
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 128
+    volume_ramp_up: 128
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 61
+    default_filter_cutoff_enabled: true
+    default_filter_mode: 1
+    default_filter_resonance: 50
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: photosynthesis
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 25
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 1
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 3
+      loop_start: 0
+      nodes[4]{tick,value}:
+        0,32
+        32,50
+        72,14
+        115,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,62
+        47,60
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 61
+    default_filter_cutoff_enabled: true
+    default_filter_mode: 1
+    default_filter_resonance: 50
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 41
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: photosynthesis
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 61
+    default_filter_cutoff_enabled: true
+    default_filter_mode: 1
+    default_filter_resonance: 50
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 24
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: photosynthesis
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 256
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 0
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+  - default_filter_cutoff: 0
+    default_filter_cutoff_enabled: false
+    default_filter_mode: 255
+    default_filter_resonance: 0
+    default_filter_resonance_enabled: false
+    default_pan: 128
+    duplicate_check_type: 0
+    duplicate_note_action: 0
+    fadeout: 0
+    global_volume: 64
+    graph_insert: 0
+    legacy_filename: ""
+    midi_bank: 0
+    midi_channel: 0
+    midi_drum_set: 0
+    midi_program: 0
+    name: ""
+    new_note_action: 1
+    note_map: null
+    panning_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,32
+        10,32
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    pitch_pan_center: 60
+    pitch_pan_separation: 0
+    pitch_to_tempo_lock: 0
+    random_cutoff_weight: 0
+    random_pan_weight: 0
+    random_resonance_weight: 0
+    random_volume_weight: 0
+    sample_map: null
+    tuning: null
+    volume_envelope:
+      loop_end: 0
+      loop_start: 0
+      nodes[2]{tick,value}:
+        0,64
+        10,64
+      release_node: 255
+      sustain_end: 0
+      sustain_start: 0
+    volume_ramp_down: 0
+    volume_ramp_up: 0
+message: null
+name: epanos
+orderlist: null
+patterns[240]:
+  - data: null
+    name: reset
+    rows: 32
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: pad sweep intro
+    rows: 512
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data[1]{channel,fxcmd,fxparam,instr,note,row,volcmd,volval}:
+      0,0,0,0,254,0,0,0
+    name: kick + sample intro
+    rows: 512
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: intro transition
+    rows: 256
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: a 1
+    rows: 512
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: b 1
+    rows: 512
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: transition 1
+    rows: 512
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: a 2
+    rows: 512
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 576
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: b1
+    rows: 512
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: b 2
+    rows: 512
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 512
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: c
+    rows: 512
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data[1]{channel,fxcmd,fxparam,instr,note,row,volcmd,volval}:
+      0,0,0,0,254,0,0,0
+    name: end
+    rows: 512
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+  - data: null
+    name: ""
+    rows: 64
+    rows_per_beat: 0
+    rows_per_measure: 0
+pluginstate: null
+samples[70]{c5_samplerate,global_volume,legacy_filename,length,loop_end,loop_start,name,pan,sustain_end,sustain_start,vibrato_depth,vibrato_rate,vibrato_sweep,vibrato_type,volume}:
+  8363,64,"",0,0,0,test,128,0,0,0,0,0,0,256
+  49492,64,"Nr-14.wav",360,358,98,test,128,0,0,0,0,0,0,256
+  8363,64,VEH3 Basses,0,0,0,test,128,0,0,0,0,0,0,256
+  44100,33,CH Dynamo,21056,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,HHclose.wav,4079,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,holyass.wav,9457,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,free SOR KFR,10091,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,"0003 1-Audio",935268,935267,0,test,128,0,0,0,0,0,0,256
+  83235,64,anger.wav,14760,0,0,test,128,0,0,0,0,0,0,256
+  44100,55,OH Dynamo,61923,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,"hats[178]",14345,0,0,test,128,0,0,0,0,0,0,256
+  44100,53,"hats[178]",14172,0,0,test,128,0,0,0,0,0,0,256
+  44100,29,"",4607,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,47454_Gijskn,4969,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,hh3open.wav,120997,0,0,test,128,0,0,0,0,0,0,256
+  44100,44,hh3open.wav,120121,0,0,test,128,0,0,0,0,0,0,256
+  44100,12,GDRD1CD1V1,12286,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,OH Dynamo,44145,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,CR8hatcl.wav,6289,0,0,test,128,0,0,0,0,0,0,256
+  8363,12,eee.wav,34864,34862,25000,test,128,0,0,0,0,0,0,256
+  44100,44,holycrap2,344123,0,0,test,128,0,0,0,0,0,0,256
+  21575,0,pain.wav,8180,0,0,test,128,0,0,0,0,0,0,256
+  22050,0,jump3.wav,13496,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,JHO Verse,91574,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,yummy_xmix4_,45184,0,0,test,128,0,0,0,0,0,0,256
+  44100,9,douchesweep_,1764000,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,augh_01.wav,80080,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,yummy_xmix4_,45281,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,"VEH3 Pre-Shi",14229,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,VEH3 Snares,9738,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,yummy_xmix4_,44885,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,kick_click,1172,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,TF_138_drum_,4823,4823,0,test,128,0,0,0,0,0,0,256
+  44100,16,TF_138_HiHat,5288,5288,0,test,128,0,0,0,0,0,0,256
+  44100,64,"",3857,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,ANGRYPIANO,204289,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,holyass.wav,81867,81867,0,test,128,0,0,0,0,0,0,256
+  44100,64,yummy_xmix4_,44800,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,"01-111222_08",50608,0,0,test,128,0,0,0,0,0,0,256
+  44100,27,hh3open.wav,0,0,0,test,128,0,0,0,0,0,0,256
+  33032,64,VEE2 Bassdru,12488,0,0,test,128,0,0,0,0,0,0,256
+  108223,63,dabass.wav,83268,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,ANGRYPIANO,204289,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,free SOR KFR,8039,0,0,test,128,0,0,0,0,0,0,256
+  44100,48,yummy_intro,338668,0,0,test,128,0,0,0,0,0,0,256
+  44100,40,"",5061,5059,4182,test,128,0,0,0,0,0,0,256
+  39282,38,"",5001,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,INDUSTRIAL_s,96453,0,0,test,128,0,0,0,0,0,0,256
+  55828,64,bass2.wav,338152,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,OH Dynamo,61923,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,Mine_Break_1,5650,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,moogbass.wav,0,0,0,test,128,0,0,0,0,0,0,256
+  27776,23,PIANO56,0,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,cepstral_01,62440,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,"",0,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,"",0,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,"",0,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,"",0,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,"",0,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,yummy_xmix2,0,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,"01-111222_08",0,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,"01-111222_08",35776,0,0,test,128,0,0,0,0,0,0,256
+  8363,64,"",0,0,0,test,128,0,0,0,0,0,0,256
+  43825,64,yummy_xmix7_,128402,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,dorfenhorf,39975,0,0,test,128,0,0,0,0,0,0,256
+  8363,64,"",0,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,"",0,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,"",0,0,0,test,128,0,0,0,0,0,0,256
+  44100,64,"",0,0,0,test,128,0,0,0,0,0,0,256
+  60472,64,dabass.wav,9861,9859,0,test,128,0,0,0,0,0,0,256
+version: 1

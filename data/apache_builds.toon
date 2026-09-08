@@ -1,0 +1,897 @@
+assignedLabels[1]:
+  -
+mode: EXCLUSIVE
+nodeDescription: the master Jenkins node
+nodeName: ""
+numExecutors: 0
+description: "<a href=\"http://www.apache.org/\"><img src=\"https://www.apache.org/images/asf_logo_wide.gif\"></img></a>\r\n<p>\r\nThis is a public build and test server for <a href=\"http://projects.apache.org/\">projects</a> of the\r\n<a href=\"http://www.apache.org/\">Apache Software Foundation</a>. All times on this server are UTC.\r\n</p>\r\n<p>\r\nSee the <a href=\"http://wiki.apache.org/general/Hudson\">Jenkins wiki page</a> for more information\r\nabout this service.\r\n</p>"
+jobs[875]{name,url,color}:
+  "Abdera-trunk","https://builds.apache.org/job/Abdera-trunk/",blue
+  "Abdera2-trunk","https://builds.apache.org/job/Abdera2-trunk/",blue
+  "Accumulo-1.3.x","https://builds.apache.org/job/Accumulo-1.3.x/",blue
+  "Accumulo-1.4.x","https://builds.apache.org/job/Accumulo-1.4.x/",blue
+  "Accumulo-Trunk","https://builds.apache.org/job/Accumulo-Trunk/",blue
+  "ACE-trunk","https://builds.apache.org/job/ACE-trunk/",yellow
+  ActiveMQ,"https://builds.apache.org/job/ActiveMQ/",aborted_anime
+  ActiveMQ Protocol Buffer,"https://builds.apache.org/job/ActiveMQ%20Protocol%20Buffer/",red
+  "ActiveMQ-Apollo","https://builds.apache.org/job/ActiveMQ-Apollo/",yellow
+  "ActiveMQ-Apollo-Deploy","https://builds.apache.org/job/ActiveMQ-Apollo-Deploy/",blue
+  "ActiveMQ-Java7","https://builds.apache.org/job/ActiveMQ-Java7/",yellow
+  "ActiveMQ-SysTest-Trunk","https://builds.apache.org/job/ActiveMQ-SysTest-Trunk/",red
+  "ActiveMQ-Trunk-Deploy","https://builds.apache.org/job/ActiveMQ-Trunk-Deploy/",blue
+  Amber,"https://builds.apache.org/job/Amber/",blue
+  "Amber-OAuth-2.0","https://builds.apache.org/job/Amber-OAuth-2.0/",blue
+  "Amber-OAuth-2.0-windows","https://builds.apache.org/job/Amber-OAuth-2.0-windows/",blue
+  "Ant-Build-Matrix","https://builds.apache.org/job/Ant-Build-Matrix/",yellow
+  Ant_BuildFromPOMs,"https://builds.apache.org/job/Ant_BuildFromPOMs/",red
+  Ant_Nightly,"https://builds.apache.org/job/Ant_Nightly/",red
+  "Any23-trunk","https://builds.apache.org/job/Any23-trunk/",blue
+  Apache Airavata,"https://builds.apache.org/job/Apache%20Airavata/",red
+  Apache Wicket 1.4.x,"https://builds.apache.org/job/Apache%20Wicket%201.4.x/",blue
+  Apache Wicket 1.5.x,"https://builds.apache.org/job/Apache%20Wicket%201.5.x/",red
+  Apache Wicket 6.0.x,"https://builds.apache.org/job/Apache%20Wicket%206.0.x/",blue
+  "apache-deltacloud-core","https://builds.apache.org/job/apache-deltacloud-core/",disabled
+  archetypes,"https://builds.apache.org/job/archetypes/",blue
+  "archiva-1.3.x","https://builds.apache.org/job/archiva-1.3.x/",red
+  "archiva-all-maven-3.x-jdk-1.6","https://builds.apache.org/job/archiva-all-maven-3.x-jdk-1.6/",blue
+  "archiva-all-maven-3.x-jdk-1.6-empty-repo","https://builds.apache.org/job/archiva-all-maven-3.x-jdk-1.6-empty-repo/",yellow
+  "archiva-all-maven-3.x-jdk-1.6-web-it-js","https://builds.apache.org/job/archiva-all-maven-3.x-jdk-1.6-web-it-js/",yellow
+  "archiva-all-maven-3.x-jdk-1.6-windows","https://builds.apache.org/job/archiva-all-maven-3.x-jdk-1.6-windows/",red
+  "archiva-all-maven-3.x-jdk-1.6-with-it-macos","https://builds.apache.org/job/archiva-all-maven-3.x-jdk-1.6-with-it-macos/",disabled
+  "archiva-all-maven-3.x-jdk-1.6-with-web-it-js-windows","https://builds.apache.org/job/archiva-all-maven-3.x-jdk-1.6-with-web-it-js-windows/",red
+  "archiva-all-maven-3.x-jdk-1.7","https://builds.apache.org/job/archiva-all-maven-3.x-jdk-1.7/",yellow
+  "archiva-all-maven-3.x-jdk-1.7-web-it-js","https://builds.apache.org/job/archiva-all-maven-3.x-jdk-1.7-web-it-js/",red
+  "archiva-parent","https://builds.apache.org/job/archiva-parent/",blue
+  Aries,"https://builds.apache.org/job/Aries/",blue
+  "Aries - Deploy","https://builds.apache.org/job/Aries%20-%20Deploy/",red
+  AriesWithSnapshotDependencies,"https://builds.apache.org/job/AriesWithSnapshotDependencies/",red
+  ASF Parent Pom,"https://builds.apache.org/job/ASF%20Parent%20Pom/",blue
+  AsyncWeb,"https://builds.apache.org/job/AsyncWeb/",blue
+  "AVRO-python","https://builds.apache.org/job/AVRO-python/",blue
+  AvroJava,"https://builds.apache.org/job/AvroJava/",blue
+  AWF,"https://builds.apache.org/job/AWF/",blue
+  "axis-trunk","https://builds.apache.org/job/axis-trunk/",blue
+  Axis2,"https://builds.apache.org/job/Axis2/",blue
+  "axis2-1.5","https://builds.apache.org/job/axis2-1.5/",blue
+  "axis2-1.6","https://builds.apache.org/job/axis2-1.6/",blue
+  "axis2-transports-trunk","https://builds.apache.org/job/axis2-transports-trunk/",blue
+  "Axis2-trunk-java-1.6","https://builds.apache.org/job/Axis2-trunk-java-1.6/",blue
+  "Bigtop-tickle-slaves","https://builds.apache.org/job/Bigtop-tickle-slaves/",blue
+  "Bigtop-trunk","https://builds.apache.org/job/Bigtop-trunk/",blue
+  "Bigtop-trunk-iTest","https://builds.apache.org/job/Bigtop-trunk-iTest/",blue
+  "Bigtop-trunk-test-execution","https://builds.apache.org/job/Bigtop-trunk-test-execution/",blue
+  "Bigtop-trunk-testartifacts","https://builds.apache.org/job/Bigtop-trunk-testartifacts/",blue
+  "Blur-master-jdk6","https://builds.apache.org/job/Blur-master-jdk6/",yellow
+  "Blur-master-jdk7","https://builds.apache.org/job/Blur-master-jdk7/",red
+  "bookkeeper-debug","https://builds.apache.org/job/bookkeeper-debug/",red
+  "bookkeeper-trunk","https://builds.apache.org/job/bookkeeper-trunk/",disabled
+  "bookkeeper-trunk-find-patches-available","https://builds.apache.org/job/bookkeeper-trunk-find-patches-available/",blue
+  "bookkeeper-trunk-precommit-build","https://builds.apache.org/job/bookkeeper-trunk-precommit-build/",red
+  "bookkeeper-trunk2","https://builds.apache.org/job/bookkeeper-trunk2/",blue
+  "Buildr-ci-build-jruby-win32","https://builds.apache.org/job/Buildr-ci-build-jruby-win32/",red
+  "Buildr-ci-matrix","https://builds.apache.org/job/Buildr-ci-matrix/",red
+  "Buildr-ci-windows-matrix","https://builds.apache.org/job/Buildr-ci-windows-matrix/",disabled
+  "Buildr-metrics-build","https://builds.apache.org/job/Buildr-metrics-build/",blue
+  "Buildr-omnibus-build","https://builds.apache.org/job/Buildr-omnibus-build/",blue
+  "Buildr-website-build","https://builds.apache.org/job/Buildr-website-build/",blue
+  "BVal-trunk","https://builds.apache.org/job/BVal-trunk/",blue
+  "BVal-trunk-linux-tck-deploy","https://builds.apache.org/job/BVal-trunk-linux-tck-deploy/",disabled
+  Cactus,"https://builds.apache.org/job/Cactus/",red
+  "Camel-2.10.x","https://builds.apache.org/job/Camel-2.10.x/",red
+  "Camel-2.7.x","https://builds.apache.org/job/Camel-2.7.x/",disabled
+  "Camel-2.8.x","https://builds.apache.org/job/Camel-2.8.x/",disabled
+  "Camel-2.9.x","https://builds.apache.org/job/Camel-2.9.x/",blue
+  Camel.2.10.x.fulltest,"https://builds.apache.org/job/Camel.2.10.x.fulltest/",red
+  Camel.2.7.x.fulltest,"https://builds.apache.org/job/Camel.2.7.x.fulltest/",disabled
+  Camel.2.8.x.fulltest,"https://builds.apache.org/job/Camel.2.8.x.fulltest/",disabled
+  Camel.2.9.x.fulltest,"https://builds.apache.org/job/Camel.2.9.x.fulltest/",aborted
+  Camel.trunk.fulltest,"https://builds.apache.org/job/Camel.trunk.fulltest/",yellow
+  Camel.trunk.fulltest.java7,"https://builds.apache.org/job/Camel.trunk.fulltest.java7/",yellow_anime
+  Camel.trunk.fulltest.spring3.0,"https://builds.apache.org/job/Camel.trunk.fulltest.spring3.0/",disabled
+  Camel.trunk.fulltest.windows,"https://builds.apache.org/job/Camel.trunk.fulltest.windows/",disabled
+  Camel.trunk.notest,"https://builds.apache.org/job/Camel.trunk.notest/",blue
+  "Cayenne-30","https://builds.apache.org/job/Cayenne-30/",red
+  "Cayenne-31","https://builds.apache.org/job/Cayenne-31/",red
+  "Cayenne-doc","https://builds.apache.org/job/Cayenne-doc/",blue
+  "Cayenne-doc30","https://builds.apache.org/job/Cayenne-doc30/",blue
+  "Cayenne-trunk","https://builds.apache.org/job/Cayenne-trunk/",red
+  "central-indexer-test","https://builds.apache.org/job/central-indexer-test/",red
+  "Chemistry - DotCMIS","https://builds.apache.org/job/Chemistry%20-%20DotCMIS/",blue
+  "Chemistry - OpenCMIS - install","https://builds.apache.org/job/Chemistry%20-%20OpenCMIS%20-%20install/",blue
+  "Chemistry - OpenCMIS - javadoc","https://builds.apache.org/job/Chemistry%20-%20OpenCMIS%20-%20javadoc/",blue
+  "Chemistry - OpenCMIS - Release Profile","https://builds.apache.org/job/Chemistry%20-%20OpenCMIS%20-%20Release%20Profile/",disabled
+  "Chemistry - OpenCMIS - Workbench","https://builds.apache.org/job/Chemistry%20-%20OpenCMIS%20-%20Workbench/",blue
+  "Chemistry-Phyton-cmislib-doc","https://builds.apache.org/job/Chemistry-Phyton-cmislib-doc/",blue
+  "Chukwa-release","https://builds.apache.org/job/Chukwa-release/",grey
+  "Chukwa-trunk","https://builds.apache.org/job/Chukwa-trunk/",blue
+  "clerezza-scala-1.6","https://builds.apache.org/job/clerezza-scala-1.6/",disabled
+  "clerezza-site","https://builds.apache.org/job/clerezza-site/",blue
+  "clerezza-trunk-1.6","https://builds.apache.org/job/clerezza-trunk-1.6/",blue
+  Click,"https://builds.apache.org/job/Click/",blue
+  "cloudstack-api_refactor","https://builds.apache.org/job/cloudstack-api_refactor/",blue
+  "cloudstack-docs-master-adminguide","https://builds.apache.org/job/cloudstack-docs-master-adminguide/",red
+  "cloudstack-javelin","https://builds.apache.org/job/cloudstack-javelin/",blue
+  "cloudstack-marvin","https://builds.apache.org/job/cloudstack-marvin/",blue
+  "cloudstack-master-maven","https://builds.apache.org/job/cloudstack-master-maven/",blue
+  "cloudstack-rat-master","https://builds.apache.org/job/cloudstack-rat-master/",blue
+  Cocoon 3.0,"https://builds.apache.org/job/Cocoon%203.0/",blue
+  "CODI (add-ons)","https://builds.apache.org/job/CODI%20(add-ons)/",disabled
+  CODI (deploy),"https://builds.apache.org/job/CODI%20(deploy)/",blue
+  CODI (nightly),"https://builds.apache.org/job/CODI%20(nightly)/",blue
+  "codi-apache-extras","https://builds.apache.org/job/codi-apache-extras/",disabled
+  "codi-apache-extras-addons","https://builds.apache.org/job/codi-apache-extras-addons/",disabled
+  "codi-apache-extras-test","https://builds.apache.org/job/codi-apache-extras-test/",aborted
+  "codi-mirror","https://builds.apache.org/job/codi-mirror/",blue
+  "CODI-test","https://builds.apache.org/job/CODI-test/",blue
+  "CODI-u1test","https://builds.apache.org/job/CODI-u1test/",disabled
+  Commons,"https://builds.apache.org/job/Commons/",yellow
+  Commons FileUpload,"https://builds.apache.org/job/Commons%20FileUpload/",blue
+  "commons-collections","https://builds.apache.org/job/commons-collections/",red
+  "commons-vfs-trunk","https://builds.apache.org/job/commons-vfs-trunk/",red
+  CommonsAnt,"https://builds.apache.org/job/CommonsAnt/",blue
+  "core-integration-testing-maven-3","https://builds.apache.org/job/core-integration-testing-maven-3/",red_anime
+  "core-integration-testing-maven-3-embedded","https://builds.apache.org/job/core-integration-testing-maven-3-embedded/",red_anime
+  "core-integration-testing-maven-3-jdk-1.6","https://builds.apache.org/job/core-integration-testing-maven-3-jdk-1.6/",blue
+  "core-integration-testing-maven-3-jdk-1.6-log4j2","https://builds.apache.org/job/core-integration-testing-maven-3-jdk-1.6-log4j2/",blue
+  "core-integration-testing-maven-3-jdk-1.7","https://builds.apache.org/job/core-integration-testing-maven-3-jdk-1.7/",red
+  "core-integration-testing-maven-3-osx","https://builds.apache.org/job/core-integration-testing-maven-3-osx/",disabled
+  "core-integration-testing-maven-3-solaris","https://builds.apache.org/job/core-integration-testing-maven-3-solaris/",red
+  "core-it-maven-3-win","https://builds.apache.org/job/core-it-maven-3-win/",red
+  "Crunch-master","https://builds.apache.org/job/Crunch-master/",blue
+  "Crunch-master-integration","https://builds.apache.org/job/Crunch-master-integration/",blue
+  "ctakes-trunk-compiletest","https://builds.apache.org/job/ctakes-trunk-compiletest/",blue
+  "ctakes-trunk-package","https://builds.apache.org/job/ctakes-trunk-package/",red
+  "CXF-2.2-deploy","https://builds.apache.org/job/CXF-2.2-deploy/",blue
+  "CXF-2.2.x-JDK15","https://builds.apache.org/job/CXF-2.2.x-JDK15/",yellow
+  "CXF-2.3-deploy","https://builds.apache.org/job/CXF-2.3-deploy/",red
+  "CXF-2.3.x","https://builds.apache.org/job/CXF-2.3.x/",yellow
+  "CXF-2.4-deploy","https://builds.apache.org/job/CXF-2.4-deploy/",red
+  "CXF-2.4.x","https://builds.apache.org/job/CXF-2.4.x/",red
+  "CXF-2.5-deploy","https://builds.apache.org/job/CXF-2.5-deploy/",red
+  "CXF-2.5.x","https://builds.apache.org/job/CXF-2.5.x/",blue
+  "CXF-2.6-deploy","https://builds.apache.org/job/CXF-2.6-deploy/",blue
+  "CXF-2.6.x","https://builds.apache.org/job/CXF-2.6.x/",yellow
+  "CXF-2.7-deploy","https://builds.apache.org/job/CXF-2.7-deploy/",red
+  "CXF-2.7.x","https://builds.apache.org/job/CXF-2.7.x/",yellow
+  "CXF-build-tools","https://builds.apache.org/job/CXF-build-tools/",blue
+  "CXF-DOSGi","https://builds.apache.org/job/CXF-DOSGi/",blue
+  "CXF-DOSGi-deploy","https://builds.apache.org/job/CXF-DOSGi-deploy/",red
+  "CXF-Fediz","https://builds.apache.org/job/CXF-Fediz/",blue
+  "CXF-trunk-deploy","https://builds.apache.org/job/CXF-trunk-deploy/",blue
+  "CXF-Trunk-IBM-JDK16","https://builds.apache.org/job/CXF-Trunk-IBM-JDK16/",yellow
+  "CXF-Trunk-JDK16","https://builds.apache.org/job/CXF-Trunk-JDK16/",yellow
+  "CXF-Trunk-JDK17","https://builds.apache.org/job/CXF-Trunk-JDK17/",blue
+  "CXF-trunk-windows","https://builds.apache.org/job/CXF-trunk-windows/",yellow
+  "CXF-xjc-utils","https://builds.apache.org/job/CXF-xjc-utils/",blue
+  DeltaSpike Deploy,"https://builds.apache.org/job/DeltaSpike%20Deploy/",blue
+  DeltaSpike Examples,"https://builds.apache.org/job/DeltaSpike%20Examples/",blue
+  DeltaSpike OWB (nightly),"https://builds.apache.org/job/DeltaSpike%20OWB%20(nightly)/",blue
+  DeltaSpike OWB 1.1.1,"https://builds.apache.org/job/DeltaSpike%20OWB%201.1.1/",blue
+  DeltaSpike OWB 1.1.2,"https://builds.apache.org/job/DeltaSpike%20OWB%201.1.2/",blue
+  DeltaSpike OWB 1.1.3,"https://builds.apache.org/job/DeltaSpike%20OWB%201.1.3/",blue
+  DeltaSpike OWB 1.1.4,"https://builds.apache.org/job/DeltaSpike%20OWB%201.1.4/",blue
+  DeltaSpike OWB 1.1.4 (JDK 1.7),"https://builds.apache.org/job/DeltaSpike%20OWB%201.1.4%20(JDK%201.7)/",blue
+  DeltaSpike OWB 1.1.5,"https://builds.apache.org/job/DeltaSpike%20OWB%201.1.5/",yellow
+  DeltaSpike OWB 1.1.6,"https://builds.apache.org/job/DeltaSpike%20OWB%201.1.6/",blue
+  DeltaSpike OWB 1.1.7,"https://builds.apache.org/job/DeltaSpike%20OWB%201.1.7/",blue
+  "DeltaSpike OWB 1.1.8-SNAPSHOT","https://builds.apache.org/job/DeltaSpike%20OWB%201.1.8-SNAPSHOT/",blue
+  "DeltaSpike RAT-Check","https://builds.apache.org/job/DeltaSpike%20RAT-Check/",blue
+  DeltaSpike TomEE v1,"https://builds.apache.org/job/DeltaSpike%20TomEE%20v1/",disabled
+  DeltaSpike Weld (nightly),"https://builds.apache.org/job/DeltaSpike%20Weld%20(nightly)/",blue
+  DeltaSpike Weld 1.1.10,"https://builds.apache.org/job/DeltaSpike%20Weld%201.1.10/",blue
+  DeltaSpike Weld 1.1.3,"https://builds.apache.org/job/DeltaSpike%20Weld%201.1.3/",blue
+  DeltaSpike Weld 1.1.3.SP1,"https://builds.apache.org/job/DeltaSpike%20Weld%201.1.3.SP1/",blue
+  DeltaSpike Weld 1.1.4,"https://builds.apache.org/job/DeltaSpike%20Weld%201.1.4/",blue
+  DeltaSpike Weld 1.1.5,"https://builds.apache.org/job/DeltaSpike%20Weld%201.1.5/",blue
+  DeltaSpike Weld 1.1.5.AS71,"https://builds.apache.org/job/DeltaSpike%20Weld%201.1.5.AS71/",blue
+  DeltaSpike Weld 1.1.6,"https://builds.apache.org/job/DeltaSpike%20Weld%201.1.6/",blue
+  DeltaSpike Weld 1.1.7,"https://builds.apache.org/job/DeltaSpike%20Weld%201.1.7/",blue
+  DeltaSpike Weld 1.1.8,"https://builds.apache.org/job/DeltaSpike%20Weld%201.1.8/",blue
+  DeltaSpike Weld 1.1.9,"https://builds.apache.org/job/DeltaSpike%20Weld%201.1.9/",blue
+  DeltaSpike Weld 1.1.9 (JDK 1.7),"https://builds.apache.org/job/DeltaSpike%20Weld%201.1.9%20(JDK%201.7)/",blue
+  "DeltaSpike Weld 1.2.0-SNAPSHOT","https://builds.apache.org/job/DeltaSpike%20Weld%201.2.0-SNAPSHOT/",blue
+  DeltaSpike Weld 2.0.0 Beta1,"https://builds.apache.org/job/DeltaSpike%20Weld%202.0.0%20Beta1/",yellow
+  DeltaSpike Weld 2.0.0 Beta2,"https://builds.apache.org/job/DeltaSpike%20Weld%202.0.0%20Beta2/",yellow
+  "DeltaSpike Weld 2.0.0-SNAPSHOT","https://builds.apache.org/job/DeltaSpike%20Weld%202.0.0-SNAPSHOT/",yellow
+  DeltaSpike Weld 2.0.0.Alpha2,"https://builds.apache.org/job/DeltaSpike%20Weld%202.0.0.Alpha2/",yellow
+  DeltaSpike_Control_Build,"https://builds.apache.org/job/DeltaSpike_Control_Build/",blue
+  DeltaSpike_TomEE,"https://builds.apache.org/job/DeltaSpike_TomEE/",blue
+  DeltaSpike_TomEE_latest,"https://builds.apache.org/job/DeltaSpike_TomEE_latest/",red
+  "Derby-10.9-derbyall","https://builds.apache.org/job/Derby-10.9-derbyall/",blue
+  "Derby-10.9-suites.All","https://builds.apache.org/job/Derby-10.9-suites.All/",blue
+  "Derby-branch-10.5","https://builds.apache.org/job/Derby-branch-10.5/",blue
+  "Derby-branch-10.6","https://builds.apache.org/job/Derby-branch-10.6/",blue
+  "Derby-branch-10.7","https://builds.apache.org/job/Derby-branch-10.7/",blue
+  "Derby-branch-10.8","https://builds.apache.org/job/Derby-branch-10.8/",blue
+  "Derby-branch-10.9","https://builds.apache.org/job/Derby-branch-10.9/",blue
+  "Derby-docs","https://builds.apache.org/job/Derby-docs/",blue
+  "Derby-trunk","https://builds.apache.org/job/Derby-trunk/",blue
+  "Derby-trunk-suites.All-ARM","https://builds.apache.org/job/Derby-trunk-suites.All-ARM/",yellow
+  "Derby-trunk_clover","https://builds.apache.org/job/Derby-trunk_clover/",disabled
+  "Derby-trunk_suites.All","https://builds.apache.org/job/Derby-trunk_suites.All/",disabled
+  "dir-apacheds-jdbm-jdk16-ubuntu-deploy","https://builds.apache.org/job/dir-apacheds-jdbm-jdk16-ubuntu-deploy/",blue
+  "dir-apacheds-jdbm-jdk16-win","https://builds.apache.org/job/dir-apacheds-jdbm-jdk16-win/",blue
+  "dir-apacheds-jdk16-ubuntu-deploy","https://builds.apache.org/job/dir-apacheds-jdk16-ubuntu-deploy/",blue
+  "dir-apacheds-jdk16-ubuntu-installers","https://builds.apache.org/job/dir-apacheds-jdk16-ubuntu-installers/",blue
+  "dir-apacheds-jdk16-win","https://builds.apache.org/job/dir-apacheds-jdk16-win/",yellow
+  "dir-apacheds-manuals","https://builds.apache.org/job/dir-apacheds-manuals/",blue
+  "dir-api-manuals","https://builds.apache.org/job/dir-api-manuals/",blue
+  "dir-checkstyle-jdk16-deploy-site","https://builds.apache.org/job/dir-checkstyle-jdk16-deploy-site/",blue
+  "dir-groovyldap-jdk15-deploy-site","https://builds.apache.org/job/dir-groovyldap-jdk15-deploy-site/",blue
+  "dir-junit-addons-jdk15-deploy-site","https://builds.apache.org/job/dir-junit-addons-jdk15-deploy-site/",blue
+  "dir-project-jdk15-deploy","https://builds.apache.org/job/dir-project-jdk15-deploy/",blue
+  "dir-shared-jdk16-ubuntu-deploy","https://builds.apache.org/job/dir-shared-jdk16-ubuntu-deploy/",blue
+  "dir-shared-jdk16-win","https://builds.apache.org/job/dir-shared-jdk16-win/",blue
+  "dir-skins-jdk15-deploy-site","https://builds.apache.org/job/dir-skins-jdk15-deploy-site/",blue
+  "dir-studio-jdk16-ubuntu-applications","https://builds.apache.org/job/dir-studio-jdk16-ubuntu-applications/",blue
+  "dir-studio-jdk16-ubuntu-deploy","https://builds.apache.org/job/dir-studio-jdk16-ubuntu-deploy/",blue
+  "dir-studio-jdk16-win","https://builds.apache.org/job/dir-studio-jdk16-win/",blue
+  "dir-studio-manuals","https://builds.apache.org/job/dir-studio-manuals/",disabled
+  "dir-studio-maven-plugin-jdk15-deploy-site","https://builds.apache.org/job/dir-studio-maven-plugin-jdk15-deploy-site/",red
+  "directmemory-parent","https://builds.apache.org/job/directmemory-parent/",blue
+  "directmemory-trunk","https://builds.apache.org/job/directmemory-trunk/",blue
+  "directmemory-windows","https://builds.apache.org/job/directmemory-windows/",blue
+  doxia,"https://builds.apache.org/job/doxia/",blue
+  "doxia-eclipse-editor","https://builds.apache.org/job/doxia-eclipse-editor/",blue
+  "doxia-sitetools","https://builds.apache.org/job/doxia-sitetools/",blue
+  "doxia-tools","https://builds.apache.org/job/doxia-tools/",blue
+  "Drill-Physical-Plan","https://builds.apache.org/job/Drill-Physical-Plan/",blue
+  EasyAnt,"https://builds.apache.org/job/EasyAnt/",blue
+  "Empire-db multios","https://builds.apache.org/job/Empire-db%20multios/",blue
+  "Empire-db reports","https://builds.apache.org/job/Empire-db%20reports/",blue
+  "Empire-db snapshot","https://builds.apache.org/job/Empire-db%20snapshot/",blue
+  ESME,"https://builds.apache.org/job/ESME/",yellow
+  "etch-trunk-linux-x86","https://builds.apache.org/job/etch-trunk-linux-x86/",blue
+  "etch-trunk-linux-x86-experimental","https://builds.apache.org/job/etch-trunk-linux-x86-experimental/",red
+  "etch-trunk-windows-x86","https://builds.apache.org/job/etch-trunk-windows-x86/",red
+  "etch-trunk-windows-x86-experimental","https://builds.apache.org/job/etch-trunk-windows-x86-experimental/",blue
+  ExtVal for JSF 1.2 (deploy),"https://builds.apache.org/job/ExtVal%20for%20JSF%201.2%20(deploy)/",blue
+  ExtVal for JSF 1.2 (nightly),"https://builds.apache.org/job/ExtVal%20for%20JSF%201.2%20(nightly)/",blue
+  ExtVal for JSF 2.0 (deploy),"https://builds.apache.org/job/ExtVal%20for%20JSF%202.0%20(deploy)/",blue
+  ExtVal for JSF 2.0 (nightly),"https://builds.apache.org/job/ExtVal%20for%20JSF%202.0%20(nightly)/",blue
+  Felix iPOJO API,"https://builds.apache.org/job/Felix%20iPOJO%20API/",aborted
+  Felix iPOJO Arch,"https://builds.apache.org/job/Felix%20iPOJO%20Arch/",aborted
+  "Felix iPOJO Arch-Gogo","https://builds.apache.org/job/Felix%20iPOJO%20Arch-Gogo/",aborted
+  Felix iPOJO EventAdmin Handler,"https://builds.apache.org/job/Felix%20iPOJO%20EventAdmin%20Handler/",blue
+  Felix iPOJO Extender Handler,"https://builds.apache.org/job/Felix%20iPOJO%20Extender%20Handler/",aborted
+  Felix iPOJO JMX Handler,"https://builds.apache.org/job/Felix%20iPOJO%20JMX%20Handler/",aborted
+  Felix iPOJO Junit4OSGi,"https://builds.apache.org/job/Felix%20iPOJO%20Junit4OSGi/",aborted
+  Felix iPOJO Manipulator,"https://builds.apache.org/job/Felix%20iPOJO%20Manipulator/",aborted
+  Felix iPOJO Metadata,"https://builds.apache.org/job/Felix%20iPOJO%20Metadata/",aborted
+  Felix iPOJO Runtime,"https://builds.apache.org/job/Felix%20iPOJO%20Runtime/",blue
+  Felix iPOJO Temporal Handler,"https://builds.apache.org/job/Felix%20iPOJO%20Temporal%20Handler/",aborted
+  Felix iPOJO Tests,"https://builds.apache.org/job/Felix%20iPOJO%20Tests/",aborted
+  Felix iPOJO Transaction Handler,"https://builds.apache.org/job/Felix%20iPOJO%20Transaction%20Handler/",aborted
+  Felix iPOJO Webconsole,"https://builds.apache.org/job/Felix%20iPOJO%20Webconsole/",aborted
+  Felix iPOJO Whiteboard Handler,"https://builds.apache.org/job/Felix%20iPOJO%20Whiteboard%20Handler/",aborted
+  "Felix-FileInstall","https://builds.apache.org/job/Felix-FileInstall/",blue
+  "Felix-Gogo","https://builds.apache.org/job/Felix-Gogo/",blue
+  "Felix-WebConsole","https://builds.apache.org/job/Felix-WebConsole/",red
+  Flex_SDK_build,"https://builds.apache.org/job/Flex_SDK_build/",blue
+  Flex_SDK_checkin_tests,"https://builds.apache.org/job/Flex_SDK_checkin_tests/",blue
+  "flume-0.9","https://builds.apache.org/job/flume-0.9/",red
+  "flume-1.3.0","https://builds.apache.org/job/flume-1.3.0/",red
+  "flume-1.4.0","https://builds.apache.org/job/flume-1.4.0/",red
+  "flume-trunk","https://builds.apache.org/job/flume-trunk/",blue
+  "FontBox-trunk","https://builds.apache.org/job/FontBox-trunk/",disabled
+  "ftpserver-1.0.x-jdk1.5-solaris","https://builds.apache.org/job/ftpserver-1.0.x-jdk1.5-solaris/",aborted
+  "ftpserver-1.0.x-jdk1.5-ubuntu","https://builds.apache.org/job/ftpserver-1.0.x-jdk1.5-ubuntu/",blue
+  "ftpserver-trunk-jdk1.5-ibm-ubuntu","https://builds.apache.org/job/ftpserver-trunk-jdk1.5-ibm-ubuntu/",blue
+  "ftpserver-trunk-jdk1.5-solaris","https://builds.apache.org/job/ftpserver-trunk-jdk1.5-solaris/",aborted
+  "ftpserver-trunk-jdk1.5-ubuntu","https://builds.apache.org/job/ftpserver-trunk-jdk1.5-ubuntu/",blue
+  "ftpserver-trunk-jdk1.6-freebsd","https://builds.apache.org/job/ftpserver-trunk-jdk1.6-freebsd/",disabled
+  "ftpserver-trunk-jdk1.6-ibm-ubuntu","https://builds.apache.org/job/ftpserver-trunk-jdk1.6-ibm-ubuntu/",blue
+  "ftpserver-trunk-jdk1.6-osx","https://builds.apache.org/job/ftpserver-trunk-jdk1.6-osx/",disabled
+  "ftpserver-trunk-jdk1.6-solaris","https://builds.apache.org/job/ftpserver-trunk-jdk1.6-solaris/",blue
+  "ftpserver-trunk-jdk1.6-ubuntu","https://builds.apache.org/job/ftpserver-trunk-jdk1.6-ubuntu/",blue
+  "ftpserver-trunk-jdk1.6-windows","https://builds.apache.org/job/ftpserver-trunk-jdk1.6-windows/",blue
+  "Giraph-trunk-Commit","https://builds.apache.org/job/Giraph-trunk-Commit/",red
+  "giraph-trunk-hadoop-0.20.203","https://builds.apache.org/job/giraph-trunk-hadoop-0.20.203/",red
+  "giraph-trunk-hadoop-0.23","https://builds.apache.org/job/giraph-trunk-hadoop-0.23/",blue
+  "giraph-trunk-hadoop-1.0","https://builds.apache.org/job/giraph-trunk-hadoop-1.0/",blue
+  "giraph-trunk-hadoop-trunk","https://builds.apache.org/job/giraph-trunk-hadoop-trunk/",red
+  "giraph-trunk-non-secure","https://builds.apache.org/job/giraph-trunk-non-secure/",blue
+  "gora-trunk","https://builds.apache.org/job/gora-trunk/",blue
+  "gora-trunk-ant","https://builds.apache.org/job/gora-trunk-ant/",disabled
+  goraamazon_branch,"https://builds.apache.org/job/goraamazon_branch/",disabled
+  "Hadoop-0.20-security","https://builds.apache.org/job/Hadoop-0.20-security/",disabled
+  "Hadoop-0.20.203-Build","https://builds.apache.org/job/Hadoop-0.20.203-Build/",disabled
+  "Hadoop-1-Build","https://builds.apache.org/job/Hadoop-1-Build/",red
+  "Hadoop-1-Code-Coverage","https://builds.apache.org/job/Hadoop-1-Code-Coverage/",red
+  "Hadoop-1-win","https://builds.apache.org/job/Hadoop-1-win/",red
+  "Hadoop-1.0-Build","https://builds.apache.org/job/Hadoop-1.0-Build/",blue
+  "Hadoop-Common-0.23-Build","https://builds.apache.org/job/Hadoop-Common-0.23-Build/",red
+  "Hadoop-Common-0.23-Commit","https://builds.apache.org/job/Hadoop-Common-0.23-Commit/",blue
+  "Hadoop-Common-trunk","https://builds.apache.org/job/Hadoop-Common-trunk/",red
+  "Hadoop-Hdfs-0.23-Build","https://builds.apache.org/job/Hadoop-Hdfs-0.23-Build/",red
+  "Hadoop-Hdfs-0.23-Commit","https://builds.apache.org/job/Hadoop-Hdfs-0.23-Commit/",disabled
+  "Hadoop-Hdfs-22-branch","https://builds.apache.org/job/Hadoop-Hdfs-22-branch/",blue
+  "Hadoop-Hdfs-HAbranch-build","https://builds.apache.org/job/Hadoop-Hdfs-HAbranch-build/",disabled
+  "Hadoop-Hdfs-NIFbranch-build","https://builds.apache.org/job/Hadoop-Hdfs-NIFbranch-build/",disabled
+  "Hadoop-Hdfs-Snapshots-Branch-build","https://builds.apache.org/job/Hadoop-Hdfs-Snapshots-Branch-build/",red
+  "Hadoop-Hdfs-trunk","https://builds.apache.org/job/Hadoop-Hdfs-trunk/",red
+  "Hadoop-Hdfs-trunk-Commit","https://builds.apache.org/job/Hadoop-Hdfs-trunk-Commit/",disabled
+  "Hadoop-Mapreduce-0.23-Build","https://builds.apache.org/job/Hadoop-Mapreduce-0.23-Build/",disabled
+  "Hadoop-Mapreduce-0.23-Commit","https://builds.apache.org/job/Hadoop-Mapreduce-0.23-Commit/",disabled
+  "Hadoop-Mapreduce-22-branch","https://builds.apache.org/job/Hadoop-Mapreduce-22-branch/",blue
+  "Hadoop-Mapreduce-trunk","https://builds.apache.org/job/Hadoop-Mapreduce-trunk/",red
+  "Hadoop-Mapreduce-trunk-Commit","https://builds.apache.org/job/Hadoop-Mapreduce-trunk-Commit/",disabled
+  "Hadoop-MR-279-Build","https://builds.apache.org/job/Hadoop-MR-279-Build/",disabled
+  "Hadoop-trunk","https://builds.apache.org/job/Hadoop-trunk/",aborted
+  "Hadoop-trunk-ARM","https://builds.apache.org/job/Hadoop-trunk-ARM/",red
+  "Hadoop-trunk-Commit","https://builds.apache.org/job/Hadoop-trunk-Commit/",blue
+  "Hadoop-Yarn-trunk","https://builds.apache.org/job/Hadoop-Yarn-trunk/",blue
+  Hama trunk,"https://builds.apache.org/job/Hama%20trunk/",red
+  "Hama-Nightly","https://builds.apache.org/job/Hama-Nightly/",red
+  "Hama-Patch","https://builds.apache.org/job/Hama-Patch/",red
+  "Hama-Patch-Admin","https://builds.apache.org/job/Hama-Patch-Admin/",red
+  "hbase-0.90","https://builds.apache.org/job/hbase-0.90/",red
+  "HBase-0.92","https://builds.apache.org/job/HBase-0.92/",red
+  "HBase-0.92-security","https://builds.apache.org/job/HBase-0.92-security/",red
+  "HBase-0.94","https://builds.apache.org/job/HBase-0.94/",red
+  "HBase-0.94-deploy","https://builds.apache.org/job/HBase-0.94-deploy/",blue
+  "HBase-0.94-security","https://builds.apache.org/job/HBase-0.94-security/",blue
+  "HBase-0.94-security-on-Hadoop-23","https://builds.apache.org/job/HBase-0.94-security-on-Hadoop-23/",red
+  "HBase-TRUNK","https://builds.apache.org/job/HBase-TRUNK/",red
+  "HBase-TRUNK-on-Hadoop-2.0.0","https://builds.apache.org/job/HBase-TRUNK-on-Hadoop-2.0.0/",red
+  "HBase-TRUNK-on-Hadoop-23","https://builds.apache.org/job/HBase-TRUNK-on-Hadoop-23/",disabled
+  "HBase-TRUNK-security","https://builds.apache.org/job/HBase-TRUNK-security/",disabled
+  "Hcatalog-0.2-build","https://builds.apache.org/job/Hcatalog-0.2-build/",disabled
+  "Hcatalog-0.3-build","https://builds.apache.org/job/Hcatalog-0.3-build/",disabled
+  "Hcatalog-0.4-build","https://builds.apache.org/job/Hcatalog-0.4-build/",blue
+  "Hcatalog-trunk-build","https://builds.apache.org/job/Hcatalog-trunk-build/",red
+  helix,"https://builds.apache.org/job/helix/",blue
+  "helix-1.7","https://builds.apache.org/job/helix-1.7/",red_anime
+  "Hive-0.10.0-SNAPSHOT-h0.20.1","https://builds.apache.org/job/Hive-0.10.0-SNAPSHOT-h0.20.1/",aborted
+  "Hive-0.9.1-SNAPSHOT-h0.21","https://builds.apache.org/job/Hive-0.9.1-SNAPSHOT-h0.21/",aborted
+  "Hive-0.9.1-SNAPSHOT-h0.21-keepgoing=false","https://builds.apache.org/job/Hive-0.9.1-SNAPSHOT-h0.21-keepgoing=false/",disabled
+  "Hive-trunk-h0.21","https://builds.apache.org/job/Hive-trunk-h0.21/",red_anime
+  "hive-trunk-hadoop1","https://builds.apache.org/job/hive-trunk-hadoop1/",aborted
+  "Hive-trunk-hadoop2","https://builds.apache.org/job/Hive-trunk-hadoop2/",red_anime
+  HttpComponents AsyncClient,"https://builds.apache.org/job/HttpComponents%20AsyncClient/",blue
+  HttpComponents Client,"https://builds.apache.org/job/HttpComponents%20Client/",blue
+  HttpComponents Client (4.2.x),"https://builds.apache.org/job/HttpComponents%20Client%20(4.2.x)/",blue
+  HttpComponents Core,"https://builds.apache.org/job/HttpComponents%20Core/",blue
+  HttpComponents Core (4.2.x),"https://builds.apache.org/job/HttpComponents%20Core%20(4.2.x)/",blue
+  "hupa-trunk","https://builds.apache.org/job/hupa-trunk/",blue
+  "hupa-trunk-site","https://builds.apache.org/job/hupa-trunk-site/",red
+  "imap-trunk-m2","https://builds.apache.org/job/imap-trunk-m2/",blue
+  "imap-trunk-site","https://builds.apache.org/job/imap-trunk-site/",blue
+  "isis-core-ubuntu","https://builds.apache.org/job/isis-core-ubuntu/",blue
+  Ivy,"https://builds.apache.org/job/Ivy/",blue
+  "Ivy-2.3-tests","https://builds.apache.org/job/Ivy-2.3-tests/",blue
+  "Ivy-check","https://builds.apache.org/job/Ivy-check/",blue
+  "Ivy-tests","https://builds.apache.org/job/Ivy-tests/",blue
+  IvyDE,"https://builds.apache.org/job/IvyDE/",blue
+  "IvyDE-updatesite","https://builds.apache.org/job/IvyDE-updatesite/",blue
+  "Jackrabbit-2.2","https://builds.apache.org/job/Jackrabbit-2.2/",red
+  "Jackrabbit-trunk","https://builds.apache.org/job/Jackrabbit-trunk/",red
+  Jakarta_BSF3,"https://builds.apache.org/job/Jakarta_BSF3/",blue
+  "james-mailet","https://builds.apache.org/job/james-mailet/",blue
+  "james-project","https://builds.apache.org/job/james-project/",blue
+  "james-server-trunk","https://builds.apache.org/job/james-server-trunk/",red
+  "james-server-trunk-site","https://builds.apache.org/job/james-server-trunk-site/",red
+  "james-server-v2.3","https://builds.apache.org/job/james-server-v2.3/",blue
+  "james-server-v2.3-m2","https://builds.apache.org/job/james-server-v2.3-m2/",yellow
+  "james-skin","https://builds.apache.org/job/james-skin/",blue
+  "jdkim-trunk","https://builds.apache.org/job/jdkim-trunk/",blue
+  "jdkim-trunk-site","https://builds.apache.org/job/jdkim-trunk-site/",blue
+  Jena__Development_Deploy,"https://builds.apache.org/job/Jena__Development_Deploy/",blue
+  Jena__Development_Test,"https://builds.apache.org/job/Jena__Development_Test/",blue
+  Jena_Development_Test_Windows,"https://builds.apache.org/job/Jena_Development_Test_Windows/",yellow
+  Jena_LARQ,"https://builds.apache.org/job/Jena_LARQ/",blue
+  Jena_LARQ_Snapshot,"https://builds.apache.org/job/Jena_LARQ_Snapshot/",blue
+  Jena_SDB,"https://builds.apache.org/job/Jena_SDB/",blue
+  Jena_SDB_Snapshot,"https://builds.apache.org/job/Jena_SDB_Snapshot/",blue
+  JMeter adhoc,"https://builds.apache.org/job/JMeter%20adhoc/",blue
+  "JMeter-trunk","https://builds.apache.org/job/JMeter-trunk/",blue
+  "jsieve-trunk","https://builds.apache.org/job/jsieve-trunk/",red
+  "jsieve-trunk-site","https://builds.apache.org/job/jsieve-trunk-site/",red
+  "jspf-trunk","https://builds.apache.org/job/jspf-trunk/",aborted
+  "jspf-trunk-site","https://builds.apache.org/job/jspf-trunk-site/",red
+  JSPWiki,"https://builds.apache.org/job/JSPWiki/",blue
+  "Kafka-0.7","https://builds.apache.org/job/Kafka-0.7/",disabled
+  "Kafka-0.8","https://builds.apache.org/job/Kafka-0.8/",disabled
+  "Kafka-consumer_redesign","https://builds.apache.org/job/Kafka-consumer_redesign/",disabled
+  "Kafka-trunk","https://builds.apache.org/job/Kafka-trunk/",disabled
+  "Kalumet-trunk","https://builds.apache.org/job/Kalumet-trunk/",blue
+  Karaf,"https://builds.apache.org/job/Karaf/",red
+  "Karaf-2.2.x","https://builds.apache.org/job/Karaf-2.2.x/",blue
+  "Karaf-2.3.x","https://builds.apache.org/job/Karaf-2.3.x/",red
+  "Karaf-WebConsole","https://builds.apache.org/job/Karaf-WebConsole/",red
+  "kato.api-head","https://builds.apache.org/job/kato.api-head/",blue
+  Ki,"https://builds.apache.org/job/Ki/",disabled
+  "lightning-trunk","https://builds.apache.org/job/lightning-trunk/",blue
+  Log4j 2.x,"https://builds.apache.org/job/Log4j%202.x/",blue
+  "Lucene-Artifacts-4.x","https://builds.apache.org/job/Lucene-Artifacts-4.x/",blue
+  "Lucene-Artifacts-trunk","https://builds.apache.org/job/Lucene-Artifacts-trunk/",blue
+  "Lucene-BadApples-trunk-java7","https://builds.apache.org/job/Lucene-BadApples-trunk-java7/",disabled
+  "Lucene-Solr-Clover-4.x","https://builds.apache.org/job/Lucene-Solr-Clover-4.x/",yellow
+  "Lucene-Solr-Clover-trunk","https://builds.apache.org/job/Lucene-Solr-Clover-trunk/",blue
+  "Lucene-Solr-Maven-4.x","https://builds.apache.org/job/Lucene-Solr-Maven-4.x/",blue
+  "Lucene-Solr-Maven-trunk","https://builds.apache.org/job/Lucene-Solr-Maven-trunk/",red
+  "Lucene-Solr-NightlyTests-4.x","https://builds.apache.org/job/Lucene-Solr-NightlyTests-4.x/",red
+  "Lucene-Solr-NightlyTests-trunk","https://builds.apache.org/job/Lucene-Solr-NightlyTests-trunk/",blue_anime
+  "Lucene-Solr-SmokeRelease-4.x","https://builds.apache.org/job/Lucene-Solr-SmokeRelease-4.x/",blue
+  "Lucene-Solr-SmokeRelease-trunk","https://builds.apache.org/job/Lucene-Solr-SmokeRelease-trunk/",blue
+  "Lucene-Solr-Tests-4.x-Java6","https://builds.apache.org/job/Lucene-Solr-Tests-4.x-Java6/",blue
+  "Lucene-Solr-Tests-4.x-java7","https://builds.apache.org/job/Lucene-Solr-Tests-4.x-java7/",blue
+  "Lucene-Solr-Tests-trunk-Java6","https://builds.apache.org/job/Lucene-Solr-Tests-trunk-Java6/",blue
+  "Lucene-Solr-Tests-trunk-java7","https://builds.apache.org/job/Lucene-Solr-Tests-trunk-java7/",red
+  "Lucene.Net-Trunk-All-Nightly","https://builds.apache.org/job/Lucene.Net-Trunk-All-Nightly/",disabled
+  "Lucene.Net-Trunk-All-Poll-Changes","https://builds.apache.org/job/Lucene.Net-Trunk-All-Poll-Changes/",disabled
+  "Lucene.Net-Trunk-Contrib-Nightly","https://builds.apache.org/job/Lucene.Net-Trunk-Contrib-Nightly/",disabled
+  "Lucene.Net-Trunk-Contrib-Poll-Changes","https://builds.apache.org/job/Lucene.Net-Trunk-Contrib-Poll-Changes/",disabled
+  "mahout-collections-trunk","https://builds.apache.org/job/mahout-collections-trunk/",blue
+  "Mahout-Examples-Classify-20News","https://builds.apache.org/job/Mahout-Examples-Classify-20News/",blue
+  "Mahout-Examples-Cluster-Reuters","https://builds.apache.org/job/Mahout-Examples-Cluster-Reuters/",blue
+  "Mahout-Examples-Cluster-Reuters-II","https://builds.apache.org/job/Mahout-Examples-Cluster-Reuters-II/",red
+  "mahout-nightly","https://builds.apache.org/job/mahout-nightly/",blue
+  "Mahout-Quality","https://builds.apache.org/job/Mahout-Quality/",blue
+  "Mahout-Trunk","https://builds.apache.org/job/Mahout-Trunk/",aborted
+  MahoutClover,"https://builds.apache.org/job/MahoutClover/",disabled
+  mailbox,"https://builds.apache.org/job/mailbox/",yellow
+  "mailbox-integration-tests","https://builds.apache.org/job/mailbox-integration-tests/",blue
+  "mailbox-integration-tests-site","https://builds.apache.org/job/mailbox-integration-tests-site/",red
+  "mailbox-site","https://builds.apache.org/job/mailbox-site/",red
+  "maven-2.2.x","https://builds.apache.org/job/maven-2.2.x/",yellow
+  "maven-3.0.x","https://builds.apache.org/job/maven-3.0.x/",aborted
+  "maven-ant-tasks","https://builds.apache.org/job/maven-ant-tasks/",blue
+  "maven-archetype-m2","https://builds.apache.org/job/maven-archetype-m2/",blue
+  "maven-archetype-m3","https://builds.apache.org/job/maven-archetype-m3/",blue
+  "maven-enforcer","https://builds.apache.org/job/maven-enforcer/",blue
+  "maven-indexer","https://builds.apache.org/job/maven-indexer/",blue
+  "maven-jxr","https://builds.apache.org/job/maven-jxr/",aborted
+  "maven-parent","https://builds.apache.org/job/maven-parent/",blue
+  "maven-plugin-testing","https://builds.apache.org/job/maven-plugin-testing/",blue
+  "maven-plugin-testing-mvn-2.x","https://builds.apache.org/job/maven-plugin-testing-mvn-2.x/",blue
+  "maven-plugin-tools","https://builds.apache.org/job/maven-plugin-tools/",blue
+  "maven-plugin-tools-2.x","https://builds.apache.org/job/maven-plugin-tools-2.x/",blue
+  "maven-plugin-tools-2.x-m2","https://builds.apache.org/job/maven-plugin-tools-2.x-m2/",blue
+  "maven-plugin-tools-jdk-1.7","https://builds.apache.org/job/maven-plugin-tools-jdk-1.7/",blue
+  "maven-plugin-tools-m2","https://builds.apache.org/job/maven-plugin-tools-m2/",blue
+  "maven-plugin-tools-windows","https://builds.apache.org/job/maven-plugin-tools-windows/",blue
+  "maven-plugins","https://builds.apache.org/job/maven-plugins/",red
+  "maven-plugins-ITs-m2","https://builds.apache.org/job/maven-plugins-ITs-m2/",red
+  "maven-plugins-ITs-m2-with-maven-plugin","https://builds.apache.org/job/maven-plugins-ITs-m2-with-maven-plugin/",red
+  "maven-plugins-ITs-m3","https://builds.apache.org/job/maven-plugins-ITs-m3/",red
+  "maven-plugins-ITs-m3-windows","https://builds.apache.org/job/maven-plugins-ITs-m3-windows/",red
+  "maven-plugins-ITs-m3-with-maven-plugin","https://builds.apache.org/job/maven-plugins-ITs-m3-with-maven-plugin/",red
+  "maven-plugins-ITs-m3.0.3","https://builds.apache.org/job/maven-plugins-ITs-m3.0.3/",blue
+  "maven-project-resources","https://builds.apache.org/job/maven-project-resources/",blue
+  "maven-release","https://builds.apache.org/job/maven-release/",blue
+  "maven-sandbox-plexus-utils-commons-bridge","https://builds.apache.org/job/maven-sandbox-plexus-utils-commons-bridge/",red
+  "maven-scm","https://builds.apache.org/job/maven-scm/",blue
+  "maven-scm-1.7","https://builds.apache.org/job/maven-scm-1.7/",yellow
+  "maven-scm-mvn-2.2x","https://builds.apache.org/job/maven-scm-mvn-2.2x/",blue
+  "maven-scm-provider-svnjava","https://builds.apache.org/job/maven-scm-provider-svnjava/",blue
+  "maven-scm-windows","https://builds.apache.org/job/maven-scm-windows/",red
+  "maven-shared","https://builds.apache.org/job/maven-shared/",blue
+  "maven-shared-windows","https://builds.apache.org/job/maven-shared-windows/",blue
+  "maven-site-plugin-2.x","https://builds.apache.org/job/maven-site-plugin-2.x/",aborted
+  "maven-skins","https://builds.apache.org/job/maven-skins/",aborted
+  "maven-surefire","https://builds.apache.org/job/maven-surefire/",blue
+  "maven-surefire-mvn-2.2.1","https://builds.apache.org/job/maven-surefire-mvn-2.2.1/",yellow
+  "maven-surefire-windows","https://builds.apache.org/job/maven-surefire-windows/",blue
+  "maven-wagon","https://builds.apache.org/job/maven-wagon/",blue
+  "maven-wagon-windows","https://builds.apache.org/job/maven-wagon-windows/",red
+  "maven-wagon-with-ssh-embedded","https://builds.apache.org/job/maven-wagon-with-ssh-embedded/",red
+  "Mesos-Trunk-Ubuntu-Build-In-Src-Set-JAVA_HOME","https://builds.apache.org/job/Mesos-Trunk-Ubuntu-Build-In-Src-Set-JAVA_HOME/",red
+  "Mesos-Trunk-Ubuntu-Build-Out-Of-Src-Disable-Java-Disable-Python-Disable-Webui","https://builds.apache.org/job/Mesos-Trunk-Ubuntu-Build-Out-Of-Src-Disable-Java-Disable-Python-Disable-Webui/",red
+  "Mesos-Trunk-Ubuntu-Build-Out-Of-Src-Set-JAVA_HOME","https://builds.apache.org/job/Mesos-Trunk-Ubuntu-Build-Out-Of-Src-Set-JAVA_HOME/",red
+  "mime4j-trunk","https://builds.apache.org/job/mime4j-trunk/",blue
+  "mime4j-trunk-site","https://builds.apache.org/job/mime4j-trunk-site/",red
+  "MINA-1.0.X","https://builds.apache.org/job/MINA-1.0.X/",disabled
+  "MINA-1.1.X","https://builds.apache.org/job/MINA-1.1.X/",disabled
+  "MINA-2.0.X-jdk1.5-ubuntu","https://builds.apache.org/job/MINA-2.0.X-jdk1.5-ubuntu/",blue
+  "MINA-trunk-jdk1.6-ubuntu","https://builds.apache.org/job/MINA-trunk-jdk1.6-ubuntu/",disabled
+  "MINA-trunk-jdk1.6-windows","https://builds.apache.org/job/MINA-trunk-jdk1.6-windows/",blue
+  "MINA-trunk-jdk1.7-ubuntu","https://builds.apache.org/job/MINA-trunk-jdk1.7-ubuntu/",blue
+  "mpt-trunk","https://builds.apache.org/job/mpt-trunk/",red
+  "mpt-trunk-site","https://builds.apache.org/job/mpt-trunk-site/",red
+  "mrunit-trunk","https://builds.apache.org/job/mrunit-trunk/",blue
+  "myfaces-commons","https://builds.apache.org/job/myfaces-commons/",blue
+  "myfaces-current-2.0","https://builds.apache.org/job/myfaces-current-2.0/",blue
+  "myfaces-current-2.0-integration-tests","https://builds.apache.org/job/myfaces-current-2.0-integration-tests/",red
+  "myfaces-current11","https://builds.apache.org/job/myfaces-current11/",blue
+  "myfaces-current12","https://builds.apache.org/job/myfaces-current12/",blue
+  "myfaces-current21","https://builds.apache.org/job/myfaces-current21/",blue
+  "myfaces-current21_949","https://builds.apache.org/job/myfaces-current21_949/",blue
+  "myfaces-current22","https://builds.apache.org/job/myfaces-current22/",blue
+  "myfaces-ext-scripting","https://builds.apache.org/job/myfaces-ext-scripting/",red
+  "myfaces-master-pom","https://builds.apache.org/job/myfaces-master-pom/",blue
+  "myfaces-maven","https://builds.apache.org/job/myfaces-maven/",blue
+  "myfaces-maven-achetypes","https://builds.apache.org/job/myfaces-maven-achetypes/",blue
+  "myfaces-maven2-plugins","https://builds.apache.org/job/myfaces-maven2-plugins/",blue
+  "Myfaces-Orchestra","https://builds.apache.org/job/Myfaces-Orchestra/",red
+  "myfaces-orchestra-core","https://builds.apache.org/job/myfaces-orchestra-core/",red
+  "myfaces-orchestra-core12","https://builds.apache.org/job/myfaces-orchestra-core12/",red
+  "myfaces-orchestra-core20","https://builds.apache.org/job/myfaces-orchestra-core20/",blue
+  "myfaces-orchestra-maven","https://builds.apache.org/job/myfaces-orchestra-maven/",blue
+  "myfaces-shared","https://builds.apache.org/job/myfaces-shared/",blue
+  "myfaces-shared-2.0","https://builds.apache.org/job/myfaces-shared-2.0/",red
+  "myfaces-shared-3.0","https://builds.apache.org/job/myfaces-shared-3.0/",red
+  "myfaces-site-skin","https://builds.apache.org/job/myfaces-site-skin/",blue
+  "myfaces-test","https://builds.apache.org/job/myfaces-test/",blue
+  "myfaces-tomahawk","https://builds.apache.org/job/myfaces-tomahawk/",blue
+  "MyFaces-Trinidad-Plugins2","https://builds.apache.org/job/MyFaces-Trinidad-Plugins2/",disabled
+  "neethi-2.0","https://builds.apache.org/job/neethi-2.0/",blue
+  "neethi-trunk","https://builds.apache.org/job/neethi-trunk/",blue
+  NPanday,"https://builds.apache.org/job/NPanday/",blue
+  "NPanday-dist","https://builds.apache.org/job/NPanday-dist/",blue
+  "NPanday-docs","https://builds.apache.org/job/NPanday-docs/",blue
+  "NPanday-it-runner","https://builds.apache.org/job/NPanday-it-runner/",red
+  "NPanday-its","https://builds.apache.org/job/NPanday-its/",blue
+  "npanday-plugin-its","https://builds.apache.org/job/npanday-plugin-its/",blue
+  "nutch-2.x-maven","https://builds.apache.org/job/nutch-2.x-maven/",red
+  "Nutch-2.x-Windows","https://builds.apache.org/job/Nutch-2.x-Windows/",red
+  "Nutch-nutchgora","https://builds.apache.org/job/Nutch-nutchgora/",red
+  "Nutch-trunk","https://builds.apache.org/job/Nutch-trunk/",red
+  "nutch-trunk-maven","https://builds.apache.org/job/nutch-trunk-maven/",blue
+  "Nutch-trunk-Windows","https://builds.apache.org/job/Nutch-trunk-Windows/",red
+  nuvem,"https://builds.apache.org/job/nuvem/",disabled
+  "ODE-1.x","https://builds.apache.org/job/ODE-1.x/",aborted
+  "ODE-trunk","https://builds.apache.org/job/ODE-trunk/",disabled
+  "ODE-trunk-jdk6","https://builds.apache.org/job/ODE-trunk-jdk6/",blue
+  "ODE-trunk-m2-jdk5-nightly-deploy","https://builds.apache.org/job/ODE-trunk-m2-jdk5-nightly-deploy/",disabled
+  "ODE-trunk-maven2-jdk5","https://builds.apache.org/job/ODE-trunk-maven2-jdk5/",disabled
+  ODFToolkit,"https://builds.apache.org/job/ODFToolkit/",red_anime
+  "ODFToolkit-windows","https://builds.apache.org/job/ODFToolkit-windows/",blue_anime
+  ognl,"https://builds.apache.org/job/ognl/",red
+  "Onami-Aggregator","https://builds.apache.org/job/Onami-Aggregator/",blue
+  "Onami-Autobind","https://builds.apache.org/job/Onami-Autobind/",red
+  "Onami-Cache","https://builds.apache.org/job/Onami-Cache/",blue
+  "Onami-Configuration","https://builds.apache.org/job/Onami-Configuration/",blue
+  "Onami-Guava","https://builds.apache.org/job/Onami-Guava/",blue
+  "Onami-Lifecycle","https://builds.apache.org/job/Onami-Lifecycle/",blue
+  "Onami-Logging","https://builds.apache.org/job/Onami-Logging/",red
+  "Onami-Parent","https://builds.apache.org/job/Onami-Parent/",red
+  "Onami-Scheduler","https://builds.apache.org/job/Onami-Scheduler/",red
+  "Onami-SPI","https://builds.apache.org/job/Onami-SPI/",blue
+  "Onami-Test","https://builds.apache.org/job/Onami-Test/",blue
+  "oodt-trunk","https://builds.apache.org/job/oodt-trunk/",blue
+  "oozie-trunk-find-patches-available","https://builds.apache.org/job/oozie-trunk-find-patches-available/",blue
+  "oozie-trunk-precommit-build","https://builds.apache.org/job/oozie-trunk-precommit-build/",red
+  "oozie-trunk-w-hadoop-1","https://builds.apache.org/job/oozie-trunk-w-hadoop-1/",disabled
+  "oozie-trunk-w-hadoop-2","https://builds.apache.org/job/oozie-trunk-w-hadoop-2/",disabled
+  OpenEJB_and_TomEE_Build,"https://builds.apache.org/job/OpenEJB_and_TomEE_Build/",blue
+  OpenEJB_deploy_patched_module,"https://builds.apache.org/job/OpenEJB_deploy_patched_module/",blue
+  "OpenJPA-11x","https://builds.apache.org/job/OpenJPA-11x/",disabled
+  "OpenJPA-12x","https://builds.apache.org/job/OpenJPA-12x/",blue
+  "OpenJPA-13x","https://builds.apache.org/job/OpenJPA-13x/",blue
+  "OpenJPA-20x-deploy","https://builds.apache.org/job/OpenJPA-20x-deploy/",blue
+  "OpenJPA-21x","https://builds.apache.org/job/OpenJPA-21x/",blue
+  "OpenJPA-21x-deploy","https://builds.apache.org/job/OpenJPA-21x-deploy/",blue
+  "OpenJPA-21x-docs","https://builds.apache.org/job/OpenJPA-21x-docs/",blue
+  "OpenJPA-221x","https://builds.apache.org/job/OpenJPA-221x/",blue
+  "OpenJPA-221x-deploy","https://builds.apache.org/job/OpenJPA-221x-deploy/",blue
+  "OpenJPA-22x","https://builds.apache.org/job/OpenJPA-22x/",blue
+  "OpenJPA-22x-deploy","https://builds.apache.org/job/OpenJPA-22x-deploy/",blue
+  "OpenJPA-EclipsePlugin-trunk","https://builds.apache.org/job/OpenJPA-EclipsePlugin-trunk/",disabled
+  "OpenJPA-trunk","https://builds.apache.org/job/OpenJPA-trunk/",blue
+  "OpenJPA-trunk-deploy","https://builds.apache.org/job/OpenJPA-trunk-deploy/",blue
+  openmeetings,"https://builds.apache.org/job/openmeetings/",blue
+  OpenMeetings 2.0,"https://builds.apache.org/job/OpenMeetings%202.0/",blue
+  OpenMeetings ATutor Plugin,"https://builds.apache.org/job/OpenMeetings%20ATutor%20Plugin/",blue
+  OpenMeetings Bitrix Plugin,"https://builds.apache.org/job/OpenMeetings%20Bitrix%20Plugin/",blue
+  OpenMeetings Drupal 7.x Plugin,"https://builds.apache.org/job/OpenMeetings%20Drupal%207.x%20Plugin/",blue
+  OpenMeetings Joomla Plugin,"https://builds.apache.org/job/OpenMeetings%20Joomla%20Plugin/",blue
+  OpenMeetings Moodle Plugin,"https://builds.apache.org/job/OpenMeetings%20Moodle%20Plugin/",blue
+  OpenMeetings SugarCRM Plugin,"https://builds.apache.org/job/OpenMeetings%20SugarCRM%20Plugin/",blue
+  OpenMeetings Teambox Plugin,"https://builds.apache.org/job/OpenMeetings%20Teambox%20Plugin/",blue
+  OpenMeetings Zimbra Plugin,"https://builds.apache.org/job/OpenMeetings%20Zimbra%20Plugin/",blue
+  OpenNLP,"https://builds.apache.org/job/OpenNLP/",blue
+  "OpenWebBeans-1.1.x-deploy","https://builds.apache.org/job/OpenWebBeans-1.1.x-deploy/",blue
+  "OpenWebBeans-trunk","https://builds.apache.org/job/OpenWebBeans-trunk/",blue
+  "OpenWebBeans-trunk-deploy","https://builds.apache.org/job/OpenWebBeans-trunk-deploy/",blue
+  OpenWebBeans_1.0.x,"https://builds.apache.org/job/OpenWebBeans_1.0.x/",blue
+  OpenWebBeans_1.1.x,"https://builds.apache.org/job/OpenWebBeans_1.1.x/",blue
+  org.apache.kato,"https://builds.apache.org/job/org.apache.kato/",yellow
+  org.apache.kato.eclipse,"https://builds.apache.org/job/org.apache.kato.eclipse/",red
+  org.apache.kato.rc1,"https://builds.apache.org/job/org.apache.kato.rc1/",yellow
+  "PDFBox-ant","https://builds.apache.org/job/PDFBox-ant/",blue
+  "PDFBox-trunk","https://builds.apache.org/job/PDFBox-trunk/",blue
+  "Pig-0.9","https://builds.apache.org/job/Pig-0.9/",red
+  "Pig-trunk","https://builds.apache.org/job/Pig-trunk/",blue
+  "Pig-trunk-commit","https://builds.apache.org/job/Pig-trunk-commit/",red
+  "Pivot-maintenance","https://builds.apache.org/job/Pivot-maintenance/",red
+  "Pivot-maintenance on Java 7","https://builds.apache.org/job/Pivot-maintenance%20on%20Java%207/",red
+  "Pivot-trunk","https://builds.apache.org/job/Pivot-trunk/",red
+  "Pivot-trunk on Java 7","https://builds.apache.org/job/Pivot-trunk%20on%20Java%207/",red
+  POI,"https://builds.apache.org/job/POI/",blue
+  "portals-applications-dbbrowser-trunk","https://builds.apache.org/job/portals-applications-dbbrowser-trunk/",blue
+  "portals-applications-demo-trunk","https://builds.apache.org/job/portals-applications-demo-trunk/",blue
+  "portals-applications-gems-trunk","https://builds.apache.org/job/portals-applications-gems-trunk/",blue
+  "portals-applications-logging-trunk","https://builds.apache.org/job/portals-applications-logging-trunk/",blue
+  "portals-applications-pom-trunk","https://builds.apache.org/job/portals-applications-pom-trunk/",blue
+  "portals-applications-rss-trunk","https://builds.apache.org/job/portals-applications-rss-trunk/",blue
+  "portals-applications-webcontent-trunk","https://builds.apache.org/job/portals-applications-webcontent-trunk/",blue
+  "portals-bridges-common-trunk","https://builds.apache.org/job/portals-bridges-common-trunk/",blue
+  "portals-bridges-pom-trunk","https://builds.apache.org/job/portals-bridges-pom-trunk/",blue
+  "portals-bridges-script-trunk","https://builds.apache.org/job/portals-bridges-script-trunk/",blue
+  "portals-bridges-velocity-trunk","https://builds.apache.org/job/portals-bridges-velocity-trunk/",blue
+  "portals-jetspeed-2-applications-j2-admin-trunk","https://builds.apache.org/job/portals-jetspeed-2-applications-j2-admin-trunk/",blue
+  "portals-jetspeed-2-portal-trunk","https://builds.apache.org/job/portals-jetspeed-2-portal-trunk/",blue
+  "portals-pluto-2.0.x","https://builds.apache.org/job/portals-pluto-2.0.x/",blue
+  "portals-pluto-trunk","https://builds.apache.org/job/portals-pluto-trunk/",blue
+  "portals-pom-trunk","https://builds.apache.org/job/portals-pom-trunk/",blue
+  "portlet-bridge-api-documentation-1.0","https://builds.apache.org/job/portlet-bridge-api-documentation-1.0/",blue
+  "portlet-bridge-api-documentation-2.0","https://builds.apache.org/job/portlet-bridge-api-documentation-2.0/",blue
+  "portlet-bridge-core-1.0","https://builds.apache.org/job/portlet-bridge-core-1.0/",red
+  "portlet-bridge-core-2.0","https://builds.apache.org/job/portlet-bridge-core-2.0/",disabled
+  "portlet-bridge-core-3.0","https://builds.apache.org/job/portlet-bridge-core-3.0/",disabled
+  "portlet-bridge-master-pom","https://builds.apache.org/job/portlet-bridge-master-pom/",blue
+  "postage-trunk","https://builds.apache.org/job/postage-trunk/",red
+  "postage-trunk-m2","https://builds.apache.org/job/postage-trunk-m2/",red
+  "PreCommit-Admin","https://builds.apache.org/job/PreCommit-Admin/",blue
+  "PreCommit-FLUME-Build","https://builds.apache.org/job/PreCommit-FLUME-Build/",blue
+  "PreCommit-GIRAPH-Build","https://builds.apache.org/job/PreCommit-GIRAPH-Build/",red
+  "PreCommit-HADOOP-Build","https://builds.apache.org/job/PreCommit-HADOOP-Build/",red_anime
+  "PreCommit-HADOOP-Build-Ant-IVY","https://builds.apache.org/job/PreCommit-HADOOP-Build-Ant-IVY/",disabled
+  "PreCommit-HBASE-Build","https://builds.apache.org/job/PreCommit-HBASE-Build/",red
+  "PreCommit-HDFS-Build","https://builds.apache.org/job/PreCommit-HDFS-Build/",red
+  "PreCommit-MAPREDUCE-Build","https://builds.apache.org/job/PreCommit-MAPREDUCE-Build/",red
+  "PreCommit-PIG-Build","https://builds.apache.org/job/PreCommit-PIG-Build/",grey
+  "PreCommit-YARN-Build","https://builds.apache.org/job/PreCommit-YARN-Build/",red
+  "PreCommit-ZOOKEEPER-Build","https://builds.apache.org/job/PreCommit-ZOOKEEPER-Build/",blue
+  "protoc-version","https://builds.apache.org/job/protoc-version/",red
+  "protocols-trunk","https://builds.apache.org/job/protocols-trunk/",aborted
+  "protocols-trunk-site","https://builds.apache.org/job/protocols-trunk-site/",red
+  "python-test","https://builds.apache.org/job/python-test/",blue
+  "Qpid-Java-Artefact-Release","https://builds.apache.org/job/Qpid-Java-Artefact-Release/",red
+  "Qpid-Java-Artefact-Release-0.20","https://builds.apache.org/job/Qpid-Java-Artefact-Release-0.20/",blue
+  "Qpid-Java-Cpp-Test","https://builds.apache.org/job/Qpid-Java-Cpp-Test/",blue
+  "Qpid-Java-Java-BDB-TestMatrix","https://builds.apache.org/job/Qpid-Java-Java-BDB-TestMatrix/",blue
+  "Qpid-Java-Java-DBY-TestMatrix","https://builds.apache.org/job/Qpid-Java-Java-DBY-TestMatrix/",disabled
+  "Qpid-Java-Java-MMS-TestMatrix","https://builds.apache.org/job/Qpid-Java-Java-MMS-TestMatrix/",blue
+  "Qpid-Java-Java-Test-0.20","https://builds.apache.org/job/Qpid-Java-Java-Test-0.20/",blue
+  "Qpid-Java-Java-Test-IBMJDK1.6","https://builds.apache.org/job/Qpid-Java-Java-Test-IBMJDK1.6/",blue
+  "Qpid-Java-Java-Test-JDK1.7","https://builds.apache.org/job/Qpid-Java-Java-Test-JDK1.7/",blue
+  "Qpid-proton-j","https://builds.apache.org/job/Qpid-proton-j/",blue
+  "Qpid-proton-j-Deploy","https://builds.apache.org/job/Qpid-proton-j-Deploy/",blue
+  "Qpid-Python-Cpp-Test","https://builds.apache.org/job/Qpid-Python-Cpp-Test/",blue
+  "Qpid-Python-Java-Test","https://builds.apache.org/job/Qpid-Python-Java-Test/",blue
+  Rampart,"https://builds.apache.org/job/Rampart/",blue
+  "rampart-1.5","https://builds.apache.org/job/rampart-1.5/",red
+  "rampart-1.6","https://builds.apache.org/job/rampart-1.6/",blue
+  "rat-jdk-1.5-maven-2","https://builds.apache.org/job/rat-jdk-1.5-maven-2/",blue
+  "rave-master-pom-trunk","https://builds.apache.org/job/rave-master-pom-trunk/",blue
+  "rave-project-trunk","https://builds.apache.org/job/rave-project-trunk/",blue
+  Red5 Trunk,"https://builds.apache.org/job/Red5%20Trunk/",blue
+  "redback-components","https://builds.apache.org/job/redback-components/",blue
+  "redback-components-1.7","https://builds.apache.org/job/redback-components-1.7/",red
+  "redback-core","https://builds.apache.org/job/redback-core/",blue
+  "redback-core-1.7","https://builds.apache.org/job/redback-core-1.7/",red
+  replay_extcdi117,"https://builds.apache.org/job/replay_extcdi117/",yellow
+  "River-dev-jdk6","https://builds.apache.org/job/River-dev-jdk6/",blue
+  "River-dev-jdk7","https://builds.apache.org/job/River-dev-jdk7/",blue
+  "River-QA-arm","https://builds.apache.org/job/River-QA-arm/",disabled
+  "River-QA-bsd","https://builds.apache.org/job/River-QA-bsd/",disabled
+  "River-QA-bsd-jdk7-skunk","https://builds.apache.org/job/River-QA-bsd-jdk7-skunk/",disabled
+  "River-QA-J9","https://builds.apache.org/job/River-QA-J9/",disabled
+  "River-QA-matrix","https://builds.apache.org/job/River-QA-matrix/",aborted
+  "River-QA-OpenJDK","https://builds.apache.org/job/River-QA-OpenJDK/",disabled
+  "River-QA-osx","https://builds.apache.org/job/River-QA-osx/",red
+  "river-qa-refactor-arm","https://builds.apache.org/job/river-qa-refactor-arm/",red
+  "river-qa-refactor-jdk7","https://builds.apache.org/job/river-qa-refactor-jdk7/",blue
+  "river-qa-refactor-windows","https://builds.apache.org/job/river-qa-refactor-windows/",blue
+  "river-qa-refactoring","https://builds.apache.org/job/river-qa-refactoring/",blue
+  "river-qa-refactoring-solaris","https://builds.apache.org/job/river-qa-refactoring-solaris/",red
+  "River-QA-solaris","https://builds.apache.org/job/River-QA-solaris/",red
+  "River-QA-tree","https://builds.apache.org/job/River-QA-tree/",blue
+  "River-QA-ubuntu-jdk6","https://builds.apache.org/job/River-QA-ubuntu-jdk6/",blue
+  "River-QA-ubuntu-jdk7","https://builds.apache.org/job/River-QA-ubuntu-jdk7/",red
+  "River-QA-ubuntu-jdk7-skunk","https://builds.apache.org/job/River-QA-ubuntu-jdk7-skunk/",disabled
+  "River-QA-ubuntu-openjdk","https://builds.apache.org/job/River-QA-ubuntu-openjdk/",red
+  "River-QA-windows","https://builds.apache.org/job/River-QA-windows/",red
+  "River-tck-jdk7","https://builds.apache.org/job/River-tck-jdk7/",disabled
+  "River-trunk-jdk6","https://builds.apache.org/job/River-trunk-jdk6/",blue
+  "River-trunk-jdk7","https://builds.apache.org/job/River-trunk-jdk7/",blue
+  "River-verify","https://builds.apache.org/job/River-verify/",disabled
+  "River-verify-generics","https://builds.apache.org/job/River-verify-generics/",disabled
+  "Roller-For-JavaEE6","https://builds.apache.org/job/Roller-For-JavaEE6/",red
+  "Roller-For-JBoss","https://builds.apache.org/job/Roller-For-JBoss/",blue_anime
+  "Roller-For-Tomcat","https://builds.apache.org/job/Roller-For-Tomcat/",blue
+  "sandesha2-1.4","https://builds.apache.org/job/sandesha2-1.4/",blue
+  "sandesha2-1.6","https://builds.apache.org/job/sandesha2-1.6/",yellow
+  "sandesha2-trunk","https://builds.apache.org/job/sandesha2-trunk/",yellow
+  "santuario-java-1.4.x-fixes","https://builds.apache.org/job/santuario-java-1.4.x-fixes/",blue
+  "santuario-java-1.5.x-fixes","https://builds.apache.org/job/santuario-java-1.5.x-fixes/",blue
+  "santuario-java-trunk","https://builds.apache.org/job/santuario-java-trunk/",blue
+  "Servicemix-Archetypes","https://builds.apache.org/job/Servicemix-Archetypes/",disabled
+  "ServiceMix-Bundles","https://builds.apache.org/job/ServiceMix-Bundles/",blue
+  "ServiceMix-Components","https://builds.apache.org/job/ServiceMix-Components/",blue
+  "ServiceMix-Components-2011.02.x","https://builds.apache.org/job/ServiceMix-Components-2011.02.x/",yellow
+  "ServiceMix-Components-2011.02.x-Deploy","https://builds.apache.org/job/ServiceMix-Components-2011.02.x-Deploy/",blue
+  "ServiceMix-Components-Deploy","https://builds.apache.org/job/ServiceMix-Components-Deploy/",blue
+  "ServiceMix-Docs","https://builds.apache.org/job/ServiceMix-Docs/",disabled
+  "ServiceMix-Features","https://builds.apache.org/job/ServiceMix-Features/",disabled
+  "ServiceMix-Features-4.4.x","https://builds.apache.org/job/ServiceMix-Features-4.4.x/",blue
+  "ServiceMix-Features-Deploy","https://builds.apache.org/job/ServiceMix-Features-Deploy/",blue
+  "ServiceMix-NMR","https://builds.apache.org/job/ServiceMix-NMR/",blue
+  "ServiceMix-NMR-Deploy","https://builds.apache.org/job/ServiceMix-NMR-Deploy/",blue
+  "ServiceMix-Plugins","https://builds.apache.org/job/ServiceMix-Plugins/",blue
+  "ServiceMix-POM","https://builds.apache.org/job/ServiceMix-POM/",blue
+  "ServiceMix-Specs","https://builds.apache.org/job/ServiceMix-Specs/",blue
+  "ServiceMix-Utils","https://builds.apache.org/job/ServiceMix-Utils/",blue
+  ServiceMix3,"https://builds.apache.org/job/ServiceMix3/",red
+  Shindig,"https://builds.apache.org/job/Shindig/",yellow
+  Shindig Assembly,"https://builds.apache.org/job/Shindig%20Assembly/",blue
+  Shindig Trunk (IBM 1.6),"https://builds.apache.org/job/Shindig%20Trunk%20(IBM%201.6)/",blue
+  Shindig Trunk (JDK 1.5),"https://builds.apache.org/job/Shindig%20Trunk%20(JDK%201.5)/",blue
+  Shindig Trunk (JDK 1.6),"https://builds.apache.org/job/Shindig%20Trunk%20(JDK%201.6)/",blue
+  Shindig Trunk (JDK 1.7),"https://builds.apache.org/job/Shindig%20Trunk%20(JDK%201.7)/",blue
+  Shiro,"https://builds.apache.org/job/Shiro/",blue
+  "sis-jdk7","https://builds.apache.org/job/sis-jdk7/",red
+  "sis-trunk","https://builds.apache.org/job/sis-trunk/",blue
+  "sling-contrib-1.6","https://builds.apache.org/job/sling-contrib-1.6/",blue
+  "sling-samples-1.5","https://builds.apache.org/job/sling-samples-1.5/",blue
+  "sling-trunk-1.5","https://builds.apache.org/job/sling-trunk-1.5/",disabled
+  "sling-trunk-1.6","https://builds.apache.org/job/sling-trunk-1.6/",blue
+  Solaris1,"https://builds.apache.org/job/Solaris1/",blue
+  Solaris2,"https://builds.apache.org/job/Solaris2/",blue
+  "Solr-Artifacts-4.x","https://builds.apache.org/job/Solr-Artifacts-4.x/",blue
+  "Solr-Artifacts-trunk","https://builds.apache.org/job/Solr-Artifacts-trunk/",blue
+  "SpamAssassin-3.3.x","https://builds.apache.org/job/SpamAssassin-3.3.x/",blue
+  "SpamAssassin-trunk","https://builds.apache.org/job/SpamAssassin-trunk/",yellow
+  "SpamAssassin-trunk-FreeBSD","https://builds.apache.org/job/SpamAssassin-trunk-FreeBSD/",red
+  "Sqoop-ant-jdk-1.6-hadoop100","https://builds.apache.org/job/Sqoop-ant-jdk-1.6-hadoop100/",blue
+  "Sqoop-ant-jdk-1.6-hadoop20","https://builds.apache.org/job/Sqoop-ant-jdk-1.6-hadoop20/",blue
+  "Sqoop-ant-jdk-1.6-hadoop200","https://builds.apache.org/job/Sqoop-ant-jdk-1.6-hadoop200/",blue
+  "Sqoop-ant-jdk-1.6-hadoop23","https://builds.apache.org/job/Sqoop-ant-jdk-1.6-hadoop23/",blue
+  "Sqoop-ant-jdk-1.7-hadoop200","https://builds.apache.org/job/Sqoop-ant-jdk-1.7-hadoop200/",grey
+  "Sqoop2-hadoop100","https://builds.apache.org/job/Sqoop2-hadoop100/",yellow
+  "Sqoop2-hadoop200","https://builds.apache.org/job/Sqoop2-hadoop200/",yellow
+  "stanbol-trunk-1.6","https://builds.apache.org/job/stanbol-trunk-1.6/",blue
+  "stdcxx-4.2.2-12d-ubuntu","https://builds.apache.org/job/stdcxx-4.2.2-12d-ubuntu/",blue
+  "stdcxx-4.2.2-12S-freebsd","https://builds.apache.org/job/stdcxx-4.2.2-12S-freebsd/",blue
+  "stdcxx-4.2.2-15D-windows","https://builds.apache.org/job/stdcxx-4.2.2-15D-windows/",blue
+  "stdcxx-4.2.2-15s-solaris","https://builds.apache.org/job/stdcxx-4.2.2-15s-solaris/",blue
+  "struts-annotations","https://builds.apache.org/job/struts-annotations/",aborted
+  "struts-master","https://builds.apache.org/job/struts-master/",aborted
+  struts1,"https://builds.apache.org/job/struts1/",blue
+  "Struts2-3-x","https://builds.apache.org/job/Struts2-3-x/",blue
+  "Struts2-JDK5","https://builds.apache.org/job/Struts2-JDK5/",disabled
+  "Struts2-JDK6","https://builds.apache.org/job/Struts2-JDK6/",blue
+  "Struts2-JDK7","https://builds.apache.org/job/Struts2-JDK7/",yellow
+  "subversion-1.6.x-solaris","https://builds.apache.org/job/subversion-1.6.x-solaris/",disabled
+  "subversion-1.6.x-ubuntu","https://builds.apache.org/job/subversion-1.6.x-ubuntu/",disabled
+  "subversion-doxygen","https://builds.apache.org/job/subversion-doxygen/",disabled
+  "subversion-javadoc","https://builds.apache.org/job/subversion-javadoc/",disabled
+  "subversion-trunk-solaris","https://builds.apache.org/job/subversion-trunk-solaris/",disabled
+  "subversion-trunk-ubuntu","https://builds.apache.org/job/subversion-trunk-ubuntu/",disabled
+  "subversion-trunk-windows","https://builds.apache.org/job/subversion-trunk-windows/",disabled
+  "Synapse - Trunk","https://builds.apache.org/job/Synapse%20-%20Trunk/",blue
+  "Syncope-1_0_X","https://builds.apache.org/job/Syncope-1_0_X/",blue
+  "Syncope-trunk","https://builds.apache.org/job/Syncope-trunk/",blue
+  "Syncope-windows","https://builds.apache.org/job/Syncope-windows/",disabled
+  "taglib-extended","https://builds.apache.org/job/taglib-extended/",blue
+  "taglib-parent","https://builds.apache.org/job/taglib-parent/",blue
+  "taglib-rdc","https://builds.apache.org/job/taglib-rdc/",blue
+  "taglib-standard","https://builds.apache.org/job/taglib-standard/",blue
+  "tapestry-4.1-trunk","https://builds.apache.org/job/tapestry-4.1-trunk/",blue
+  "tapestry-5.1-freestyle","https://builds.apache.org/job/tapestry-5.1-freestyle/",blue
+  "tapestry-trunk-freestyle","https://builds.apache.org/job/tapestry-trunk-freestyle/",blue
+  Test,"https://builds.apache.org/job/Test/",grey
+  "test-ulimit","https://builds.apache.org/job/test-ulimit/",blue
+  TestBuilds,"https://builds.apache.org/job/TestBuilds/",red
+  Thrift,"https://builds.apache.org/job/Thrift/",blue
+  "Thrift-Compiler-Linux32","https://builds.apache.org/job/Thrift-Compiler-Linux32/",blue
+  "Thrift-Compiler-Linux64","https://builds.apache.org/job/Thrift-Compiler-Linux64/",blue
+  "Thrift-Compiler-Windows","https://builds.apache.org/job/Thrift-Compiler-Windows/",blue
+  "Thrift-cpp","https://builds.apache.org/job/Thrift-cpp/",blue
+  "Thrift-Debian-Packages","https://builds.apache.org/job/Thrift-Debian-Packages/",disabled
+  "Thrift-env-test","https://builds.apache.org/job/Thrift-env-test/",red
+  "Thrift-env-test_arm","https://builds.apache.org/job/Thrift-env-test_arm/",red
+  "Thrift-erlang","https://builds.apache.org/job/Thrift-erlang/",disabled
+  "Thrift-freebsd","https://builds.apache.org/job/Thrift-freebsd/",disabled
+  "Thrift-llvm","https://builds.apache.org/job/Thrift-llvm/",disabled
+  "Thrift-osx","https://builds.apache.org/job/Thrift-osx/",disabled
+  "Thrift-Windows","https://builds.apache.org/job/Thrift-Windows/",disabled
+  "Thrift-Windows-env-test","https://builds.apache.org/job/Thrift-Windows-env-test/",red
+  Thrift_arm,"https://builds.apache.org/job/Thrift_arm/",disabled
+  "Tika-trunk","https://builds.apache.org/job/Tika-trunk/",blue
+  "tobago-1.0.x","https://builds.apache.org/job/tobago-1.0.x/",red
+  "tobago-1.0.x-deploy","https://builds.apache.org/job/tobago-1.0.x-deploy/",blue
+  "tobago-1.5.x","https://builds.apache.org/job/tobago-1.5.x/",blue
+  "tobago-1.5.x-deploy","https://builds.apache.org/job/tobago-1.5.x-deploy/",blue
+  "tobago-trunk","https://builds.apache.org/job/tobago-trunk/",blue
+  "tobago-trunk-deploy","https://builds.apache.org/job/tobago-trunk-deploy/",blue
+  "Tomcat-7.x","https://builds.apache.org/job/Tomcat-7.x/",blue
+  "Tomcat-7.x-Maven","https://builds.apache.org/job/Tomcat-7.x-Maven/",yellow
+  "TomcatMavenPlugin-mvn2.x","https://builds.apache.org/job/TomcatMavenPlugin-mvn2.x/",red
+  "TomcatMavenPlugin-mvn3.x","https://builds.apache.org/job/TomcatMavenPlugin-mvn3.x/",blue
+  "torque4-test-project-derby","https://builds.apache.org/job/torque4-test-project-derby/",blue
+  "torque4-test-project-hsqldb","https://builds.apache.org/job/torque4-test-project-hsqldb/",blue
+  "Torque4-trunk","https://builds.apache.org/job/Torque4-trunk/",aborted
+  "traffic-trunk","https://builds.apache.org/job/traffic-trunk/",disabled
+  Trinidad Core 1.0.x (sanity),"https://builds.apache.org/job/Trinidad%20Core%201.0.x%20(sanity)/",disabled
+  Trinidad Core 1.2.x (sanity),"https://builds.apache.org/job/Trinidad%20Core%201.2.x%20(sanity)/",blue
+  Trinidad Core 2.0.x (sanity),"https://builds.apache.org/job/Trinidad%20Core%202.0.x%20(sanity)/",blue
+  Trinidad Core 2.0.x (snapshot),"https://builds.apache.org/job/Trinidad%20Core%202.0.x%20(snapshot)/",blue
+  Trinidad Core Trunk (sanity),"https://builds.apache.org/job/Trinidad%20Core%20Trunk%20(sanity)/",blue
+  Trinidad Core Trunk (snapshot),"https://builds.apache.org/job/Trinidad%20Core%20Trunk%20(snapshot)/",blue
+  Trinidad Plugins 1.2.x (snapshot),"https://builds.apache.org/job/Trinidad%20Plugins%201.2.x%20(snapshot)/",blue
+  Trinidad Plugins 2.0.x (snapshot),"https://builds.apache.org/job/Trinidad%20Plugins%202.0.x%20(snapshot)/",blue
+  Trinidad Site,"https://builds.apache.org/job/Trinidad%20Site/",disabled
+  Turbine Core,"https://builds.apache.org/job/Turbine%20Core/",aborted
+  Turbine Fulcrum,"https://builds.apache.org/job/Turbine%20Fulcrum/",aborted
+  "Tuscany-1x","https://builds.apache.org/job/Tuscany-1x/",blue
+  "Tuscany-2.0-Beta2-branch","https://builds.apache.org/job/Tuscany-2.0-Beta2-branch/",red
+  "Tuscany-2.0-Beta2-tag","https://builds.apache.org/job/Tuscany-2.0-Beta2-tag/",blue
+  "Tuscany-2x","https://builds.apache.org/job/Tuscany-2x/",red
+  "Tuscany-2x-all","https://builds.apache.org/job/Tuscany-2x-all/",grey
+  "Tuscany-2x-compliance","https://builds.apache.org/job/Tuscany-2x-compliance/",blue
+  "Tuscany-2x-deploy","https://builds.apache.org/job/Tuscany-2x-deploy/",red
+  "Tuscany-2x-distributions","https://builds.apache.org/job/Tuscany-2x-distributions/",blue
+  "Tuscany-2x-temp","https://builds.apache.org/job/Tuscany-2x-temp/",disabled
+  "Tuscany-2x-tests","https://builds.apache.org/job/Tuscany-2x-tests/",aborted
+  "Tuscany-DAS","https://builds.apache.org/job/Tuscany-DAS/",red
+  "Tuscany-jms-test-runner","https://builds.apache.org/job/Tuscany-jms-test-runner/",red
+  "Tuscany-oasis-jms-contributions","https://builds.apache.org/job/Tuscany-oasis-jms-contributions/",red
+  "Tuscany-quick-all-distro","https://builds.apache.org/job/Tuscany-quick-all-distro/",blue
+  "Tuscany-SDO","https://builds.apache.org/job/Tuscany-SDO/",red
+  "Tuscany-test","https://builds.apache.org/job/Tuscany-test/",red
+  "Tuscany-test2","https://builds.apache.org/job/Tuscany-test2/",red
+  Ubuntu1,"https://builds.apache.org/job/Ubuntu1/",blue
+  Ubuntu2,"https://builds.apache.org/job/Ubuntu2/",blue
+  UIMA Addons,"https://builds.apache.org/job/UIMA%20Addons/",red
+  "UIMA-AS","https://builds.apache.org/job/UIMA-AS/",aborted
+  "UIMA-SDK","https://builds.apache.org/job/UIMA-SDK/",blue
+  "UIMA-TextMarker","https://builds.apache.org/job/UIMA-TextMarker/",blue
+  "UIMA-uimaFIT","https://builds.apache.org/job/UIMA-uimaFIT/",red
+  UIMAJ SDK java7,"https://builds.apache.org/job/UIMAJ%20SDK%20java7/",red
+  "vysper-trunk-harmony1.5-ubuntu","https://builds.apache.org/job/vysper-trunk-harmony1.5-ubuntu/",disabled
+  "vysper-trunk-jdk1.5-ibm-ubuntu","https://builds.apache.org/job/vysper-trunk-jdk1.5-ibm-ubuntu/",red
+  "vysper-trunk-jdk1.5-solaris","https://builds.apache.org/job/vysper-trunk-jdk1.5-solaris/",disabled
+  "vysper-trunk-jdk1.5-ubuntu","https://builds.apache.org/job/vysper-trunk-jdk1.5-ubuntu/",red
+  "vysper-trunk-jdk1.6-ibm-ubuntu","https://builds.apache.org/job/vysper-trunk-jdk1.6-ibm-ubuntu/",blue
+  "vysper-trunk-jdk1.6-solaris","https://builds.apache.org/job/vysper-trunk-jdk1.6-solaris/",disabled
+  "vysper-trunk-jdk1.6-ubuntu","https://builds.apache.org/job/vysper-trunk-jdk1.6-ubuntu/",blue
+  "vysper-trunk-jdk1.6-windows","https://builds.apache.org/job/vysper-trunk-jdk1.6-windows/",blue
+  "wagon-benchmarks","https://builds.apache.org/job/wagon-benchmarks/",aborted
+  "wave-all_tests","https://builds.apache.org/job/wave-all_tests/",disabled
+  "wave-small_tests","https://builds.apache.org/job/wave-small_tests/",disabled
+  "Whirr-Solaris","https://builds.apache.org/job/Whirr-Solaris/",blue
+  "Whirr-Ubuntu","https://builds.apache.org/job/Whirr-Ubuntu/",blue
+  Windows1,"https://builds.apache.org/job/Windows1/",red
+  "Wink-Trunk-JDK1.5","https://builds.apache.org/job/Wink-Trunk-JDK1.5/",disabled
+  "Wink-Trunk-JDK1.5-itests","https://builds.apache.org/job/Wink-Trunk-JDK1.5-itests/",disabled
+  "Wink-Trunk-JDK1.6","https://builds.apache.org/job/Wink-Trunk-JDK1.6/",blue
+  "Wink-Trunk-JDK1.6-itests","https://builds.apache.org/job/Wink-Trunk-JDK1.6-itests/",disabled
+  "woden-trunk","https://builds.apache.org/job/woden-trunk/",blue
+  "ws-axiom-trunk","https://builds.apache.org/job/ws-axiom-trunk/",blue
+  "wss4j-1.5","https://builds.apache.org/job/wss4j-1.5/",blue
+  "wss4j-1.6","https://builds.apache.org/job/wss4j-1.6/",blue
+  "wss4j-trunk","https://builds.apache.org/job/wss4j-trunk/",blue
+  "xmlschema-1.4-branch-jdk15","https://builds.apache.org/job/xmlschema-1.4-branch-jdk15/",blue
+  "xmlschema-trunk-eclipse-support","https://builds.apache.org/job/xmlschema-trunk-eclipse-support/",red
+  "xmlschema-trunk-jdk15","https://builds.apache.org/job/xmlschema-trunk-jdk15/",red
+  "ZooKeeper-3.4-WinVS2008_java","https://builds.apache.org/job/ZooKeeper-3.4-WinVS2008_java/",red
+  "ZooKeeper-trunk","https://builds.apache.org/job/ZooKeeper-trunk/",blue
+  "ZooKeeper-trunk-ibm6","https://builds.apache.org/job/ZooKeeper-trunk-ibm6/",red
+  "ZooKeeper-trunk-jdk7","https://builds.apache.org/job/ZooKeeper-trunk-jdk7/",blue
+  "ZooKeeper-trunk-openjdk7","https://builds.apache.org/job/ZooKeeper-trunk-openjdk7/",blue
+  "ZooKeeper-trunk-solaris","https://builds.apache.org/job/ZooKeeper-trunk-solaris/",red
+  "ZooKeeper-trunk-WinVS2008","https://builds.apache.org/job/ZooKeeper-trunk-WinVS2008/",red
+  "ZooKeeper-trunk-WinVS2008_java","https://builds.apache.org/job/ZooKeeper-trunk-WinVS2008_java/",red
+  ZooKeeper_branch33,"https://builds.apache.org/job/ZooKeeper_branch33/",blue
+  ZooKeeper_branch33_solaris,"https://builds.apache.org/job/ZooKeeper_branch33_solaris/",red
+  ZooKeeper_branch34,"https://builds.apache.org/job/ZooKeeper_branch34/",blue
+  ZooKeeper_branch34_jdk7,"https://builds.apache.org/job/ZooKeeper_branch34_jdk7/",red
+  ZooKeeper_branch34_openjdk7,"https://builds.apache.org/job/ZooKeeper_branch34_openjdk7/",blue
+  ZooKeeper_branch34_solaris,"https://builds.apache.org/job/ZooKeeper_branch34_solaris/",aborted_anime
+overallLoad:
+primaryView:
+  name: All
+  url: "https://builds.apache.org/"
+quietingDown: false
+slaveAgentPort: 0
+unlabeledLoad:
+useCrumbs: true
+useSecurity: true
+views[4]{name,url}:
+  All,"https://builds.apache.org/"
+  CloudStack,"https://builds.apache.org/view/CloudStack/"
+  Hadoop,"https://builds.apache.org/view/Hadoop/"
+  Onami,"https://builds.apache.org/view/Onami/"

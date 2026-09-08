@@ -44,6 +44,7 @@ enum State {
         headers: Vec<(usize, usize)>,
         rows_count: usize,
         delimiter: u8,
+        is_root: bool,
     },
 
     /// Parse inline array
@@ -59,13 +60,7 @@ enum State {
         count: usize,
         key: Option<(usize, usize)>,
         delimiter: u8,
-    },
-
-    /// Same as ParseInlineArray but meant to be called only from root arrays.
-    ParseInlineArrayRoot {
-        count: usize,
-        key: Option<(usize, usize)>,
-        delimiter: u8,
+        is_root: bool,
     },
 
     /// Parse empty array:
@@ -74,10 +69,10 @@ enum State {
     /// ```
     /// This header is a complete value on its own:
     /// nothing follows the `:` on this line, nothing is nested below it,
-    ParseEmptyArray { key: Option<(usize, usize)> },
-
-    /// Same as ParseEmptyArray but meant to be called only from root array
-    ParseEmptyArrayRoot { key: Option<(usize, usize)> },
+    ParseEmptyArray {
+        key: Option<(usize, usize)>,
+        is_root: bool,
+    },
 
     /// Parse tabular array
     /// ```
@@ -96,6 +91,7 @@ enum State {
         headers: Vec<(usize, usize)>,
         rows_count: usize,
         delimiter: u8,
+        is_root: bool,
     },
 
     /// Parse nested field groups array
@@ -113,6 +109,8 @@ enum State {
         nested_fields: NestedFields,
         rows_count: usize,
         delimiter: u8,
+        /// True when this header is the very first one in the document and has no key.
+        is_root: bool,
     },
 
     /// Parse Mixed and Non-Uniform Arrays
@@ -142,12 +140,7 @@ enum State {
     ParseBlockArray {
         count: usize,
         key: Option<(usize, usize)>,
-    },
-
-    /// Same as ParseBlockArray but meant to be called only from root array
-    ParseBlockArrayRoot {
-        count: usize,
-        key: Option<(usize, usize)>,
+        is_root: bool,
     },
 
     /// Expect the next hyphen-prefixed element (`- ...`) of a block array.
@@ -985,9 +978,9 @@ impl<'de> Deserializer<'de> {
 
         let (root_is_object, root_is_array) = match &header_type {
             HeaderType::ObjectStart { .. } => (true, false),
+            HeaderType::KeyedTabularObjects { .. } => (true, false),
             HeaderType::SimpleArray { key, .. }
             | HeaderType::EmptyArray { key, .. }
-            | HeaderType::KeyedTabularObjects { key, .. }
             | HeaderType::TabularArray { key, .. }
             | HeaderType::NestedFieldGroupsArray { key, .. } => (key.is_some(), key.is_none()),
             HeaderType::PrimitiveValue { .. } => (false, false),
@@ -1021,34 +1014,26 @@ impl<'de> Deserializer<'de> {
                 update_char!(); // step past the header's ':'
 
                 if c == b'\n' {
-                    if root_is_array {
-                        state = State::ParseBlockArrayRoot { count, key };
-                    } else {
-                        state = State::ParseBlockArray { count, key };
-                    }
+                    state = State::ParseBlockArray {
+                        count,
+                        key,
+                        is_root: root_is_array,
+                    };
                 } else {
-                    if root_is_array {
-                        state = State::ParseInlineArrayRoot {
-                            count,
-                            key,
-                            delimiter,
-                        };
-                    } else {
-                        state = State::ParseInlineArray {
-                            count,
-                            key,
-                            delimiter,
-                        };
-                    }
+                    state = State::ParseInlineArray {
+                        count,
+                        key,
+                        delimiter,
+                        is_root: root_is_array,
+                    };
                 }
             }
 
             HeaderType::EmptyArray { key } => {
-                if root_is_array {
-                    state = State::ParseEmptyArrayRoot { key }
-                } else {
-                    state = State::ParseEmptyArray { key };
-                }
+                state = State::ParseEmptyArray {
+                    key,
+                    is_root: root_is_array,
+                };
             }
 
             HeaderType::KeyedTabularObjects {
@@ -1062,6 +1047,14 @@ impl<'de> Deserializer<'de> {
                     headers,
                     rows_count,
                     delimiter,
+                    // Unlike `root_is_object` (which only says whether a
+                    // placeholder `Object` was inserted -- true here even
+                    // when keyed, since the map itself is always an
+                    // Object), reuse of that placeholder is only correct
+                    // when this header has no key: a keyed header's
+                    // placeholder is the *wrapping* document root, and the
+                    // map still needs its own, separate container.
+                    is_root: key.is_none(),
                 };
             }
 
@@ -1076,6 +1069,7 @@ impl<'de> Deserializer<'de> {
                     headers,
                     rows_count,
                     delimiter,
+                    is_root: root_is_array,
                 };
             }
 
@@ -1090,6 +1084,7 @@ impl<'de> Deserializer<'de> {
                     nested_fields,
                     rows_count,
                     delimiter,
+                    is_root: root_is_array,
                 };
             }
 
@@ -1122,18 +1117,26 @@ impl<'de> Deserializer<'de> {
                             update_char!(); // step past the header's ':'
 
                             if c == b'\n' {
-                                goto!(State::ParseBlockArray { count, key })
+                                goto!(State::ParseBlockArray {
+                                    count,
+                                    key,
+                                    is_root: false
+                                })
                             } else {
                                 goto!(State::ParseInlineArray {
                                     count,
                                     key,
-                                    delimiter
+                                    delimiter,
+                                    is_root: false,
                                 })
                             }
                         }
 
                         HeaderType::EmptyArray { key, .. } => {
-                            goto!(State::ParseEmptyArray { key })
+                            goto!(State::ParseEmptyArray {
+                                key,
+                                is_root: false
+                            })
                         }
 
                         HeaderType::KeyedTabularObjects {
@@ -1146,7 +1149,8 @@ impl<'de> Deserializer<'de> {
                                 key,
                                 headers,
                                 rows_count,
-                                delimiter
+                                delimiter,
+                                is_root: false
                             })
                         }
 
@@ -1160,7 +1164,8 @@ impl<'de> Deserializer<'de> {
                                 key,
                                 headers,
                                 rows_count,
-                                delimiter
+                                delimiter,
+                                is_root: false
                             })
                         }
 
@@ -1174,7 +1179,8 @@ impl<'de> Deserializer<'de> {
                                 key,
                                 nested_fields,
                                 rows_count,
-                                delimiter
+                                delimiter,
+                                is_root: false
                             })
                         }
 
@@ -1236,7 +1242,7 @@ impl<'de> Deserializer<'de> {
                     }
                 }
 
-                State::ParseEmptyArrayRoot { key } => {
+                State::ParseEmptyArray { key, is_root } => {
                     update_char!(); // step past the header's ':'
 
                     if let Some((key_start, key_end)) = key {
@@ -1244,64 +1250,12 @@ impl<'de> Deserializer<'de> {
                         insert_str!(key_start, key_end);
                     }
 
-                    content_ws_stack.push(curr_indent!() + indent_size);
-                    match get_eol_state!() {
-                        EOLState::CloseScope | EOLState::Sibling => goto!(State::ScopeEnd),
-                        EOLState::Nested => {
-                            fail!(ErrorType::NoStructure);
-                        }
-                    }
-                }
-
-                State::ParseEmptyArray { key } => {
-                    update_char!(); // step past the header's ':'
-
-                    if let Some((key_start, key_end)) = key {
-                        cnt += 1;
-                        insert_str!(key_start, key_end);
+                    if unlikely!(is_root) {
+                        content_ws_stack.push(curr_indent!() + indent_size);
+                    } else {
+                        open_scope!(Array, parent: frame!(keyed key), indent: curr_indent!() + indent_size);
                     }
 
-                    open_scope!(Array, parent: frame!(keyed key), indent: curr_indent!() + indent_size);
-                    match get_eol_state!() {
-                        EOLState::CloseScope | EOLState::Sibling => goto!(State::ScopeEnd),
-                        EOLState::Nested => {
-                            fail!(ErrorType::NoStructure);
-                        }
-                    }
-                }
-
-                State::ParseInlineArrayRoot {
-                    count,
-                    key,
-                    delimiter,
-                } => {
-                    if let Some((key_start, key_end)) = key {
-                        cnt += 1;
-                        insert_str!(key_start, key_end);
-                    }
-
-                    // Parse all elements except the last one
-                    for _ in 1..count {
-                        cnt += 1;
-
-                        let value_start = idx;
-                        let value_end = get_value_end!(ErrorType::Syntax, delimiter);
-                        insert_inferred_value!(value_start, value_end);
-
-                        if unlikely!(c != delimiter) {
-                            fail!(ErrorType::Syntax);
-                        }
-
-                        update_char!();
-                    }
-
-                    // Parse the final element
-                    cnt += 1;
-                    let value_start = idx;
-                    let value_end = get_value_end!(ErrorType::Syntax, b'\n');
-                    insert_inferred_value!(value_start, value_end);
-
-                    content_ws_stack.push(curr_indent!() + indent_size);
                     match get_eol_state!() {
                         EOLState::CloseScope | EOLState::Sibling => goto!(State::ScopeEnd),
                         EOLState::Nested => {
@@ -1314,13 +1268,18 @@ impl<'de> Deserializer<'de> {
                     count,
                     key,
                     delimiter,
+                    is_root,
                 } => {
                     if let Some((key_start, key_end)) = key {
                         cnt += 1;
                         insert_str!(key_start, key_end);
                     }
 
-                    open_scope!(Array, parent: frame!(keyed key), indent: curr_indent!());
+                    if unlikely!(is_root) {
+                        content_ws_stack.push(curr_indent!() + indent_size);
+                    } else {
+                        open_scope!(Array, parent: frame!(keyed key), indent: curr_indent!());
+                    }
 
                     // Parse all elements except the last one
                     for _ in 1..count {
@@ -1351,7 +1310,11 @@ impl<'de> Deserializer<'de> {
                     }
                 }
 
-                State::ParseBlockArrayRoot { count, key } => {
+                State::ParseBlockArray {
+                    count,
+                    key,
+                    is_root,
+                } => {
                     if let Some((key_start, key_end)) = key {
                         cnt += 1;
                         insert_str!(key_start, key_end);
@@ -1361,22 +1324,12 @@ impl<'de> Deserializer<'de> {
                         fail!(ErrorType::ExpectedArrayContent);
                     }
 
-                    pending_counts.push((depth, count));
-                    content_ws_stack.push(curr_indent!() + indent_size);
-                    goto!(State::ExpectBlockArrayItem);
-                }
-
-                State::ParseBlockArray { count, key } => {
-                    if let Some((key_start, key_end)) = key {
-                        cnt += 1;
-                        insert_str!(key_start, key_end);
+                    if unlikely!(is_root) {
+                        content_ws_stack.push(curr_indent!() + indent_size);
+                    } else {
+                        open_scope!(Array, parent: frame!(keyed key), indent: curr_indent!() + indent_size);
                     }
 
-                    if !matches!(get_eol_state!(), EOLState::Nested) {
-                        fail!(ErrorType::ExpectedArrayContent);
-                    }
-
-                    open_scope!(Array, parent: frame!(keyed key), indent: curr_indent!() + indent_size);
                     pending_counts.push((depth, count));
                     goto!(State::ExpectBlockArrayItem);
                 }
@@ -1465,20 +1418,27 @@ impl<'de> Deserializer<'de> {
                             update_char!(); // step past the header's ':'
 
                             if c == b'\n' {
-                                content_ws_stack.push(curr_indent!());
-                                goto!(State::ParseBlockArray { count, key })
+                                goto!(State::ParseBlockArray {
+                                    count,
+                                    key,
+                                    is_root: false
+                                })
                             } else {
                                 goto!(State::ParseInlineArray {
                                     count,
                                     key,
-                                    delimiter
+                                    delimiter,
+                                    is_root: false
                                 })
                             }
                         }
 
                         HeaderType::EmptyArray { key } => {
                             wrap_keyed_item!(key);
-                            goto!(State::ParseEmptyArray { key })
+                            goto!(State::ParseEmptyArray {
+                                key,
+                                is_root: false
+                            })
                         }
 
                         // `- key[N:]{...}:`: an object whose first field is a keyed
@@ -1494,7 +1454,8 @@ impl<'de> Deserializer<'de> {
                                 key,
                                 headers,
                                 rows_count,
-                                delimiter
+                                delimiter,
+                                is_root: false
                             })
                         }
 
@@ -1509,7 +1470,8 @@ impl<'de> Deserializer<'de> {
                                 key,
                                 headers,
                                 rows_count,
-                                delimiter
+                                delimiter,
+                                is_root: false
                             })
                         }
 
@@ -1524,7 +1486,8 @@ impl<'de> Deserializer<'de> {
                                 key,
                                 nested_fields,
                                 rows_count,
-                                delimiter
+                                delimiter,
+                                is_root: false
                             })
                         }
                     }
@@ -1535,6 +1498,7 @@ impl<'de> Deserializer<'de> {
                     headers,
                     rows_count,
                     delimiter,
+                    is_root,
                 } => {
                     if let Some((key_start, key_end)) = key {
                         cnt += 1;
@@ -1546,7 +1510,11 @@ impl<'de> Deserializer<'de> {
                         fail!(ErrorType::ExpectedArrayContent);
                     }
 
-                    open_scope!(Object, parent: frame!(keyed key), indent: curr_indent!() + indent_size);
+                    if unlikely!(is_root) {
+                        content_ws_stack.push(curr_indent!() + indent_size);
+                    } else {
+                        open_scope!(Object, parent: frame!(keyed key), indent: curr_indent!() + indent_size);
+                    }
 
                     let n_headers = headers.len();
 
@@ -1672,6 +1640,7 @@ impl<'de> Deserializer<'de> {
                     headers,
                     rows_count,
                     delimiter,
+                    is_root,
                 } => {
                     if let Some((key_start, key_end)) = key {
                         cnt += 1;
@@ -1683,7 +1652,11 @@ impl<'de> Deserializer<'de> {
                         fail!(ErrorType::ExpectedArrayContent);
                     }
 
-                    open_scope!(Array, parent: frame!(keyed key), indent: curr_indent!() + indent_size);
+                    if unlikely!(is_root) {
+                        content_ws_stack.push(curr_indent!() + indent_size);
+                    } else {
+                        open_scope!(Array, parent: frame!(keyed key), indent: curr_indent!() + indent_size);
+                    }
 
                     let n_headers = headers.len();
 
@@ -1774,6 +1747,7 @@ impl<'de> Deserializer<'de> {
                         },
                     rows_count,
                     delimiter,
+                    is_root,
                 } => {
                     if let Some((key_start, key_end)) = key {
                         cnt += 1;
@@ -1792,7 +1766,12 @@ impl<'de> Deserializer<'de> {
                     }
 
                     let mut entry_stack: Vec<WorkItem> = Vec::new();
-                    open_scope!(Array, parent: frame!(keyed key), indent: curr_indent!() + indent_size);
+
+                    if unlikely!(is_root) {
+                        content_ws_stack.push(curr_indent!() + indent_size);
+                    } else {
+                        open_scope!(Array, parent: frame!(keyed key), indent: curr_indent!() + indent_size);
+                    }
 
                     for _ in 0..(rows_count - 1) {
                         cnt += 1;

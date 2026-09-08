@@ -141,11 +141,86 @@ fn test_tape_nested_field_groups() {
 #[test]
 fn playground() {
     let mut d = String::from(
-        "#1\n#2\na:1",
+        "assignedLabels[1]:\n  -",
     );
     let d = unsafe { d.as_bytes_mut() };
     let simd = Deserializer::from_slice(d).expect("");
     println!("{:?}", simd.tape)
+}
+
+#[test]
+fn test_root_tabular_array() {
+    let mut d = String::from("[2|]{id}:\n  1\n  2");
+    let d = unsafe { d.as_bytes_mut() };
+    let simd = Deserializer::from_slice(d).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Array { len: 2, count: 6 },
+            Node::Object { len: 1, count: 2 },
+            Node::String("id"),
+            Node::Static(StaticNode::U64(1)),
+            Node::Object { len: 1, count: 2 },
+            Node::String("id"),
+            Node::Static(StaticNode::U64(2)),
+        ]
+    );
+}
+
+#[test]
+fn test_root_nested_field_groups_array() {
+    let mut d = String::from("[2]{id,geo{lat,lon}}:\n  1,1.5,2.5\n  2,3,4");
+    let d = unsafe { d.as_bytes_mut() };
+    let simd = Deserializer::from_slice(d).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Array { len: 2, count: 18 },
+            Node::Object { len: 2, count: 8 },
+            Node::String("id"),
+            Node::Static(StaticNode::U64(1)),
+            Node::String("geo"),
+            Node::Object { len: 2, count: 4 },
+            Node::String("lat"),
+            Node::Static(StaticNode::F64(1.5)),
+            Node::String("lon"),
+            Node::Static(StaticNode::F64(2.5)),
+            Node::Object { len: 2, count: 8 },
+            Node::String("id"),
+            Node::Static(StaticNode::U64(2)),
+            Node::String("geo"),
+            Node::Object { len: 2, count: 4 },
+            Node::String("lat"),
+            Node::Static(StaticNode::U64(3)),
+            Node::String("lon"),
+            Node::Static(StaticNode::U64(4)),
+        ]
+    );
+}
+
+#[test]
+fn test_root_keyed_tabular_objects() {
+    let mut d = String::from("[2:]{age,city}:\n  alice: 30,Berlin\n  bob: 25,Oslo\n");
+    let d = unsafe { d.as_bytes_mut() };
+    let simd = Deserializer::from_slice(d).expect("");
+    assert_eq!(
+        simd.tape,
+        [
+            Node::Object { len: 2, count: 12 },
+            Node::String("alice"),
+            Node::Object { len: 2, count: 4 },
+            Node::String("age"),
+            Node::Static(StaticNode::U64(30)),
+            Node::String("city"),
+            Node::String("Berlin"),
+            Node::String("bob"),
+            Node::Object { len: 2, count: 4 },
+            Node::String("age"),
+            Node::Static(StaticNode::U64(25)),
+            Node::String("city"),
+            Node::String("Oslo"),
+        ]
+    );
 }
 
 #[test]
@@ -1255,6 +1330,14 @@ fn test_tab_indented_hash_is_not_a_comment() {
     let mut d = String::from("a: 1\n\t# not a comment");
     let d = unsafe { d.as_bytes_mut() };
     assert!(Deserializer::from_slice(d).is_err());
+}
+
+#[test]
+fn test_sibling_after_block_array_item_with_nested_block_array_header_panics() {
+    let mut d = String::from("a[2]:\n  - b[1]:\n      - 0\n  - x: 1\n");
+    let d = unsafe { d.as_bytes_mut() };
+    let simd = Deserializer::from_slice(d).expect("failed to parse");
+    println!("{:?}", simd.tape);
 }
 
 /// A comment, and the indentation in front of one, can outrun the 64-byte block

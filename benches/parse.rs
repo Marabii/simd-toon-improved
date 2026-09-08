@@ -7,25 +7,29 @@ use core::time::Duration;
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
-#[cfg(feature = "bench-serde")]
-use serde_json;
+use serde_json::Value;
 
 use criterion::{BatchSize, Criterion, Throughput, criterion_group};
-use simd_json::Buffers;
+use simd_toon::Buffers;
+use toon_format::decode_default;
 
 use std::fs::File;
 use std::io::Read;
 
 fn to_borrowed_value(data: &mut [u8]) {
-    simd_json::to_borrowed_value(data).unwrap();
+    simd_toon::to_borrowed_value(data).unwrap();
 }
 
 fn to_borrowed_value_with_buffers(data: &mut [u8], buffers: &mut Buffers) {
-    simd_json::to_borrowed_value_with_buffers(data, buffers).unwrap();
+    simd_toon::to_borrowed_value_with_buffers(data, buffers).unwrap();
 }
 
-fn to_owned_value(data: &mut [u8]) -> simd_json::OwnedValue {
-    simd_json::to_owned_value(data).unwrap()
+fn to_owned_value(data: &mut [u8]) -> simd_toon::OwnedValue {
+    simd_toon::to_owned_value(data).unwrap()
+}
+
+fn toon_format_decode(data: &str) -> Value {
+    decode_default(data).unwrap()
 }
 
 #[cfg(feature = "bench-serde")]
@@ -40,7 +44,7 @@ macro_rules! bench_file {
             core_affinity::set_for_current(core_ids[0]);
 
             let mut vec = Vec::new();
-            File::open(concat!("data/", stringify!($name), ".json"))
+            File::open(concat!("data/", stringify!($name), ".toon"))
                 .unwrap()
                 .read_to_end(&mut vec)
                 .unwrap();
@@ -53,7 +57,7 @@ macro_rules! bench_file {
 
             let mut buffers = Buffers::default();
 
-            group.bench_with_input("simd_json::to_borrowed_value", &vec, |b, data| {
+            group.bench_with_input("simd_toon::to_borrowed_value", &vec, |b, data| {
                 b.iter_batched_ref(
                     || data.clone(),
                     |bytes| to_borrowed_value(bytes),
@@ -62,7 +66,7 @@ macro_rules! bench_file {
             });
 
             group.bench_with_input(
-                "simd_json::to_borrowed_value_with_buffers",
+                "simd_toon::to_borrowed_value_with_buffers",
                 &vec,
                 |b, data| {
                     b.iter_batched_ref(
@@ -73,12 +77,16 @@ macro_rules! bench_file {
                 },
             );
 
-            group.bench_with_input("simd_json::to_owned_value", &vec, |b, data| {
+            group.bench_with_input("simd_toon::to_owned_value", &vec, |b, data| {
                 b.iter_batched_ref(
                     || data.clone(),
                     |bytes| to_owned_value(bytes),
                     BatchSize::SmallInput,
                 )
+            });
+
+            group.bench_with_input("toon_format::decode_default", &vec, |b, data| {
+                b.iter_with_large_drop(|| toon_format_decode(std::str::from_utf8(data).unwrap()))
             });
 
             #[cfg(feature = "bench-serde")]
@@ -99,7 +107,7 @@ bench_file!(twitter);
 
 criterion_group!(
     benches,
-    apache_builds,
+    // apache_builds,
     event_stacktrace_10kb,
     github_events,
     canada,
