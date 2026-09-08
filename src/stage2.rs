@@ -274,7 +274,7 @@ impl<'de> Deserializer<'de> {
         let indent_size = options.indent_size();
 
         res.clear();
-        res.reserve(structural_indexes.len());
+        res.reserve((structural_indexes.len() as f64 * 1.5) as usize);
         stack.clear();
         stack.reserve(structural_indexes.len());
 
@@ -1350,23 +1350,6 @@ impl<'de> Deserializer<'de> {
 
                     cnt += 1;
 
-                    macro_rules! wrap_keyed_item {
-                        ($key:expr_2021) => {
-                            if $key.is_some() {
-                                unsafe {
-                                    stack_ptr
-                                        .add(depth)
-                                        .write(StackState::Array { last_start, cnt });
-                                }
-                                last_start = r_i;
-                                depth += 1;
-                                insert_res!(Node::Object { len: 0, count: 0 });
-                                cnt = 0;
-                                content_ws_stack.push(curr_indent!() + indent_size);
-                            }
-                        };
-                    }
-
                     match read_header!() {
                         HeaderType::PrimitiveValue {
                             val: (val_start, val_end),
@@ -1413,7 +1396,9 @@ impl<'de> Deserializer<'de> {
                             key,
                             delimiter,
                         } => {
-                            wrap_keyed_item!(key);
+                            if key.is_some() {
+                                open_scope!(Object, parent: frame!(Array), indent: curr_indent!() + indent_size);
+                            }
 
                             update_char!(); // step past the header's ':'
 
@@ -1434,7 +1419,10 @@ impl<'de> Deserializer<'de> {
                         }
 
                         HeaderType::EmptyArray { key } => {
-                            wrap_keyed_item!(key);
+                            if key.is_some() {
+                                open_scope!(Object, parent: frame!(Array), indent: curr_indent!() + indent_size);
+                            }
+
                             goto!(State::ParseEmptyArray {
                                 key,
                                 is_root: false
@@ -1449,7 +1437,10 @@ impl<'de> Deserializer<'de> {
                             rows_count,
                             delimiter,
                         } => {
-                            wrap_keyed_item!(key);
+                            if key.is_some() {
+                                open_scope!(Object, parent: frame!(Array), indent: curr_indent!() + indent_size);
+                            }
+
                             goto!(State::ParseTabularObjects {
                                 key,
                                 headers,
@@ -1465,7 +1456,10 @@ impl<'de> Deserializer<'de> {
                             rows_count,
                             delimiter,
                         } => {
-                            wrap_keyed_item!(key);
+                            if key.is_some() {
+                                open_scope!(Object, parent: frame!(Array), indent: curr_indent!() + indent_size);
+                            }
+
                             goto!(State::ParseTabularArray {
                                 key,
                                 headers,
@@ -1481,7 +1475,10 @@ impl<'de> Deserializer<'de> {
                             rows_count,
                             delimiter,
                         } => {
-                            wrap_keyed_item!(key);
+                            if key.is_some() {
+                                open_scope!(Object, parent: frame!(Array), indent: curr_indent!() + indent_size);
+                            }
+
                             goto!(State::ParseNestedFieldGroupsArray {
                                 key,
                                 nested_fields,
