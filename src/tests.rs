@@ -141,7 +141,7 @@ fn test_tape_nested_field_groups() {
 #[test]
 fn playground() {
     let mut d = String::from(
-        "assignedLabels[1]:\n  -",
+        "items[2]{id,geo{point{lat,lon}}}:\n  1,1.5,2.5\n  2,3,4",
     );
     let d = unsafe { d.as_bytes_mut() };
     let simd = Deserializer::from_slice(d).expect("");

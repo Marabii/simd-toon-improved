@@ -107,7 +107,7 @@ bench_file!(twitter);
 
 criterion_group!(
     benches,
-    // apache_builds,
+    apache_builds,
     event_stacktrace_10kb,
     github_events,
     canada,

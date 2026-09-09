@@ -86,7 +86,7 @@ enum State {
     /// ```
     /// Side note, I'm well aware there's a risk of writing to unallocated memory since tabular arrays don't have
     /// enough structurals, I'll work on it later.
-    ParseTabularArray {
+    ParseTabularArrayStrict {
         key: Option<(usize, usize)>,
         headers: Vec<(usize, usize)>,
         rows_count: usize,
@@ -104,7 +104,7 @@ enum State {
     /// ```
     /// {"orders":[ {"id":1,"customer":{"name":"Ada","country":"DK"},"total":99}, {"id":2,"customer":{"name":"Bob","country":"UK"},"total":149} ]}
     /// ```
-    ParseNestedFieldGroupsArray {
+    ParseNestedFieldGroupsArrayStrict {
         key: Option<(usize, usize)>,
         nested_fields: NestedFields,
         rows_count: usize,
@@ -169,6 +169,7 @@ enum FieldEntry {
 struct NestedFields {
     field_entries: Vec<FieldEntry>,
     leaf_count: usize,
+    nested_count: usize,
 }
 
 #[derive(Debug)]
@@ -273,8 +274,14 @@ impl<'de> Deserializer<'de> {
         let strict = options.strict();
         let indent_size = options.indent_size();
 
+        // Some data structures (Tabular Arrays and Nested Field Groups) are so efficient
+        // that the number of tape slots they write out is greater than the number of structural indexes
+        // they have. We introduce a bit of slack to try to avoid as much as possible expensive reallocations.
+        // 5 here is just a heuristic and will need fine-tuning.
+        let mut tape_slack: usize = structural_indexes.len() / 5;
+
         res.clear();
-        res.reserve((structural_indexes.len() as f64 * 1.5) as usize);
+        res.reserve(structural_indexes.len() + tape_slack);
         stack.clear();
         stack.reserve(structural_indexes.len());
 
@@ -290,7 +297,7 @@ impl<'de> Deserializer<'de> {
         ))]
         let parse_str_fn = Self::parse_str_fn();
 
-        let res_ptr = res.as_mut_ptr();
+        let mut res_ptr = res.as_mut_ptr();
         let stack_ptr = stack.as_mut_ptr();
 
         // Current nesting level of arrays/objects.
@@ -358,6 +365,34 @@ impl<'de> Deserializer<'de> {
         #[collapse_debuginfo(yes)]
         macro_rules! get {
             ($a:expr_2021, $i:expr_2021) => {{ unsafe { $a.get_kinda_unchecked($i) } }};
+        }
+
+        #[collapse_debuginfo(yes)]
+        macro_rules! grow_res {
+            () => {{
+                grow_res!(0);
+            }};
+
+            ($minimum_required:expr) => {
+                unsafe {
+                    let old_cap = res.capacity();
+
+                    // the growth factor is another heuristic.
+                    // it is kept small since the number structural indexes is
+                    // so much bigger than the deficit created by tabular arrays and nested field objects
+                    // but again, it must be fine tuned on real data.
+                    let growth_factor = 0.2;
+                    let factor_added = ((old_cap as f64) * growth_factor) as usize;
+
+                    let added_cap = std::cmp::max(factor_added, $minimum_required);
+                    let new_cap = old_cap + added_cap;
+
+                    res.reserve_exact(new_cap - res.len()); // len is always 0 here, so effectively new_cap
+                    res_ptr = res.as_mut_ptr();
+
+                    tape_slack += added_cap;
+                }
+            };
         }
 
         #[collapse_debuginfo(yes)]
@@ -709,11 +744,15 @@ impl<'de> Deserializer<'de> {
 
                                 if unlikely!(c == b'{') {
                                     let mut leaf_count = fields.len();
+                                    let mut nested_count = 0;
                                     let mut field_stack: Vec<Vec<FieldEntry>> =
                                         Vec::with_capacity(4);
+
                                     field_stack
                                         .push(fields.drain(..).map(FieldEntry::Leaf).collect());
+
                                     field_stack.push(Vec::new());
+
                                     let mut pending_names: Vec<(usize, usize)> =
                                         vec![(value_start, value_end)];
 
@@ -767,6 +806,7 @@ impl<'de> Deserializer<'de> {
 
                                             match field_stack.last_mut() {
                                                 Some(level) => {
+                                                    nested_count += 1;
                                                     level.push(FieldEntry::Nested { name, children });
                                                 }
                                                 None => {
@@ -781,6 +821,7 @@ impl<'de> Deserializer<'de> {
                                     nested = Some(NestedFields {
                                         field_entries,
                                         leaf_count,
+                                        nested_count
                                     });
                                     break;
                                 }
@@ -952,10 +993,12 @@ impl<'de> Deserializer<'de> {
 
         update_char!();
 
+        // Skip initial comments.
         if c == b'#' {
             update_char!();
         }
 
+        // Skip any blank lines.
         while c == b'\n' {
             update_char!();
         }
@@ -1064,7 +1107,7 @@ impl<'de> Deserializer<'de> {
                 rows_count,
                 delimiter,
             } => {
-                state = State::ParseTabularArray {
+                state = State::ParseTabularArrayStrict {
                     key,
                     headers,
                     rows_count,
@@ -1079,7 +1122,7 @@ impl<'de> Deserializer<'de> {
                 rows_count,
                 delimiter,
             } => {
-                state = State::ParseNestedFieldGroupsArray {
+                state = State::ParseNestedFieldGroupsArrayStrict {
                     key,
                     nested_fields,
                     rows_count,
@@ -1160,7 +1203,7 @@ impl<'de> Deserializer<'de> {
                             rows_count,
                             delimiter,
                         } => {
-                            goto!(State::ParseTabularArray {
+                            goto!(State::ParseTabularArrayStrict {
                                 key,
                                 headers,
                                 rows_count,
@@ -1175,7 +1218,7 @@ impl<'de> Deserializer<'de> {
                             rows_count,
                             delimiter,
                         } => {
-                            goto!(State::ParseNestedFieldGroupsArray {
+                            goto!(State::ParseNestedFieldGroupsArrayStrict {
                                 key,
                                 nested_fields,
                                 rows_count,
@@ -1460,7 +1503,7 @@ impl<'de> Deserializer<'de> {
                                 open_scope!(Object, parent: frame!(Array), indent: curr_indent!() + indent_size);
                             }
 
-                            goto!(State::ParseTabularArray {
+                            goto!(State::ParseTabularArrayStrict {
                                 key,
                                 headers,
                                 rows_count,
@@ -1479,7 +1522,7 @@ impl<'de> Deserializer<'de> {
                                 open_scope!(Object, parent: frame!(Array), indent: curr_indent!() + indent_size);
                             }
 
-                            goto!(State::ParseNestedFieldGroupsArray {
+                            goto!(State::ParseNestedFieldGroupsArrayStrict {
                                 key,
                                 nested_fields,
                                 rows_count,
@@ -1632,13 +1675,24 @@ impl<'de> Deserializer<'de> {
                     goto!(State::ScopeEnd);
                 }
 
-                State::ParseTabularArray {
+                State::ParseTabularArrayStrict {
                     key,
                     headers,
                     rows_count,
                     delimiter,
                     is_root,
                 } => {
+                    // There are 2 * number_of_headers * rows_count structurals in the body of a tabular
+                    // array but the number of tape slots it produces is
+                    // (2 * number_of_headers + 1) * rows_count
+                    // so the difference is: rows_count
+                    // We only reallocate memory when we run out of slack.
+                    if rows_count > tape_slack {
+                        grow_res!(rows_count - tape_slack);
+                    }
+
+                    tape_slack -= rows_count;
+
                     if let Some((key_start, key_end)) = key {
                         cnt += 1;
                         insert_str!(key_start, key_end);
@@ -1735,17 +1789,32 @@ impl<'de> Deserializer<'de> {
                     goto!(State::ScopeEnd);
                 }
 
-                State::ParseNestedFieldGroupsArray {
+                State::ParseNestedFieldGroupsArrayStrict {
                     key,
                     nested_fields:
                         NestedFields {
                             ref field_entries,
                             leaf_count,
+                            nested_count,
                         },
                     rows_count,
                     delimiter,
                     is_root,
                 } => {
+                    // There are  2 * leaf_count * rows_count
+                    // structurals in the body of a nested group field
+                    // but the number of tape slots it produces is
+                    // (1 + 2 * leaf_count + 2 * nested_count) * rows_count
+                    // so the difference is: (1 + 2 * nested_count) * rows_count
+                    // We only reallocate memory when we run out of slack.
+                    let total_deficit = rows_count * (1 + 2 * nested_count);
+
+                    if total_deficit > tape_slack {
+                        grow_res!(total_deficit - tape_slack);
+                    }
+
+                    tape_slack -= total_deficit;
+
                     if let Some((key_start, key_end)) = key {
                         cnt += 1;
                         insert_str!(key_start, key_end);
