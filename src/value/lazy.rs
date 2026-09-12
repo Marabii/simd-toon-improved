@@ -61,7 +61,7 @@ impl<'tape, 'input> Value<'_, 'tape, 'input> {
     pub fn into_value(self) -> borrowed::Value<'input> {
         match self {
             Value::Tape(tape) => {
-                super::borrowed::BorrowSliceDeserializer::from_tape(tape.0).parse()
+                super::borrowed::BorrowSliceDeserializer::from_tape(tape.0, true).parse()
             }
             Value::Value(value) => value.into_owned(),
         }
@@ -109,7 +109,7 @@ impl<'tape, 'input> Value<'_, 'tape, 'input> {
         std::mem::swap(self, &mut dummy);
         let tape = unsafe { dummy.into_tape() };
 
-        let value = super::borrowed::BorrowSliceDeserializer::from_tape(tape.0).parse();
+        let value = super::borrowed::BorrowSliceDeserializer::from_tape(tape.0, true).parse();
 
         *self = Value::Value(Cow::Owned(value));
     }

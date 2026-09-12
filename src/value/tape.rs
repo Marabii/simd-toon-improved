@@ -38,7 +38,7 @@ impl<'input> Tape<'input> {
     /// # Errors
     /// Returns an error if the deserialization fails
     #[cfg(feature = "serde")]
-    pub fn deserialize<T>(self) -> crate::Result<T>
+    pub fn deserialize<T>(self, strict: bool) -> crate::Result<T>
     where
         T: serde::Deserialize<'input>,
     {
@@ -47,6 +47,7 @@ impl<'input> Tape<'input> {
         let mut deserializer = Deserializer {
             tape: self.0,
             idx: 0,
+            strict,
         };
 
         T::deserialize(&mut deserializer)

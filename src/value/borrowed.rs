@@ -437,7 +437,13 @@ impl<'de> BorrowDeserializer<'de> {
         // element so we eat this
         for _ in 0..len {
             if let Node::String(key) = unsafe { self.0.next_() } {
-                res.insert(key.into(), self.parse());
+                if self.0.strict {
+                    res.insert(key.into(), self.parse());
+                } else {
+                    unsafe {
+                        res.insert_nocheck(key.into(), self.parse());
+                    };
+                }
             } else {
                 unreachable!("parse_map: key not a string");
             }
@@ -448,10 +454,15 @@ impl<'de> BorrowDeserializer<'de> {
 pub(super) struct BorrowSliceDeserializer<'tape, 'de> {
     tape: &'tape [Node<'de>],
     idx: usize,
+    strict: bool,
 }
 impl<'tape, 'de> BorrowSliceDeserializer<'tape, 'de> {
-    pub fn from_tape(de: &'tape [Node<'de>]) -> Self {
-        Self { tape: de, idx: 0 }
+    pub fn from_tape(de: &'tape [Node<'de>], strict: bool) -> Self {
+        Self {
+            tape: de,
+            idx: 0,
+            strict,
+        }
     }
     #[cfg_attr(not(feature = "no-inline"), inline)]
     pub unsafe fn next_(&mut self) -> Node<'de> {
@@ -494,7 +505,13 @@ impl<'tape, 'de> BorrowSliceDeserializer<'tape, 'de> {
         // element so we eat this
         for _ in 0..len {
             if let Node::String(key) = unsafe { self.next_() } {
-                res.insert(key.into(), self.parse());
+                if self.strict {
+                    res.insert(key.into(), self.parse());
+                } else {
+                    unsafe {
+                        res.insert_nocheck(key.into(), self.parse());
+                    };
+                }
             } else {
                 unreachable!("parse_map: key needs to be a string");
             }

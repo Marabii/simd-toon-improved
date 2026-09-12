@@ -208,7 +208,13 @@ where
         // element so we eat this
         for _ in 0..len {
             if let Node::String(key) = unsafe { self.de.next_() } {
-                res.insert(key.into(), self.parse());
+                if self.de.strict {
+                    res.insert(key.into(), self.parse());
+                } else {
+                    unsafe {
+                        res.insert_nocheck(key.into(), self.parse());
+                    };
+                }
             } else {
                 unreachable!("parse_map: key needs to be a string");
             }

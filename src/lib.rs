@@ -343,6 +343,7 @@ pub struct Deserializer<'de> {
     // used (array / object use len) everything else uses idx
     pub(crate) tape: Vec<Node<'de>>,
     idx: usize,
+    strict: bool,
 }
 
 // architecture dependant parse_str
@@ -670,7 +671,11 @@ impl<'de> Deserializer<'de> {
 
         Self::fill_tape(input, buffer, &mut tape, options)?;
 
-        Ok(Self { tape, idx: 0 })
+        Ok(Self {
+            tape,
+            idx: 0,
+            strict: options.strict(),
+        })
     }
 
     #[cfg(feature = "serde_impl")]
