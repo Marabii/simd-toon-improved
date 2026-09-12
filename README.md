@@ -1,43 +1,58 @@
-# SIMD JSON for Rust &emsp; [![Build Status]][simd-json.rs] [![Build Status ARM]][drone.io] [![Quality]][simd-json.rs]  [![Latest Version]][crates.io] [![Code Coverage]][coveralls]
+# simd-toon &emsp; a SIMD-accelerated TOON parser for Rust
 
-[Build Status ARM]: https://cloud.drone.io/api/badges/simd-lite/simd-json/status.svg
-[drone.io]: https://cloud.drone.io/simd-lite/simd-json
-[Build Status]: https://github.com/simd-lite/simd-json/workflows/Tests/badge.svg
-[Quality]: https://github.com/simd-lite/simd-json/workflows/Quality/badge.svg
-[simd-json.rs]: https://simd-json.rs
-[Latest Version]: https://img.shields.io/crates/v/simd-json.svg
-[crates.io]: https://crates.io/crates/simd-json
-[Code Coverage]: https://coveralls.io/repos/github/simd-lite/simd-json/badge.svg?branch=main
-[coveralls]: https://coveralls.io/github/simd-lite/simd-json?branch=main
+> [TOON](https://github.com/toon-format/spec) (Token-Oriented Object Notation) is a compact,
+> indentation-based, human-readable serialization format designed to use far fewer tokens than
+> JSON when fed to LLMs. `simd-toon` parses TOON source text and decodes it into an in-memory
+> value (or any `serde::Deserialize` type).
+> Internally it reuses the battle-tested SIMD stage1/stage2 machinery of
+> [`simd-json`](https://github.com/simd-lite/simd-json) (the value model, tape, and Serde
+> integration are still JSON-shaped).
 
-**Rust port of extremely fast [simdjson](https://github.com/lemire/simdjson) JSON parser with [Serde][serde] compatibility.**
+## ⚠️ Status: work in progress
 
----
+`simd-toon` is under active development (started by [Hamza DADDA](mailto:minehamza97@gmail.com)
+about a month ago) and is **not** feature-complete yet:
 
-simd-json is a Rust port of the [simdjson c++ library](https://simdjson.org/).
-It follows most of the design closely with a few exceptions to make it better
-fit into the Rust ecosystem.
+* **Decoding only.** Encoding TOON output is not implemented.
+* Against the [official TOON conformance fixture suite](https://github.com/toon-format/spec/tree/main/tests),
+  this parser currently passes **319 of 363** fixture cases (~88%) and fails **44**, mostly around
+  strict-mode validation edge cases, keyed tabular headers, and a few root-form/whitespace corner
+  cases. See `src/tests/conformance.rs` and `src/tests/fixtures/` for the up-to-date pass/fail set.
+* The public decode API (`to_borrowed_value`, `to_owned_value`, `DecodeOptions`, `Parser`, the
+  Serde integration) is stable enough to experiment with, but behavior around the remaining
+  failures is still changing.
+
+Contributions, bug reports, and PRs against the failing fixtures are very welcome.
 
 ## Goals
 
-The goal of the Rust port of simdjson is not to create a one-to-one
-copy, but to integrate the principles of the C++ library into
-a Rust library that plays well with the Rust ecosystem. As such
-we provide both compatibility with Serde as well as parsing to a
-DOM to manipulate data.
+The goal of `simd-toon` is a high-performance, SIMD-accelerated **TOON** decoder for Rust. It is
+built by adapting the internals of the Rust [simd-json](https://github.com/simd-lite/simd-json)
+project (itself a port of the [simdjson c++ library](https://simdjson.org/)) to TOON's
+whitespace/indentation-driven grammar instead of JSON's brace-and-bracket grammar. As such we aim
+to provide both compatibility with Serde as well as parsing to a DOM to manipulate data — for
+TOON documents.
 
 ## Performance
 
-As a rule of thumb this library tries to get as close as possible
-to the performance of the C++ implementation (currently tracking 0.2.x, work in progress).
-However, in some design decisions—such as parsing to a DOM or a tape—ergonomics is prioritized over
-performance. In other places Rust makes it harder to achieve the same level of performance.
+Benchmarked against [`toon-format`](https://crates.io/crates/toon-format), the official Rust TOON
+parser (`decode_default`) (values below are median
+times from `cargo bench`, both parsers decoding equivalent TOON input):
 
-To take advantage of this library your system needs to support SIMD instructions. On `x86`, it will
-select the best available supported instruction set (`avx2` or `sse4.2`) when the `runtime-detection` feature
-is enabled (default). On `aarch64` this library uses the `NEON` instruction set. On `wasm` this library uses 
-the `simd128` instruction set when available. When no supported SIMD instructions are found, this library will use a
-fallback implementation, but this is significantly slower.
+| Corpus                  | `simd_toon::to_borrowed_value` | `toon_format::decode_default` | Speedup   |
+|--------------------------|--------------------------------|--------------------------------|-----------|
+| `event_stacktrace_10kb`  | 2.28 µs                        | 30.05 µs                       | ~13.2x    |
+| `github_events`          | 42.36 µs                       | 437.28 µs                      | ~10.3x    |
+| `log`                    | 1.69 µs                        | 14.05 µs                       | ~8.3x     |
+| `twitter`                | 515.76 µs                      | 4.11 ms                        | ~8.0x     |
+| `citm_catalog`           | 1.56 ms                        | 5.86 ms                        | ~3.7x     |
+| `canada`                 | 6.66 ms                        | 18.17 ms                       | ~2.7x     |
+
+`to_owned_value` and `to_borrowed_value_with_buffers` track closely behind `to_borrowed_value` (see
+`benches/` for the full Criterion reports). These numbers will move as the remaining 44 conformance
+fixtures get fixed, since some of that work touches hot paths.
+
+This parser currently only works on CPUs supporting AVX2
 
 ### Allocator
 For best performance, we highly suggest using [snmalloc](https://github.com/microsoft/snmalloc), [mimalloc](https://crates.io/crates/mimalloc) or [jemalloc](https://crates.io/crates/jemalloc)
@@ -45,28 +60,14 @@ instead of the system default allocator.
 
 ## Safety
 
-`simd-json` uses **a lot** of unsafe code.
+`simd-toon` uses **a lot** of unsafe code.
 
 There are a few reasons for this:
 
-* SIMD intrinsics are inherently unsafe. These uses of unsafe are inescapable in a library such as `simd-json`.
+* SIMD intrinsics are inherently unsafe. These uses of unsafe are inescapable in a library such as `simd-toon`.
 * We work around some performance bottlenecks imposed by safe rust. These are avoidable, but at a performance cost.
   This is a more considered path in `simd-json`.
 
-
-`simd-json` goes through extra scrutiny for unsafe code. These steps are:
-
-* Unit tests - to test 'the obvious' cases, edge cases, and regression cases
-* Structural constructive property based testing - We generate random valid JSON objects to exercise the full `simd-json`
-  codebase stochastically. Floats are currently excluded since slightly different parsing algorithms lead to slightly
-  different results here. In short "is simd-json correct".
-* Data-oriented property-based testing of string-like data - to assert that sequences of legal printable characters
-  don't panic or crash the parser (they might and often error so - they are not valid JSON!)
-* Destructive Property based testing - make sure that no illegal byte sequences crash the parser in any way
-* Fuzzing - fuzz based on upstream & jsonorg simd pass/fail cases
-
-This doesn't ensure complete safety nor is at a bulletproof guarantee, but it does go a long way
-to assert that the library is of high production quality and fit for purpose for practical industrial applications.
 
 ## Features
 Various features can be enabled or disabled to tweak various parts of this library. Any features not mentioned here are
@@ -141,47 +142,57 @@ An highly experimental implementation of the algorithm using `std::simd` and up 
 
 ## Usage
 
-simd-json offers three main entry points for usage:
+simd-toon offers three main entry points for usage. In every example the input bytes are **TOON**
+source text.
 
 ### Values API
 
-The values API is a set of optimized DOM objects that allow parsed
-JSON to JSON data that has no known variable structure. `simd-json`
+The values API is a set of optimized DOM objects that hold the decoded
+document when its shape isn't known ahead of time. `simd-toon`
 has two versions of this:
 
 **Borrowed Values**
 
 ```rust
-use simd_json;
-let mut d = br#"{"some": ["key", "value", 2]}"#.to_vec();
-let v: simd_json::BorrowedValue = simd_json::to_borrowed_value(&mut d).unwrap();
+use simd_toon;
+let mut d = b"some[3]: key,value,2".to_vec();
+let v: simd_toon::BorrowedValue = simd_toon::to_borrowed_value(&mut d).unwrap();
 ```
 
 **Owned Values**
 
 ```rust
-use simd_json;
-let mut d = br#"{"some": ["key", "value", 2]}"#.to_vec();
-let v: simd_json::OwnedValue = simd_json::to_owned_value(&mut d).unwrap();
+use simd_toon;
+let mut d = b"some[3]: key,value,2".to_vec();
+let v: simd_toon::OwnedValue = simd_toon::to_owned_value(&mut d).unwrap();
+```
+
+Tabular arrays — TOON's compact row-oriented form for arrays of uniform objects — decode the same
+way:
+
+```rust
+use simd_toon;
+let mut d = b"items[2]{sku,qty,price}:\n  A1,2,9.99\n  B2,1,14.5".to_vec();
+let v: simd_toon::OwnedValue = simd_toon::to_owned_value(&mut d).unwrap();
 ```
 
 ### Serde Compatible API
 
 ```rust ignore
-use simd_json;
+use simd_toon;
 use serde_json::Value;
 
-let mut d = br#"{"some": ["key", "value", 2]}"#.to_vec();
-let v: Value = simd_json::serde::from_slice(&mut d).unwrap();
+let mut d = b"some[3]: key,value,2".to_vec();
+let v: Value = simd_toon::serde::from_slice(&mut d).unwrap();
 ```
 
 ### Tape API
 
 ```rust
-use simd_json;
+use simd_toon;
 
-let mut d = br#"{"the_answer": 42}"#.to_vec();
-let tape = simd_json::to_tape(&mut d).unwrap();
+let mut d = b"the_answer: 42".to_vec();
+let tape = simd_toon::to_tape(&mut d).unwrap();
 let value = tape.as_value();
 // try_get treats value like an object, returns Ok(Some(_)) because the key is found
 assert!(value.try_get("the_answer").unwrap().unwrap() == 42);
@@ -201,19 +212,19 @@ the `indent_size` used to compute nesting depth.
 Every entry point has a `*_with_options` twin:
 
 ```rust
-use simd_json::{DecodeOptions, OwnedValue};
+use simd_toon::{DecodeOptions, OwnedValue};
 
 let options = DecodeOptions::new().with_strict(false);
 
 let mut d = b"name: Ada".to_vec();
-let v: OwnedValue = simd_json::to_owned_value_with_options(&mut d, options).unwrap();
+let v: OwnedValue = simd_toon::to_owned_value_with_options(&mut d, options).unwrap();
 ```
 
 To decode many documents with the same settings, and to reuse the parser's
 buffers while doing so, use a `Parser`:
 
 ```rust
-use simd_json::{DecodeOptions, Parser};
+use simd_toon::{DecodeOptions, Parser};
 
 let mut parser = Parser::with_options(DecodeOptions::new().with_indent_size(4).unwrap());
 
@@ -223,25 +234,25 @@ let v = parser.parse_to_owned_value(&mut d).unwrap();
 
 ## Other interesting things
 
-There are also bindings for upstream `simdjson` available [here](https://github.com/SunDoge/simdjson-rust)
+* The [TOON specification](https://github.com/toon-format/spec) describes the format this crate
+  parses, including the official conformance fixtures this crate is tested against.
+* [`toon-format`](https://crates.io/crates/toon-format) is the official Rust TOON
+  parser, used above as the performance baseline.
 
 ## License
 
-simd-json itself is licensed under either of
+simd-toon is licensed under either of
 
 * [Apache License, Version 2.0, (LICENSE-APACHE)](http://www.apache.org/licenses/LICENSE-2.0)
 * [MIT license (LICENSE-MIT)](http://opensource.org/licenses/MIT)
 
 at your option.
 
-However it ports a lot of code from [simdjson](https://github.com/lemire/simdjson) so their work and copyright on that should also be respected.
+It is built on top of the parsing engine from [`simd-json`](https://github.com/simd-lite/simd-json),
+which itself ports a lot of code from [simdjson](https://github.com/lemire/simdjson), so the
+copyright of both of those projects should be respected.
 
 The [Serde][serde] integration is based on `serde-json` so their copyright should as well be respected.
 
 [serde]: https://serde.rs
 [beef]: https://docs.rs/beef/latest/beef/lean/type.Cow.html
-
-### All Thanks To Our Contributors:
-<a href="https://github.com/simd-lite/simd-json/graphs/contributors">
-  <img alt="GitHub profile pictures of all contributors to simd-json" src="https://contrib.rocks/image?repo=simd-lite/simd-json" />
-</a>

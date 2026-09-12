@@ -140,12 +140,11 @@ fn test_tape_nested_field_groups() {
 
 #[test]
 fn playground() {
-    let mut d = String::from(
-        "items[2]{id,geo{point{lat,lon}}}:\n  1,1.5,2.5\n  2,3,4",
-    );
+    let mut d = String::from("name: Hamza\nname: Aymane");
     let d = unsafe { d.as_bytes_mut() };
-    let simd = Deserializer::from_slice(d).expect("");
-    println!("{:?}", simd.tape)
+    let v: crate::BorrowedValue =
+        crate::to_borrowed_value_with_options(d, DecodeOptions::default()).unwrap();
+    println!("{:?}", v)
 }
 
 #[test]

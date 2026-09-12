@@ -1,14 +1,19 @@
 [package]
 name = "simd-toon"
 version = "0.17.3"
-authors = ["Heinz N. Gies <heinz@licenser.net>", "Sunny Gleason"]
+authors = [
+    "Heinz N. Gies <heinz@licenser.net>",
+    "Sunny Gleason",
+    "Hamza DADDA <minehamza97@gmail.com>",
+]
 edition = "2024"
 exclude = ["data/*", "fuzz/*", "fuzz.sh"]
 license = "Apache-2.0 OR MIT"
-description = "High performance JSON parser based on a port of simdjson"
-repository = "https://github.com/simd-lite/simd-json"
+description = "High-performance SIMD-accelerated TOON (Token-Oriented Object Notation) decoder for Rust, adapted from simd-json's parsing engine. Decode-only; work in progress."
+repository = "https://github.com/Marabii/simd-toon-improved"
 readme = "README.md"
-documentation = "https://docs.rs/simd-json"
+keywords = ["toon", "parser", "simd", "decoder"]
+categories = ["parser-implementations", "encoding"]
 rust-version = "1.93.0"
 
 [dependencies]
