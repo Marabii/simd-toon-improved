@@ -94,6 +94,15 @@ enum State {
         is_root: bool,
     },
 
+    /// Same as ParseTabularArrayStrict but used in lenient mode.
+    /// It's not as efficient as the strict variant.
+    ParseTabularArrayLenient {
+        key: Option<(usize, usize)>,
+        headers: Vec<(usize, usize)>,
+        delimiter: u8,
+        is_root: bool,
+    },
+
     /// Parse nested field groups array
     /// ```
     /// orders[2]{id,customer{name,country},total}:
@@ -369,10 +378,6 @@ impl<'de> Deserializer<'de> {
 
         #[collapse_debuginfo(yes)]
         macro_rules! grow_res {
-            () => {{
-                grow_res!(0);
-            }};
-
             ($minimum_required:expr) => {
                 unsafe {
                     let old_cap = res.capacity();
@@ -569,6 +574,8 @@ impl<'de> Deserializer<'de> {
         }
 
         #[collapse_debuginfo(yes)]
+        /// should_error_on_newline allows us to specify whether encountering consecutive
+        /// newlines should trigger a syntax error.
         macro_rules! get_eol_state {
             () => {
                 get_eol_state!(false)
@@ -1107,13 +1114,22 @@ impl<'de> Deserializer<'de> {
                 rows_count,
                 delimiter,
             } => {
-                state = State::ParseTabularArrayStrict {
-                    key,
-                    headers,
-                    rows_count,
-                    delimiter,
-                    is_root: root_is_array,
-                };
+                if strict {
+                    state = State::ParseTabularArrayStrict {
+                        key,
+                        headers,
+                        rows_count,
+                        delimiter,
+                        is_root: root_is_array,
+                    };
+                } else {
+                    state = State::ParseTabularArrayLenient {
+                        key,
+                        headers,
+                        delimiter,
+                        is_root: root_is_array,
+                    };
+                }
             }
 
             HeaderType::NestedFieldGroupsArray {
@@ -1382,10 +1398,10 @@ impl<'de> Deserializer<'de> {
                         fail!(ErrorType::ExpectedArray);
                     }
 
-                    if let Some(&(d, expected)) = pending_counts.last() {
+                    if strict && let Some(&(d, expected)) = pending_counts.last() {
                         debug_assert_eq!(d, depth);
                         if d == depth && unlikely!(cnt >= expected) {
-                            fail!(ErrorType::Syntax); // more items than declared
+                            fail!(ErrorType::Syntax); // more items than declared (Block array length mismatch)
                         }
                     }
 
@@ -1670,6 +1686,97 @@ impl<'de> Deserializer<'de> {
                         insert_inferred_value!(value_start, value_end);
 
                         close_and_pop_state!(Object);
+                    }
+
+                    goto!(State::ScopeEnd);
+                }
+
+                State::ParseTabularArrayLenient {
+                    key,
+                    headers,
+                    delimiter,
+                    is_root,
+                } => {
+                    // In lenient mode, we can't trust rows_count to be correct.
+                    // So we can't use it to preallocate memory accurately.
+                    // Also looping through rows will be inefficient.
+
+                    // There are 2 * number_of_headers * rows_count structurals in the body of a tabular
+                    // array but the number of tape slots it produces is
+                    // (2 * number_of_headers + 1) * rows_count
+                    // so the difference is: rows_count
+                    // We only reallocate memory when we run out of slack.
+
+                    if let Some((key_start, key_end)) = key {
+                        cnt += 1;
+                        insert_str!(key_start, key_end);
+                    }
+
+                    update_char!(); // step past the header's ':'
+                    if !matches!(get_eol_state!(), EOLState::Nested) {
+                        fail!(ErrorType::ExpectedArrayContent);
+                    }
+
+                    if unlikely!(is_root) {
+                        content_ws_stack.push(curr_indent!() + indent_size);
+                    } else {
+                        open_scope!(Array, parent: frame!(keyed key), indent: curr_indent!() + indent_size);
+                    }
+
+                    let n_headers = headers.len();
+
+                    loop {
+                        if tape_slack <= 1 {
+                            // Each row produces a deficit of 1 tape slot
+                            // Since we can't lean on rows_count to determine how much
+                            // memory we need, we just grow it by the default amount of 20% structural characters.
+                            grow_res!(1);
+                        }
+
+                        tape_slack -= 1;
+
+                        cnt += 1;
+
+                        open_scope!(Object, parent: frame!(Array), indent: curr_indent!());
+
+                        // Handle n - 1 headers:
+                        for &(h_start, h_end) in headers.iter().take(n_headers - 1) {
+                            insert_str!(h_start, h_end);
+                            cnt += 1;
+
+                            let value_start = idx;
+                            let value_end = get_value_end!(ErrorType::Syntax, delimiter);
+                            insert_inferred_value!(value_start, value_end);
+                            update_char!();
+                        }
+
+                        // handle the last header:
+                        let (h_start, h_end) = match headers.last() {
+                            Some(v) => v,
+                            None => {
+                                fail!();
+                            }
+                        };
+
+                        insert_str!(*h_start, *h_end);
+                        cnt += 1;
+
+                        let value_start = idx;
+                        let value_end = get_value_end!(ErrorType::Syntax, b'\n');
+                        insert_inferred_value!(value_start, value_end);
+
+                        close_and_pop_state!(Object);
+
+                        match get_eol_state!(true) {
+                            EOLState::Sibling => {}
+                            // rows must stay at the same indentation
+                            EOLState::Nested => {
+                                fail!(ErrorType::Syntax);
+                            }
+                            EOLState::CloseScope => {
+                                break;
+                            }
+                        }
                     }
 
                     goto!(State::ScopeEnd);
@@ -1973,8 +2080,8 @@ impl<'de> Deserializer<'de> {
                         && d == depth
                     {
                         pending_counts.pop();
-                        if unlikely!(cnt != expected) {
-                            fail!(ErrorType::Syntax); // fewer items than declared
+                        if strict && unlikely!(cnt != expected) {
+                            fail!(ErrorType::Syntax); // fewer items than declared (Block array length mismatch)
                         }
                     }
 
